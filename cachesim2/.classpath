@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/jFreeChart/jcommon-1.0.17.jar"/>
+	<classpathentry kind="lib" path="lib/jFreeChart/jfreechart-1.0.14.jar"/>
+	<classpathentry kind="lib" path="lib/poi-3.8/poi-3.8-20120326.jar"/>
+	<classpathentry kind="lib" path="lib/xz.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
