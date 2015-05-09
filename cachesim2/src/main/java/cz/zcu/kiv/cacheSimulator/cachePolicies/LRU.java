@@ -1,6 +1,7 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
@@ -13,7 +14,7 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * SOURCE: Adapted from article "Analysis of caching algorithms for distributed file systems", by
  * B. Reed and D. D. E. Long
  *  
- * @author Pavel Bžoch
+ * @author Pavel Bï¿½och
  *
  */
 public class LRU implements ICache {
@@ -26,7 +27,7 @@ public class LRU implements ICache {
 	/**
 	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
 	 */
-	private ArrayList<FileOnClient> fOverCapacity;
+	private List<FileOnClient> fOverCapacity;
 	
 
 	/**
@@ -43,8 +44,8 @@ public class LRU implements ICache {
 	 * konstruktor - inicializace cache
 	 */
 	public LRU() {
-		lruQueue = new ArrayList<FileOnClient>();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		lruQueue = new LinkedList<FileOnClient>();
+		this.fOverCapacity = new LinkedList<FileOnClient>();
 	}
 
 	public boolean isInCache(String fName) {
