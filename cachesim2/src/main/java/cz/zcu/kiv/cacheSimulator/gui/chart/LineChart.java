@@ -1,11 +1,13 @@
 
-package cz.zcu.kiv.cacheSimulator.gui;
+package cz.zcu.kiv.cacheSimulator.gui.chart;
 
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+
 import javax.swing.JFrame;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -24,44 +26,44 @@ import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
  */
 @SuppressWarnings("serial")
 public class LineChart extends JFrame{
-    
+
      /**
      * konstruktor - iniciace promennych a vykresleni okna
      * @param title  the frame title.
      * @param sc data
-     * @param dataSelect co chceme vykreslit 
+     * @param dataSelect co chceme vykreslit
      */
-    public LineChart(final String title, UserStatistics sc, int dataSelect) {
+    public LineChart(final String title, final UserStatistics sc, final int dataSelect) {
         super("Cache " + title);
-        
-        setIconImage(new javax.swing.ImageIcon(getClass().getResource("/cz/zcu/kiv/cacheSimulator/ico/results.png")).getImage());
-        
+
+        this.setIconImage(new javax.swing.ImageIcon(this.getClass().getResource("/ico/results.png")).getImage());
+
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setLayout(new BorderLayout(0, 5));
-    
-        final CategoryDataset dataset = createDataset(sc, dataSelect);
-        final JFreeChart chart = createChart(dataset, "Cache " + title, title);
+
+        final CategoryDataset dataset = this.createDataset(sc, dataSelect);
+        final JFreeChart chart = this.createChart(dataset, "Cache " + title, title);
         final ChartPanel chartPanel = new ChartPanel(chart);
         chartPanel.setPreferredSize(new Dimension(800, 600));
         chartPanel.setDisplayToolTips(true);
-        this.setContentPane(chartPanel);       
+        this.setContentPane(chartPanel);
      }
 
     /**
      * Metoda pro vytvoreni datasetu podle dat
      * @return dataset
      */
-    private CategoryDataset createDataset(UserStatistics sc, int dataSelect) {
-        
+    private CategoryDataset createDataset(final UserStatistics sc, final int dataSelect) {
+
         // create the dataset...
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        Integer[] cacheSizes = sc.getCacheSizes();
-        String[] cacheNames = sc.getCacheNames();
-        
+        final Integer[] cacheSizes = sc.getCacheSizes();
+        final String[] cacheNames = sc.getCacheNames();
+
         switch (dataSelect){
             case 0:
                 Double[] vysledkyHitRatio;
-                for (String cacheName:cacheNames){
+                for (final String cacheName:cacheNames){
                     vysledkyHitRatio = sc.getCacheHitRatios(cacheName);
                     for (int i = 0; i < vysledkyHitRatio.length; i++){
                         dataset.addValue(vysledkyHitRatio[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -70,16 +72,16 @@ public class LineChart extends JFrame{
                 break;
             case 1:
                 Long[] vysledkyHitCount;
-                for (String cacheName:cacheNames){
+                for (final String cacheName:cacheNames){
                     vysledkyHitCount = sc.getCacheHits(cacheName);
                     for (int i = 0; i < vysledkyHitCount.length; i++){
                         dataset.addValue(vysledkyHitCount[i], cacheName, cacheSizes[i].toString() + "[MB]");
                     }
                 }
                 break;
-            case 2:          
+            case 2:
                 Double[] vysledkySavedRatio;
-                for (String cacheName:cacheNames){
+                for (final String cacheName:cacheNames){
                     vysledkySavedRatio = sc.getCacheSavedBytesRatio(cacheName);
                     for (int i = 0; i < vysledkySavedRatio.length; i++){
                         dataset.addValue(vysledkySavedRatio[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -88,16 +90,16 @@ public class LineChart extends JFrame{
                 break;
             case 3:
                 Long[] vysledkySavedBytes;
-                for (String cacheName:cacheNames){
+                for (final String cacheName:cacheNames){
                     vysledkySavedBytes = sc.getCacheHits(cacheName);
                     for (int i = 0; i < vysledkySavedBytes.length; i++){
                         dataset.addValue(vysledkySavedBytes[i], cacheName, cacheSizes[i].toString() + "[MB]");
                     }
                 }
                 break;
-            case 4:          
+            case 4:
                 Double[] vysledkyTransfDecreaseRat;
-                for (String cacheName:cacheNames){
+                for (final String cacheName:cacheNames){
                     vysledkyTransfDecreaseRat = sc.getDataTransferDegreaseRatio(cacheName);
                     for (int i = 0; i < vysledkyTransfDecreaseRat.length; i++){
                         dataset.addValue(vysledkyTransfDecreaseRat[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -106,7 +108,7 @@ public class LineChart extends JFrame{
             break;
             default:
                 Long[] vysledkyTransfDecrease;
-                for (String cacheName:cacheNames){
+                for (final String cacheName:cacheNames){
                     vysledkyTransfDecrease = sc.getDataTransferDegrease(cacheName);
                     for (int i = 0; i < vysledkyTransfDecrease.length; i++){
                         dataset.addValue(vysledkyTransfDecrease[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -116,9 +118,9 @@ public class LineChart extends JFrame{
         }
         return dataset;
     }
-    
-  private JFreeChart createChart(final CategoryDataset dataset, String title, String value) {
-  
+
+  private JFreeChart createChart(final CategoryDataset dataset, final String title, final String value) {
+
         // create the chart...
         final JFreeChart chart = ChartFactory.createLineChart(
             title,                      // chart title
@@ -156,10 +158,10 @@ public class LineChart extends JFrame{
         // *                                                                          *
         // * http://www.object-refinery.com/jfreechart/guide.html                     *
         // *                                                                          *
-        // * Sales are used to provide funding for the JFreeChart project - please    * 
+        // * Sales are used to provide funding for the JFreeChart project - please    *
         // * support us so that we can continue developing free software.             *
         // ****************************************************************************
-        
+
         // customise the renderer...
         final LineAndShapeRenderer renderer = (LineAndShapeRenderer) plot.getRenderer();
 //        renderer.setDrawShapes(true);
@@ -183,8 +185,8 @@ public class LineChart extends JFrame{
             )
         );
         // OPTIONAL CUSTOMISATION COMPLETED.
-        
+
         return chart;
     }
-    
+
 }

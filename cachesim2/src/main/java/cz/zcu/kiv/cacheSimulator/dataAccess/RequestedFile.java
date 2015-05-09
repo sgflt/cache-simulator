@@ -6,7 +6,7 @@ package cz.zcu.kiv.cacheSimulator.dataAccess;
  * @author Pavel Bzoch
  *
  */
-public class RequstedFile {
+public class RequestedFile {
 	/**
 	 * promenna pro uchovani jmena souboru
 	 */
@@ -44,7 +44,7 @@ public class RequstedFile {
 	 * @param fSize velikost souboru
 	 * @param userID identifikace uzivatele
 	 */
-	public RequstedFile(String fname, long accessTime, long fSize, long userID, boolean read) {
+	public RequestedFile(String fname, long accessTime, long fSize, long userID, boolean read) {
 		super();
 		this.fname = fname;
 		this.accessTime = accessTime + addTime;
@@ -100,7 +100,7 @@ public class RequstedFile {
 	public static void setAddTime(long addTime) {
 		if (addTime < 0)
 			return;
-		RequstedFile.addTime = addTime;
+		RequestedFile.addTime = addTime;
 	}
 
 	/**

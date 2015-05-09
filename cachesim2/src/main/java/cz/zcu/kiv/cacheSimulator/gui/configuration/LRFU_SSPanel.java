@@ -1,4 +1,4 @@
-package cz.zcu.kiv.cacheSimulator.gui;
+package cz.zcu.kiv.cacheSimulator.gui.configuration;
 
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;

@@ -1,5 +1,5 @@
 
-package cz.zcu.kiv.cacheSimulator.gui;
+package cz.zcu.kiv.cacheSimulator.gui.configuration;
 
 import javax.swing.SpinnerNumberModel;
 import cz.zcu.kiv.cacheSimulator.consistency.TTLConsistency;

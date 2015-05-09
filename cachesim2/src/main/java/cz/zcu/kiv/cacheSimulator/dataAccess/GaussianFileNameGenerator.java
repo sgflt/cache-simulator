@@ -120,8 +120,8 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	}
 	
 	@Override
-	public RequstedFile getNextServerFile() {
-		GlobalVariables.setActualTime(GlobalVariables.getActualTime() + 1 + RequstedFile.getAddTime());
+	public RequestedFile getNextServerFile() {
+		GlobalVariables.setActualTime(GlobalVariables.getActualTime() + 1 + RequestedFile.getAddTime());
 		
 		//pocet pristupu - pri prekroceni limitu se ukoncuje generovani
 		// tento pristup je volen pro jednodussi cteni z logu
@@ -147,7 +147,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 		
 		//jako cas pristupu vracime nulu - neresime mozne zpozdeni na siti
 		//zpozdeni se resi "jen" u pristupu z logu
-		return new RequstedFile(Integer.toString(rndNum), RequstedFile.getAddTime() + generatedAccesses, -1, 0, true);
+		return new RequestedFile(Integer.toString(rndNum), RequestedFile.getAddTime() + generatedAccesses, -1, 0, true);
 	}
 
 	@Override

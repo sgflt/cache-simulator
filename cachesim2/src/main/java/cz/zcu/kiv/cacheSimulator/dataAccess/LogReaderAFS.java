@@ -203,8 +203,8 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 	}
 
 	@Override
-	public RequstedFile getNextServerFile() {
-		RequstedFile f = getNextFile(true);
+	public RequestedFile getNextServerFile() {
+		RequestedFile f = getNextFile(true);
 		if (f != null){
 			if (fileReadPos / modulo > procent){
 				procent++;
@@ -220,8 +220,8 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 	 * @param skipFile prepinac pro preskakovani
 	 * @return nacteny soubor
 	 */
-	public RequstedFile getNextServerFile(boolean skipFile) {
-		RequstedFile f = getNextFile(skipFile);
+	public RequestedFile getNextServerFile(boolean skipFile) {
+		RequestedFile f = getNextFile(skipFile);
 		if (f != null){
 			if (fileReadPos / modulo > procent){
 				procent++;
@@ -235,8 +235,8 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 	/**
 	 * pouze pro lokalni pouziti
 	 */
-	private RequstedFile getNextServerFileWithOutput() {
-		RequstedFile f = getNextFile(true);
+	private RequestedFile getNextServerFileWithOutput() {
+		RequestedFile f = getNextFile(true);
 		if (f != null){
 			if (fileReadPos / modulo > procent){
 				procent++;
@@ -253,7 +253,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 	 * @return zaznam z logu
 	 */
 	@SuppressWarnings("deprecation")
-	private RequstedFile getNextFile(boolean skipFiles) {
+	private RequestedFile getNextFile(boolean skipFiles) {
 		if (bf == null)
 			return null;
 
@@ -343,8 +343,8 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 						userID = userID << 32;
 						userID += GlobalMethods.ipToInt(ip);
 						
-						GlobalVariables.setActualTime(accessTime + RequstedFile.getAddTime());
-						return new RequstedFile(fname, accessTime, fileSize,userID, true);
+						GlobalVariables.setActualTime(accessTime + RequestedFile.getAddTime());
+						return new RequestedFile(fname, accessTime, fileSize,userID, true);
 
 					}
 				}
@@ -409,7 +409,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 					userID += GlobalMethods.ipToInt(ip);
 					
 					GlobalVariables.setActualTime(accessTime);
-					return new RequstedFile(fname, accessTime, fileSize,userID, false);
+					return new RequestedFile(fname, accessTime, fileSize,userID, false);
 				}
 				
 				line = bf.readLine();
@@ -465,7 +465,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 		LogReaderAFS reader = new LogReaderAFS();
 //		totalReadAndWrites(reader);
 //		if (1==1)return;
-		RequstedFile f = reader.getNextServerFileWithOutput();
+		RequestedFile f = reader.getNextServerFileWithOutput();
 		Hashtable<String, FileOnServer> table = new Hashtable<String, FileOnServer>(100000);
 		Hashtable<Long, Pair<Integer, Integer>> userReads = new Hashtable<Long, Pair<Integer,Integer>>(10000);
 		int zapisu = 0;
@@ -553,7 +553,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 		Hashtable<String, Pair<Long, Long>> tableStore = new Hashtable<String, Pair<Long, Long>>();
 		Hashtable<Long, Integer> numberOfStores = new Hashtable<Long, Integer>();
 		Hashtable<Long, Integer> numberOfReads = new Hashtable<Long, Integer>();
-		RequstedFile fions = reader.getNextFile(false);
+		RequestedFile fions = reader.getNextFile(false);
 		Pair<Long, Long> pair = null;
 		long readHit = 0, writeHit = 0;
 		while (fions != null) {

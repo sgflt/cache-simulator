@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package cz.zcu.kiv.cacheSimulator.gui;
+package cz.zcu.kiv.cacheSimulator.gui.configuration;
 
 import cz.zcu.kiv.cacheSimulator.cachePolicies._2Q;
 
@@ -12,14 +12,14 @@ import cz.zcu.kiv.cacheSimulator.cachePolicies._2Q;
  * trida pro nastaveni 2Q policy
  */
 @SuppressWarnings("serial")
-class _2QPanel extends javax.swing.JPanel {
+public class _2QPanel extends javax.swing.JPanel {
 
     /**
      * Creates new form _2QPanel
      */
     public _2QPanel() {
-        initComponents();
-        fifocapSpinner.setValue((int) (_2Q.getFIFO_CAPACITY() * 100));
+        this.initComponents();
+        this.fifocapSpinner.setValue((int) (_2Q.getFIFO_CAPACITY() * 100));
     }
 
     /**
@@ -30,21 +30,17 @@ class _2QPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        _2QjLabel = new javax.swing.JLabel();
-        fifocapLabel = new javax.swing.JLabel();
-        fifocapSpinner = new javax.swing.JSpinner();
+        this._2QjLabel = new javax.swing.JLabel();
+        this.fifocapLabel = new javax.swing.JLabel();
+        this.fifocapSpinner = new javax.swing.JSpinner();
 
-        _2QjLabel.setText("2 Queues settings");
+        this._2QjLabel.setText("2 Queues settings");
 
-        fifocapLabel.setText("%of cache capacity for FIFO:");
+        this.fifocapLabel.setText("%of cache capacity for FIFO:");
 
-        fifocapSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                fifocapSpinnerStateChanged(evt);
-            }
-        });
+        this.fifocapSpinner.addChangeListener(evt -> _2QPanel.this.fifocapSpinnerStateChanged(evt));
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -52,34 +48,34 @@ class _2QPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(151, 151, 151)
-                        .addComponent(_2QjLabel))
+                        .addComponent(this._2QjLabel))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(51, 51, 51)
-                        .addComponent(fifocapLabel)
+                        .addComponent(this.fifocapLabel)
                         .addGap(27, 27, 27)
-                        .addComponent(fifocapSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(this.fifocapSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(80, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(43, 43, 43)
-                .addComponent(_2QjLabel)
+                .addComponent(this._2QjLabel)
                 .addGap(24, 24, 24)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(fifocapLabel)
-                    .addComponent(fifocapSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(this.fifocapLabel)
+                    .addComponent(this.fifocapSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(189, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void fifocapSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_fifocapSpinnerStateChanged
-        if ((Integer)fifocapSpinner.getValue() <=0)
-            fifocapSpinner.setValue(1);
-        else if ((Integer)fifocapSpinner.getValue() > 75){
-            fifocapSpinner.setValue(75);
+    private void fifocapSpinnerStateChanged(final javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_fifocapSpinnerStateChanged
+        if ((Integer)this.fifocapSpinner.getValue() <=0)
+            this.fifocapSpinner.setValue(1);
+        else if ((Integer)this.fifocapSpinner.getValue() > 75){
+            this.fifocapSpinner.setValue(75);
         }
-        _2Q.setFIFO_CAPACITY(((Integer)fifocapSpinner.getValue()) / 100.0);
+        _2Q.setFIFO_CAPACITY(((Integer)this.fifocapSpinner.getValue()) / 100.0);
     }//GEN-LAST:event_fifocapSpinnerStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

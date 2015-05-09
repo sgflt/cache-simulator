@@ -1,4 +1,4 @@
-package cz.zcu.kiv.cacheSimulator.gui;
+package cz.zcu.kiv.cacheSimulator.gui.configuration;
 
 import cz.zcu.kiv.cacheSimulator.consistency.MMWPConsistency;
 

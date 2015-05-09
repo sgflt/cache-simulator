@@ -16,7 +16,7 @@ public interface IFileQueue{
 	 * method for generating file name, access time and userID
 	 * @return trojice jmeno + cas + userID
 	 */
-	 public RequstedFile getNextServerFile();
+	 public RequestedFile getNextServerFile();
 	 
 	 /**
 	  * metoda pro zresetovani generatotru pozadavku
