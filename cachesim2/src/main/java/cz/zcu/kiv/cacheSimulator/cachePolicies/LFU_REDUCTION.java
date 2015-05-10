@@ -9,234 +9,249 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
 import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
 
-
 /**
  * class for LFU with reduction of references' count algorithm
- * 
- * SOURCE: Adapted from article "Analysis of caching algorithms for distributed file systems", by 
+ * SOURCE: Adapted from article "Analysis of caching algorithms for distributed file systems", by
  * B. Reed and D. D. E. Long
- * 
- * @author Pavel Bžoch
  *
+ * @author Pavel BÅ¾och
  */
 public class LFU_REDUCTION implements ICache {
 
-	/**
-	 * trida pro porovnani prvku
-	 * 
-	 * @author Pavel Bzoch
-	 * 
-	 */
-	private class PairCompare implements Comparator<Pair<Integer, FileOnClient>> {
+  /**
+   * trida pro porovnani prvku
+   *
+   * @author Pavel Bzoch
+   */
+  private class PairCompare implements Comparator<Pair<Integer, FileOnClient>> {
 
-		@Override
-		public int compare(Pair<Integer, FileOnClient> o1, Pair<Integer, FileOnClient> o2) {
-			if ((Integer) o1.getFirst() > (Integer) o2.getFirst())
-				return 1;
-			else if ((Integer) o1.getFirst() < (Integer) o2.getFirst())
-				return -1;
-			return 0;
-		}
-	}
+    @Override
+    public int compare(final Pair<Integer, FileOnClient> o1, final Pair<Integer, FileOnClient> o2) {
+      if (o1.getFirst() > o2.getFirst())
+        return 1;
+      else if (o1.getFirst() < o2.getFirst())
+        return -1;
+      return 0;
+    }
+  }
 
-	/**
-	 * struktura pro uchovani souboru
-	 */
-	private ArrayList<Pair<Integer, FileOnClient>> list;
-	
-	/**
-	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
-	 */
-	private ArrayList<FileOnClient> fOverCapacity;
-	
+  /**
+   * struktura pro uchovani souboru
+   */
+  private final List<Pair<Integer, FileOnClient>> list;
 
-	/**
-	 * velikost cache v kB
-	 */
-	private long capacity = 0;
-	
-	/**
-	 * pocatecni kapacita cache
-	 */
-	private long initialCapacity = 0;
+  /**
+   * struktura pro ukladani souboru, ktere jsou vetsi nez cache
+   */
+  private final List<FileOnClient> fOverCapacity;
 
-	/**
-	 * promenne pro urceni, jestli je treba tridit
-	 */
-	private boolean needSort = true;
-	
-	/**
-	 * pocet referci, pri kterych se snizuje
-	 */
-	private final int THRESHOLD = 15;
-	
-	/**
-	 * delitel pri prekroceni threshold value
-	 */
-	private final double DIV = 2;
+  /**
+   * velikost cache v kB
+   */
+  private long capacity = 0;
 
-	/**
-	 * konstruktor - inicializace cache
-	 */
-	public LFU_REDUCTION() {
-		list = new ArrayList<Pair<Integer, FileOnClient>>();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
-	}
+  /**
+   * pocatecni kapacita cache
+   */
+  private long initialCapacity = 0;
 
-	@Override
-	public boolean isInCache(String fName) {
-		for (Pair<Integer, FileOnClient> f : list) {
-			if (f.getSecond().getFileName().equalsIgnoreCase(fName))
-				return true;
-		}
-		return false;
-	}
+  /**
+   * promenne pro urceni, jestli je treba tridit
+   */
+  private boolean needSort = true;
 
-	@Override
-	public FileOnClient getFileFromCache(String fName) {
-		for (Pair<Integer, FileOnClient> f : list) {
-			if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
-				f.setFirst(f.getFirst() + 1);
-				needSort = true;
-				return f.getSecond();
-			}
-		}
-		return null;
-	}
+  /**
+   * pocet referci, pri kterych se snizuje
+   */
+  private final int THRESHOLD = 15;
 
-	@Override
-	public long freeCapacity() {
-		long obsazeno = 0;
-		for (Pair<Integer, FileOnClient> f : list) {
-			obsazeno += f.getSecond().getFileSize();
-		}
-		return capacity - obsazeno;
-	}
+  /**
+   * delitel pri prekroceni threshold value
+   */
+  private final double DIV = 2;
 
-	@Override
-	public void removeFile() {
-		if (needSort) {
-			Collections.sort(list, new PairCompare());
-		}
-		needSort = false;
-		if (list.size() > 0)
-			list.remove(0);
 
-		//over threshold
-		if (list.size() > 1)
-			if ((list.get(list.size() - 1)).getFirst() > THRESHOLD) {
-				for (Pair<Integer, FileOnClient> f : list) {
-					f.setFirst((int)(f.getFirst() / DIV));
-				}
-			}
-	}
+  /**
+   * konstruktor - inicializace cache
+   */
+  public LFU_REDUCTION() {
+    this.list = new ArrayList<Pair<Integer, FileOnClient>>();
+    this.fOverCapacity = new ArrayList<FileOnClient>();
+  }
 
-	@Override
-	public void insertFile(FileOnClient f) {
-		//napred zkontrolujeme, jestli se soubor vejde do cache
-		//pokud se nevejde, vztvorime pro nej okenko
-		if (f.getFileSize() > this.capacity){
-			if (!fOverCapacity.isEmpty()){
-				fOverCapacity.add(f);
-				return;
-			}
-			while (freeCapacity() < (long)((double)this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow()))
-				removeFile();
-			fOverCapacity.add(f);
-			this.capacity = (long) ((double)this.capacity * (1-GlobalVariables.getCacheCapacityForDownloadWindow()));
-			return;
-		}
-		
-		if (!fOverCapacity.isEmpty())
-			checkTimes();
-			
-		//pokud se soubor vejde, fungujeme spravne
-		while (freeCapacity() < f.getFileSize()) {
-			removeFile();
-		}
-		list.add(new Pair<Integer, FileOnClient>(new Integer(1), f));
-		needSort = true;
-	}
-	
-	@Override
-	public String toString(){
-		return "LFU Reduction";
-	}
-	
-	@Override
-	public boolean needServerStatistics() {
-		return false;
-	}
-	
-	@Override
-	public void setCapacity(long capacity) {
-		this.capacity = capacity;
-		this.initialCapacity = capacity;
-	}
-	
-	@Override
-	public void reset() {
-		this.needSort = true;
-		this.list.clear();
-		this.fOverCapacity.clear();
-	}
-	
-	/**
-	 * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache stazene - pak odstranime okenko
-	 */
-	private void checkTimes() {
-		boolean hasBeenRemoved = true;
-		while (hasBeenRemoved){
-			hasBeenRemoved = false;
-			if (!fOverCapacity.isEmpty() && fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()){
-				fOverCapacity.remove(0);
-				hasBeenRemoved = true;
-			}
-		}
-		if (fOverCapacity.isEmpty()){
-			this.capacity = this.initialCapacity;
-		}
-	}
-	
-	@Override
-	public String cacheInfo(){
-		return "LFU_REDUCTION;LFU with reduction";
-	}
-	
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (initialCapacity ^ (initialCapacity >>> 32));
-		result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
-		return result;
-	}
-	
-	@Override
-	public void removeFile(FileOnClient f) {
-		Pair<Integer, FileOnClient> pair = null;
-		for (Pair<Integer, FileOnClient> file : list){
-			if (file.getSecond() == f){
-				pair = file;
-				break;
-			}
-		}
-		if (pair != null){
-			list.remove(pair);
-		}
-	}
 
-	@Override
-	public List<FileOnClient> getCachedFiles() {
-		List<FileOnClient> list = new ArrayList<FileOnClient>(this.list.size());
-		for (Pair<Integer, FileOnClient> file : this.list){
-			list.add(file.getSecond());
-		}
-		return list;
-	}
+  @Override
+  public boolean isInCache(final String fName) {
+    for (final Pair<Integer, FileOnClient> f : this.list) {
+      if (f.getSecond().getFileName().equalsIgnoreCase(fName))
+        return true;
+    }
+    return false;
+  }
 
-	@Override
-	public long getCacheCapacity() {
-		return this.initialCapacity;
-	}
+
+  @Override
+  public FileOnClient getFileFromCache(final String fName) {
+    for (final Pair<Integer, FileOnClient> f : this.list) {
+      if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+        f.setFirst(f.getFirst() + 1);
+        this.needSort = true;
+        return f.getSecond();
+      }
+    }
+    return null;
+  }
+
+
+  @Override
+  public long freeCapacity() {
+    long obsazeno = 0;
+    for (final Pair<Integer, FileOnClient> f : this.list) {
+      obsazeno += f.getSecond().getFileSize();
+    }
+    return this.capacity - obsazeno;
+  }
+
+
+  @Override
+  public void removeFile() {
+    if (this.needSort) {
+      Collections.sort(this.list, new PairCompare());
+    }
+    this.needSort = false;
+    if (this.list.size() > 0)
+      this.list.remove(0);
+
+    // over threshold
+    if (this.list.size() > 1)
+      if ((this.list.get(this.list.size() - 1)).getFirst() > this.THRESHOLD) {
+        for (final Pair<Integer, FileOnClient> f : this.list) {
+          f.setFirst((int) (f.getFirst() / this.DIV));
+        }
+      }
+  }
+
+
+  @Override
+  public void insertFile(final FileOnClient f) {
+    // napred zkontrolujeme, jestli se soubor vejde do cache
+    // pokud se nevejde, vztvorime pro nej okenko
+    if (f.getFileSize() > this.capacity) {
+      if (!this.fOverCapacity.isEmpty()) {
+        this.fOverCapacity.add(f);
+        return;
+      }
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
+          .getCacheCapacityForDownloadWindow()))
+        this.removeFile();
+      this.fOverCapacity.add(f);
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables
+          .getCacheCapacityForDownloadWindow()));
+      return;
+    }
+
+    if (!this.fOverCapacity.isEmpty())
+      this.checkTimes();
+
+    // pokud se soubor vejde, fungujeme spravne
+    while (this.freeCapacity() < f.getFileSize()) {
+      this.removeFile();
+    }
+    this.list.add(new Pair<Integer, FileOnClient>(new Integer(1), f));
+    this.needSort = true;
+  }
+
+
+  @Override
+  public String toString() {
+    return "LFU Reduction";
+  }
+
+
+  @Override
+  public boolean needServerStatistics() {
+    return false;
+  }
+
+
+  @Override
+  public void setCapacity(final long capacity) {
+    this.capacity = capacity;
+    this.initialCapacity = capacity;
+  }
+
+
+  @Override
+  public void reset() {
+    this.needSort = true;
+    this.list.clear();
+    this.fOverCapacity.clear();
+  }
+
+
+  /**
+   * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache stazene - pak
+   * odstranime okenko
+   */
+  private void checkTimes() {
+    boolean hasBeenRemoved = true;
+    while (hasBeenRemoved) {
+      hasBeenRemoved = false;
+      if (!this.fOverCapacity.isEmpty()
+          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
+        this.fOverCapacity.remove(0);
+        hasBeenRemoved = true;
+      }
+    }
+    if (this.fOverCapacity.isEmpty()) {
+      this.capacity = this.initialCapacity;
+    }
+  }
+
+
+  @Override
+  public String cacheInfo() {
+    return "LFU_REDUCTION;LFU with reduction";
+  }
+
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (int) (this.initialCapacity ^ (this.initialCapacity >>> 32));
+    result = prime * result + ((this.toString() == null) ? 0 : this.toString().hashCode());
+    return result;
+  }
+
+
+  @Override
+  public void removeFile(final FileOnClient f) {
+    Pair<Integer, FileOnClient> pair = null;
+    for (final Pair<Integer, FileOnClient> file : this.list) {
+      if (file.getSecond() == f) {
+        pair = file;
+        break;
+      }
+    }
+    if (pair != null) {
+      this.list.remove(pair);
+    }
+  }
+
+
+  @Override
+  public List<FileOnClient> getCachedFiles() {
+    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.list.size());
+    for (final Pair<Integer, FileOnClient> file : this.list) {
+      list.add(file.getSecond());
+    }
+    return list;
+  }
+
+
+  @Override
+  public long getCacheCapacity() {
+    return this.initialCapacity;
+  }
 }

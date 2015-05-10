@@ -11,12 +11,10 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
 import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
 
-
 /**
  * class for LFU-SS algorithm
  *
- * @author Pavel B�och
- *
+ * @author Pavel Bžoch
  */
 public class LFU_SS implements ICache {
 
@@ -24,7 +22,6 @@ public class LFU_SS implements ICache {
    * trida pro porovnani prvku
    *
    * @author Pavel Bzoch
-   *
    */
   protected class PairCompare implements Comparator<Pair<Double, FileOnClient>> {
 
@@ -47,7 +44,6 @@ public class LFU_SS implements ICache {
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
   private final List<FileOnClient> fOverCapacity;
-
 
   /**
    * velikost cache v kB
@@ -79,6 +75,7 @@ public class LFU_SS implements ICache {
    */
   private final Server server = Server.getInstance();
 
+
   /**
    * konstruktor - inicializace cache
    */
@@ -86,6 +83,7 @@ public class LFU_SS implements ICache {
     this.list = new LinkedList<Pair<Double, FileOnClient>>();
     this.fOverCapacity = new LinkedList<FileOnClient>();
   }
+
 
   @Override
   public boolean isInCache(final String fName) {
@@ -96,10 +94,11 @@ public class LFU_SS implements ICache {
     return false;
   }
 
+
   @Override
   public FileOnClient getFileFromCache(final String fName) {
     this.accessCount++;
-    if (this.accessCount % 20 == 0){
+    if (this.accessCount % 20 == 0) {
       this.setGlobalReadCountServer(this.server.getGlobalReadHits(this));
     }
 
@@ -113,6 +112,7 @@ public class LFU_SS implements ICache {
     return null;
   }
 
+
   @Override
   public long freeCapacity() {
     long obsazeno = 0;
@@ -121,6 +121,7 @@ public class LFU_SS implements ICache {
     }
     return this.capacity - obsazeno;
   }
+
 
   @Override
   public void removeFile() {
@@ -139,28 +140,31 @@ public class LFU_SS implements ICache {
       }
   }
 
+
   @Override
   public void insertFile(final FileOnClient f) {
-    //napred zkontrolujeme, jestli se soubor vejde do cache
-    //pokud se nevejde, vztvorime pro nej okenko
+    // napred zkontrolujeme, jestli se soubor vejde do cache
+    // pokud se nevejde, vztvorime pro nej okenko
     if (f.getFileSize() > this.capacity) {
       if (!this.fOverCapacity.isEmpty()) {
         this.fOverCapacity.add(f);
         return;
       }
 
-      while (this.freeCapacity() < (long)(this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow()))
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
+          .getCacheCapacityForDownloadWindow()))
         this.removeFile();
 
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1-GlobalVariables.getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables
+          .getCacheCapacityForDownloadWindow()));
       return;
     }
 
     if (!this.fOverCapacity.isEmpty())
       this.checkTimes();
 
-    //pokud se soubor vejde, fungujeme spravne
+    // pokud se soubor vejde, fungujeme spravne
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
@@ -177,31 +181,36 @@ public class LFU_SS implements ICache {
     this.needSort = true;
   }
 
+
   /**
    * metoda pro nastaveni poctu globalnich hitu
    *
    * @param readCount
-   *            pocet hitu
+   *          pocet hitu
    */
   private void setGlobalReadCountServer(final long readCount) {
     this.globalReadCount = readCount;
   }
 
+
   @Override
-  public String toString(){
+  public String toString() {
     return "LFU-SS";
   }
+
 
   @Override
   public boolean needServerStatistics() {
     return true;
   }
 
+
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
     this.initialCapacity = capacity;
   }
+
 
   @Override
   public void reset() {
@@ -212,27 +221,32 @@ public class LFU_SS implements ICache {
     this.fOverCapacity.clear();
   }
 
+
   /**
-   * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache stazene - pak odstranime okenko
+   * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache stazene - pak
+   * odstranime okenko
    */
   private void checkTimes() {
     boolean hasBeenRemoved = true;
-    while (hasBeenRemoved){
+    while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()){
+      if (!this.fOverCapacity.isEmpty()
+          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }
     }
-    if (this.fOverCapacity.isEmpty()){
+    if (this.fOverCapacity.isEmpty()) {
       this.capacity = this.initialCapacity;
     }
   }
 
+
   @Override
-  public String cacheInfo(){
+  public String cacheInfo() {
     return "LFU_SS;LFU-SS";
   }
+
 
   @Override
   public int hashCode() {
@@ -243,28 +257,31 @@ public class LFU_SS implements ICache {
     return result;
   }
 
+
   @Override
   public void removeFile(final FileOnClient f) {
     Pair<Double, FileOnClient> pair = null;
-    for (final Pair<Double, FileOnClient> file : this.list){
-      if (file.getSecond() == f){
+    for (final Pair<Double, FileOnClient> file : this.list) {
+      if (file.getSecond() == f) {
         pair = file;
         break;
       }
     }
-    if (pair != null){
+    if (pair != null) {
       this.list.remove(pair);
     }
   }
 
+
   @Override
   public List<FileOnClient> getCachedFiles() {
     final List<FileOnClient> list = new ArrayList<FileOnClient>(this.list.size());
-    for (final Pair<Double, FileOnClient> file : this.list){
+    for (final Pair<Double, FileOnClient> file : this.list) {
       list.add(file.getSecond());
     }
     return list;
   }
+
 
   @Override
   public long getCacheCapacity() {

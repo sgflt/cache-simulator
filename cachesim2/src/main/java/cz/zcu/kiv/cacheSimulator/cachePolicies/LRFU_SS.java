@@ -12,337 +12,337 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
 
 /**
  * class for LRFU-SS algorithm
- * 
- * @author Pavel Bžoch
- * 
+ *
+ * @author Pavel BÅ¾och
+ *
  */
 public class LRFU_SS implements ICache {
 
-	/**
-	 * trida pro porovnani prvku
-	 * 
-	 * @author Pavel Bzoch
-	 * 
-	 */
-	private class QuartetCompare implements
-			Comparator<Quartet<FileOnClient, Long, Double, Integer>> {
+  /**
+   * trida pro porovnani prvku
+   *
+   * @author Pavel Bzoch
+   *
+   */
+  private class QuartetCompare implements
+      Comparator<Quartet<FileOnClient, Long, Double, Integer>> {
 
-		@Override
-		public int compare(Quartet<FileOnClient, Long, Double, Integer> o1,
-				Quartet<FileOnClient, Long, Double, Integer> o2) {
-			if ((Integer) o1.getFourth() > (Integer) o2.getFourth())
-				return 1;
-			else if ((Integer) o1.getFourth() < (Integer) o2.getFourth())
-				return -1;
-			return 0;
-		}
-	}
+    @Override
+    public int compare(final Quartet<FileOnClient, Long, Double, Integer> o1,
+        final Quartet<FileOnClient, Long, Double, Integer> o2) {
+      if (o1.getFourth() > o2.getFourth())
+        return 1;
+      else if (o1.getFourth() < o2.getFourth())
+        return -1;
+      return 0;
+    }
+  }
 
-	/**
-	 * struktura pro uchovani souboru
-	 */
-	private ArrayList<Quartet<FileOnClient, Long, Double, Integer>> list;
-	
-	/**
-	 * velikost cache v B
-	 */
-	private long capacity = 0;
-	
-	/**
-	 * pocatecni kapacita cache
-	 */
-	private long initialCapacity = 0;
+  /**
+   * struktura pro uchovani souboru
+   */
+  private final List<Quartet<FileOnClient, Long, Double, Integer>> list;
 
-	/**
-	 * promenne pro urceni, jestli je treba tridit
-	 */
-	private boolean needSort = true;
+  /**
+   * velikost cache v B
+   */
+  private long capacity = 0;
 
-	/**
-	 * promenna pro urceni, zda je potreba spocitat znovu priority
-	 */
-	private boolean needRecalculate = true;
+  /**
+   * pocatecni kapacita cache
+   */
+  private long initialCapacity = 0;
 
-	/**
-	 * koeficienty pro urceni priority
-	 */
-	private static double K1 = 0.35f, K2 = 1.1f;
+  /**
+   * promenne pro urceni, jestli je treba tridit
+   */
+  private boolean needSort = true;
 
-	/**
-	 * poromenna pro urceni globalniho poctu hitu na cteni
-	 */
-	private long globalReadCount = Long.MAX_VALUE;
+  /**
+   * promenna pro urceni, zda je potreba spocitat znovu priority
+   */
+  private boolean needRecalculate = true;
 
-	/**
-	 * promenna pro urceni poctu pristupu do cache a pro aktualizaci globalnich
-	 * statistik
-	 */
-	private long accessCount = 0;
+  /**
+   * koeficienty pro urceni priority
+   */
+  private static double K1 = 0.35f, K2 = 1.1f;
 
-	/**
-	 * promenna pro uchovani odkazu na server
-	 */
-	private Server server = Server.getInstance();
+  /**
+   * poromenna pro urceni globalniho poctu hitu na cteni
+   */
+  private long globalReadCount = Long.MAX_VALUE;
 
-	/**
-	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
-	 */
-	private ArrayList<FileOnClient> fOverCapacity;
+  /**
+   * promenna pro urceni poctu pristupu do cache a pro aktualizaci globalnich
+   * statistik
+   */
+  private long accessCount = 0;
 
-	/**
-	 * konstruktor - inicializce cache
-	 */
-	public LRFU_SS() {
-		list = new ArrayList<Quartet<FileOnClient, Long, Double, Integer>>();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
-	}
+  /**
+   * promenna pro uchovani odkazu na server
+   */
+  private final Server server = Server.getInstance();
 
-	@Override
-	public boolean isInCache(String fName) {
-		accessCount++;
-		if (accessCount % 20 == 0) {
-			setGlobalReadCountServer(server.getGlobalReadHits(this));
-		}
-		for (Quartet<FileOnClient, Long, Double, Integer> f : list) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fName))
-				return true;
-		}
-		return false;
-	}
+  /**
+   * struktura pro ukladani souboru, ktere jsou vetsi nez cache
+   */
+  private final ArrayList<FileOnClient> fOverCapacity;
 
-	@Override
-	public FileOnClient getFileFromCache(String fName) {
-		for (Quartet<FileOnClient, Long, Double, Integer> f : list) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
-				f.setSecond(GlobalVariables.getActualTime());
-				f.setThird(f.getThird() + 1);
-				needSort = true;
-				needRecalculate = true;
-				return f.getFirst();
-			}
-		}
-		return null;
-	}
+  /**
+   * konstruktor - inicializce cache
+   */
+  public LRFU_SS() {
+    this.list = new ArrayList<Quartet<FileOnClient, Long, Double, Integer>>();
+    this.fOverCapacity = new ArrayList<FileOnClient>();
+  }
 
-	@Override
-	public long freeCapacity() {
-		if (needRecalculate) {
-			recalculatePriorities();
-		}
-		if (needSort) {
-			Collections.sort(list, new QuartetCompare());
-		}
-		needSort = false;
-		needRecalculate = false;
-		long obsazeno = 0;
-		for (Quartet<FileOnClient, Long, Double, Integer> f : list) {
-			obsazeno += f.getFirst().getFileSize();
-		}
-		return capacity - obsazeno;
-	}
+  @Override
+  public boolean isInCache(final String fName) {
+    this.accessCount++;
+    if (this.accessCount % 20 == 0) {
+      this.setGlobalReadCountServer(this.server.getGlobalReadHits(this));
+    }
+    for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
+      if (f.getFirst().getFileName().equalsIgnoreCase(fName))
+        return true;
+    }
+    return false;
+  }
 
-	@Override
-	public void removeFile() {
-		if (needRecalculate) {
-			recalculatePriorities();
-		}
-		if (needSort) {
-			Collections.sort(list, new QuartetCompare());
-		}
-		needSort = false;
-		needRecalculate = false;
-		if (list.size() > 0){
-			list.remove(0).getFirst();
-		}
-		
-	}
+  @Override
+  public FileOnClient getFileFromCache(final String fName) {
+    for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
+      if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
+        f.setSecond(GlobalVariables.getActualTime());
+        f.setThird(f.getThird() + 1);
+        this.needSort = true;
+        this.needRecalculate = true;
+        return f.getFirst();
+      }
+    }
+    return null;
+  }
 
-	/**
-	 * metoda pro rekalkulaci priorit
-	 */
-	public void recalculatePriorities() {
-		if (list.size() <= 1)
-			return;
-		long oldestTime = list.get(0).getSecond(), newestTime = list.get(0)
-				.getSecond();
-		double maxReadHit = list.get(0).getThird(), minReadHit = list.get(0)
-				.getThird();
-		// zjisteni lokalnich extremu
-		for (Quartet<FileOnClient, Long, Double, Integer> f : list) {
-			if (f.getSecond() > newestTime)
-				newestTime = f.getSecond();
-			if (f.getSecond() < oldestTime)
-				oldestTime = f.getSecond();
-			if (maxReadHit < f.getThird())
-				maxReadHit = f.getThird();
-			if (minReadHit > f.getThird())
-				minReadHit = f.getThird();
-		}
-		// vypocet priorit
-		int PLRU, PLFU_SS;
-		for (Quartet<FileOnClient, Long, Double, Integer> f : list) {
-			PLFU_SS = (int) (((double)f.getThird() - (double)minReadHit) * 65535.0 / ((double)maxReadHit - (double)minReadHit));
-			PLRU = (int) ((double)(f.getSecond() - (double)oldestTime) * 65535.0 / ((double)newestTime - (double)oldestTime));
-			f.setFourth((int) (K1 * PLRU + K2 * PLFU_SS));
-		}
-	}
+  @Override
+  public long freeCapacity() {
+    if (this.needRecalculate) {
+      this.recalculatePriorities();
+    }
+    if (this.needSort) {
+      Collections.sort(this.list, new QuartetCompare());
+    }
+    this.needSort = false;
+    this.needRecalculate = false;
+    long obsazeno = 0;
+    for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
+      obsazeno += f.getFirst().getFileSize();
+    }
+    return this.capacity - obsazeno;
+  }
 
-	@Override
-	public void insertFile(FileOnClient f) {
-		// napred zkontrolujeme, jestli se soubor vejde do cache
-		// pokud se nevejde, vztvorime pro nej okenko
-		if (f.getFileSize() > this.capacity) {
-			if (!fOverCapacity.isEmpty()) {
-				fOverCapacity.add(f);
-				return;
-			}
-			while (freeCapacity() < (long) ((double) this.capacity * GlobalVariables
-					.getCacheCapacityForDownloadWindow())) {
-				removeFile();
+  @Override
+  public void removeFile() {
+    if (this.needRecalculate) {
+      this.recalculatePriorities();
+    }
+    if (this.needSort) {
+      Collections.sort(this.list, new QuartetCompare());
+    }
+    this.needSort = false;
+    this.needRecalculate = false;
+    if (this.list.size() > 0){
+      this.list.remove(0).getFirst();
+    }
 
-			}
-			fOverCapacity.add(f);
-			this.capacity = (long) ((double) this.capacity * (1 - GlobalVariables
-					.getCacheCapacityForDownloadWindow()));
-			return;
-		}
+  }
 
-		if (!fOverCapacity.isEmpty()) {
-			checkTimes();
-		}
+  /**
+   * metoda pro rekalkulaci priorit
+   */
+  public void recalculatePriorities() {
+    if (this.list.size() <= 1)
+      return;
+    long oldestTime = this.list.get(0).getSecond(), newestTime = this.list.get(0)
+        .getSecond();
+    double maxReadHit = this.list.get(0).getThird(), minReadHit = this.list.get(0)
+        .getThird();
+    // zjisteni lokalnich extremu
+    for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
+      if (f.getSecond() > newestTime)
+        newestTime = f.getSecond();
+      if (f.getSecond() < oldestTime)
+        oldestTime = f.getSecond();
+      if (maxReadHit < f.getThird())
+        maxReadHit = f.getThird();
+      if (minReadHit > f.getThird())
+        minReadHit = f.getThird();
+    }
+    // vypocet priorit
+    int PLRU, PLFU_SS;
+    for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
+      PLFU_SS = (int) ((f.getThird() - minReadHit) * 65535.0 / (maxReadHit - minReadHit));
+      PLRU = (int) ((f.getSecond() - (double)oldestTime) * 65535.0 / ((double)newestTime - (double)oldestTime));
+      f.setFourth((int) (K1 * PLRU + K2 * PLFU_SS));
+    }
+  }
 
-		// pokud se soubor vejde, fungujeme spravne
-		while (freeCapacity() < f.getFileSize()) {
-			removeFile();
-		}
-		double localReadCount = 0;
-		for (Quartet<FileOnClient, Long, Double, Integer> files : list) {
-			localReadCount += files.getThird();
-		}
-		double readHits = 0;
-		if (globalReadCount > 0)
-			readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
-					/ (double) globalReadCount * (double) localReadCount + 1;
-		
-		list.add(new Quartet<FileOnClient, Long, Double, Integer>(f, GlobalVariables.getActualTime(), readHits, 0));
-		
-		needSort = true;
-		needRecalculate = true;
-	}
+  @Override
+  public void insertFile(final FileOnClient f) {
+    // napred zkontrolujeme, jestli se soubor vejde do cache
+    // pokud se nevejde, vztvorime pro nej okenko
+    if (f.getFileSize() > this.capacity) {
+      if (!this.fOverCapacity.isEmpty()) {
+        this.fOverCapacity.add(f);
+        return;
+      }
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
+          .getCacheCapacityForDownloadWindow())) {
+        this.removeFile();
 
-	/**
-	 * metoda pro nastaveni poctu globalnich hitu
-	 * 
-	 * @param readCount
-	 *            pocet hitu
-	 */
-	public void setGlobalReadCountServer(long readCount) {
-		this.globalReadCount = readCount;
-	}
+      }
+      this.fOverCapacity.add(f);
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables
+          .getCacheCapacityForDownloadWindow()));
+      return;
+    }
 
-	@Override
-	public String toString() {
-		return "LRFU-SS";
-		// return "LRFU-SS algorithm (K1="+K1+", K2=" + K2 +") ";
-	}
+    if (!this.fOverCapacity.isEmpty()) {
+      this.checkTimes();
+    }
 
-	@Override
-	public boolean needServerStatistics() {
-		return true;
-	}
+    // pokud se soubor vejde, fungujeme spravne
+    while (this.freeCapacity() < f.getFileSize()) {
+      this.removeFile();
+    }
+    double localReadCount = 0;
+    for (final Quartet<FileOnClient, Long, Double, Integer> files : this.list) {
+      localReadCount += files.getThird();
+    }
+    double readHits = 0;
+    if (this.globalReadCount > 0)
+      readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
+          / this.globalReadCount * localReadCount + 1;
 
-	@Override
-	public void setCapacity(long capacity) {
-		this.capacity = capacity;
-		this.initialCapacity = capacity;
-	}
+    this.list.add(new Quartet<FileOnClient, Long, Double, Integer>(f, GlobalVariables.getActualTime(), readHits, 0));
 
-	@Override
-	public void reset() {
-		this.list.clear();
-		this.needRecalculate = true;
-		this.needSort = true;
-		this.accessCount = 0;
-		this.globalReadCount = Long.MAX_VALUE;
-		this.fOverCapacity.clear();
-	}
+    this.needSort = true;
+    this.needRecalculate = true;
+  }
 
-	/**
-	 * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache
-	 * stazene - pak odstranime okenko
-	 */
-	private void checkTimes() {
-		boolean hasBeenRemoved = true;
-		while (hasBeenRemoved) {
-			hasBeenRemoved = false;
-			if (!fOverCapacity.isEmpty()
-					&& fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
-							.getActualTime()) {
-				fOverCapacity.remove(0);
-				hasBeenRemoved = true;
-			}
-		}
-		if (fOverCapacity.isEmpty()) {
-			this.capacity = this.initialCapacity;
-		}
-	}
+  /**
+   * metoda pro nastaveni poctu globalnich hitu
+   *
+   * @param readCount
+   *            pocet hitu
+   */
+  public void setGlobalReadCountServer(final long readCount) {
+    this.globalReadCount = readCount;
+  }
 
-	@Override
-	public String cacheInfo() {
-		return "LRFU_SS;LRFU-SS";
-	}
+  @Override
+  public String toString() {
+    return "LRFU-SS";
+    // return "LRFU-SS algorithm (K1="+K1+", K2=" + K2 +") ";
+  }
 
-	public static double getK1() {
-		return K1;
-	}
+  @Override
+  public boolean needServerStatistics() {
+    return true;
+  }
 
-	public static void setK1(double K1) {
-		LRFU_SS.K1 = K1;
-	}
+  @Override
+  public void setCapacity(final long capacity) {
+    this.capacity = capacity;
+    this.initialCapacity = capacity;
+  }
 
-	public static double getK2() {
-		return K2;
-	}
+  @Override
+  public void reset() {
+    this.list.clear();
+    this.needRecalculate = true;
+    this.needSort = true;
+    this.accessCount = 0;
+    this.globalReadCount = Long.MAX_VALUE;
+    this.fOverCapacity.clear();
+  }
 
-	public static void setK2(double K2) {
-		LRFU_SS.K2 = K2;
-	}
+  /**
+   * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache
+   * stazene - pak odstranime okenko
+   */
+  private void checkTimes() {
+    boolean hasBeenRemoved = true;
+    while (hasBeenRemoved) {
+      hasBeenRemoved = false;
+      if (!this.fOverCapacity.isEmpty()
+          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
+              .getActualTime()) {
+        this.fOverCapacity.remove(0);
+        hasBeenRemoved = true;
+      }
+    }
+    if (this.fOverCapacity.isEmpty()) {
+      this.capacity = this.initialCapacity;
+    }
+  }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (initialCapacity ^ (initialCapacity >>> 32));
-		result = prime * result
-				+ ((toString() == null) ? 0 : toString().hashCode());
-		return result;
-	}
-	
-	@Override
-	public void removeFile(FileOnClient f) {
-		Quartet<FileOnClient, Long, Double, Integer> quart = null;
-		for (Quartet<FileOnClient, Long, Double, Integer> file : this.list){
-			if (file.getFirst() == f){
-				quart = file;
-				break;
-			}
-		}
-		if (quart != null){
-			this.list.remove(quart);
-		}
-	}
+  @Override
+  public String cacheInfo() {
+    return "LRFU_SS;LRFU-SS";
+  }
 
-	@Override
-	public List<FileOnClient> getCachedFiles() {
-		List<FileOnClient> listRet = new ArrayList<FileOnClient>(this.list.size());
-		for (Quartet<FileOnClient, Long, Double, Integer> file: this.list){
-			listRet.add(file.getFirst());
-		}
-		return listRet;
-	}
+  public static double getK1() {
+    return K1;
+  }
 
-	@Override
-	public long getCacheCapacity() {
-		return this.initialCapacity;
-	}
+  public static void setK1(final double K1) {
+    LRFU_SS.K1 = K1;
+  }
+
+  public static double getK2() {
+    return K2;
+  }
+
+  public static void setK2(final double K2) {
+    LRFU_SS.K2 = K2;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (int) (this.initialCapacity ^ (this.initialCapacity >>> 32));
+    result = prime * result
+        + ((this.toString() == null) ? 0 : this.toString().hashCode());
+    return result;
+  }
+
+  @Override
+  public void removeFile(final FileOnClient f) {
+    Quartet<FileOnClient, Long, Double, Integer> quart = null;
+    for (final Quartet<FileOnClient, Long, Double, Integer> file : this.list){
+      if (file.getFirst() == f){
+        quart = file;
+        break;
+      }
+    }
+    if (quart != null){
+      this.list.remove(quart);
+    }
+  }
+
+  @Override
+  public List<FileOnClient> getCachedFiles() {
+    final List<FileOnClient> listRet = new ArrayList<FileOnClient>(this.list.size());
+    for (final Quartet<FileOnClient, Long, Double, Integer> file: this.list){
+      listRet.add(file.getFirst());
+    }
+    return listRet;
+  }
+
+  @Override
+  public long getCacheCapacity() {
+    return this.initialCapacity;
+  }
 }

@@ -5,107 +5,118 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
 
 /**
  * trida pro uchovani dat o jednom uzivateli a jedne caching policy
- * @author Pavel Bžoch
- * 
+ *
+ * @author Pavel BÅ¾och
  */
-public class NearStrongConsistencyData{
+public class NearStrongConsistencyData {
 
-	/**
-	 * odkaz na id uzivateke
-	 */
-	protected long userID;
-	
-	/**
-	 * odkaz na cachovaci politiku
-	 */
-	protected ICache cache;
-	
-	/**
-	 * kolikrat doslo k nekonzistentnosti dat
-	 */
-	protected int inconsistencyCount; 
-	
-	/**
-	 * objem nekonzistentnich dat
-	 */
-	protected long inconsistencySize;
+  /**
+   * odkaz na id uzivateke
+   */
+  protected long userID;
 
-	/**
-	 * konstruktor - iniciace promennych
-	 * @param userID id uzivatele
-	 * @param cache odkaz na cache
-	 */
-	public NearStrongConsistencyData(long userID, ICache cache) {
-		this.userID = userID;
-		this.cache = cache;
-		this.inconsistencyCount = 0;
-		this.inconsistencySize = 0;
-	}
-	
-	/**
-	 * metoda pro update statistik
-	 * @param fSize velikost souboru
-	 */
-	public void update(long fSize){
-		inconsistencyCount++;
-		inconsistencySize += fSize;
-	}
-	
-	/**
-	 * metoda pro porovnani se shodou na userID a cache 
-	 * @param userID userID
-	 * @param cache cache policy
-	 * @return true, pokud je shoda
-	 */
-	public boolean compareTo(long userID, ICache cache){
-		boolean ret = this.cache == cache && userID == this.userID;
-		if (ret)
-			return true;
-		else return false;
-	}
+  /**
+   * odkaz na cachovaci politiku
+   */
+  protected ICache cache;
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		
-		long id = userID >> 32;
-        long ip = userID - (id << 32);
-        
-        int ipAndID = (int) (id + ip);
-         
-		result = prime * result + ((cache == null) ? 0 : cache.hashCode());
-		result = prime * result + (int) (ipAndID);
-		return result;
-	}
-	
-	@Override
-	public String toString() {
-		 long id = userID >> 32;
-         String ip = (GlobalMethods.intToIp(userID - (id << 32)));
-		
-		return "AccessCOnsistencyData [userID=" + id + ", ip=" + ip + ", cache=" + cache
-				+ ", cache cap="+ cache.getCacheCapacity() +", inconsistencyCount=" + inconsistencyCount
-				+ ", inconsistencySize=" + inconsistencySize + "]";
-	}
+  /**
+   * kolikrat doslo k nekonzistentnosti dat
+   */
+  protected int inconsistencyCount;
 
-	//sekce getru a setru
-	public long getUserID() {
-		return userID;
-	}
+  /**
+   * objem nekonzistentnich dat
+   */
+  protected long inconsistencySize;
 
-	public ICache getCache() {
-		return cache;
-	}
 
-	public int getInconsistencyCount() {
-		return inconsistencyCount;
-	}
+  /**
+   * konstruktor - iniciace promennych
+   *
+   * @param userID id uzivatele
+   * @param cache odkaz na cache
+   */
+  public NearStrongConsistencyData(final long userID, final ICache cache) {
+    this.userID = userID;
+    this.cache = cache;
+    this.inconsistencyCount = 0;
+    this.inconsistencySize = 0;
+  }
 
-	public long getInconsistencySize() {
-		return inconsistencySize;
-	}
-	
-	
+
+  /**
+   * metoda pro update statistik
+   *
+   * @param fSize velikost souboru
+   */
+  public void update(final long fSize) {
+    this.inconsistencyCount++;
+    this.inconsistencySize += fSize;
+  }
+
+
+  /**
+   * metoda pro porovnani se shodou na userID a cache
+   *
+   * @param userID userID
+   * @param cache cache policy
+   * @return true, pokud je shoda
+   */
+  public boolean compareTo(final long userID, final ICache cache) {
+    final boolean ret = this.cache == cache && userID == this.userID;
+    if (ret)
+      return true;
+    else
+      return false;
+  }
+
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+
+    final long id = this.userID >> 32;
+    final long ip = this.userID - (id << 32);
+
+    final int ipAndID = (int) (id + ip);
+
+    result = prime * result + ((this.cache == null) ? 0 : this.cache.hashCode());
+    result = prime * result + (ipAndID);
+    return result;
+  }
+
+
+  @Override
+  public String toString() {
+    final long id = this.userID >> 32;
+    final String ip = (GlobalMethods.intToIp(this.userID - (id << 32)));
+
+    return "AccessCOnsistencyData [userID=" + id + ", ip=" + ip + ", cache=" + this.cache
+        + ", cache cap=" + this.cache.getCacheCapacity() + ", inconsistencyCount="
+        + this.inconsistencyCount + ", inconsistencySize=" + this.inconsistencySize + "]";
+  }
+
+
+  // sekce getru a setru
+  public long getUserID() {
+    return this.userID;
+  }
+
+
+  public ICache getCache() {
+    return this.cache;
+  }
+
+
+  public int getInconsistencyCount() {
+    return this.inconsistencyCount;
+  }
+
+
+  public long getInconsistencySize() {
+    return this.inconsistencySize;
+  }
+
 }
-
