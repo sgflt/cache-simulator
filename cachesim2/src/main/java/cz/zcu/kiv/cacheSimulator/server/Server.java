@@ -2,6 +2,8 @@ package cz.zcu.kiv.cacheSimulator.server;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
@@ -20,12 +22,12 @@ public class Server {
   /**
    * struktura pro uchovavni souboru pro bezne cachovaci algoritmy
    */
-  private final Hashtable<String, FileOnServer> fileTable;
+  private final Map<String, FileOnServer> fileTable;
 
   /**
    * struktura pro ulozeni nazvu souboru
    */
-  private final ArrayList<String> fileNames;
+  private final List<String> fileNames;
 
   /**
    * promenna pro generovani nahodne velikosti souboru
@@ -129,7 +131,7 @@ public class Server {
       return null;
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
     if (cache.needServerStatistics()){
-      ret.increaseReadHit(cache.hashCode());
+      ret.increaseReadHit(cache);
     }
     this.lastFile = ret;
     return ret;
@@ -154,7 +156,7 @@ public class Server {
       return null;
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
     if (cache.needServerStatistics()){
-      ret.increaseWriteHit(cache.hashCode());
+      ret.increaseWriteHit(cache);
     }
     this.lastFile = ret;
     return ret;
@@ -179,8 +181,8 @@ public class Server {
       return null;
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
     if (cache.needServerStatistics()){
-      ret.increaseWriteHit(cache.hashCode());
-      ret.increaseReadHit(cache.hashCode());
+      ret.increaseWriteHit(cache);
+      ret.increaseReadHit(cache);
     }
     this.lastFile = ret;
     return ret;
@@ -215,7 +217,7 @@ public class Server {
     long ret = 0;
     for (final FileOnServer f: this.fileTable.values())
     {
-      ret += f.getReadHit(cache.hashCode());
+      ret += f.getReadHit(cache);
     }
     return ret;
   }
@@ -245,7 +247,7 @@ public class Server {
    * metoda pro ziskani nazvu souboru
    * @return nazvu souboru
    */
-  public ArrayList<String> getFileNames() {
+  public List<String> getFileNames() {
     //preklopeni nazvu souboru do listu pro pozdejsi praci s nimi
     this.fileNames.clear();
     for (final FileOnServer files : this.fileTable.values()) {
@@ -260,7 +262,7 @@ public class Server {
   public void printStatistics(final ICache cache){
     System.out.println("\nFile accesses:");
     for(final FileOnServer fos: this.fileTable.values()){
-      System.out.println(fos.getFileName() + "; readHit=" + fos.getReadHit(cache.hashCode()) + "; size=" + fos.getFileSize() + "; period=" + fos.writePeriod());
+      System.out.println(fos.getFileName() + "; readHit=" + fos.getReadHit(cache) + "; size=" + fos.getFileSize() + "; period=" + fos.writePeriod());
     }
   }
 

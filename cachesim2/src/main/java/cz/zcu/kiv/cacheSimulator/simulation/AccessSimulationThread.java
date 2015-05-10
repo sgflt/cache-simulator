@@ -17,7 +17,7 @@ import cz.zcu.kiv.cacheSimulator.shared.Triplet;
  * AccessSimulationThread.java
  *    12. 4. 2014
  *
- * @author Lukáš Kvídera, A11B0421P
+ * @author Lukáš Kvídera
  *
  */
 public class AccessSimulationThread implements Runnable {
@@ -126,7 +126,7 @@ public class AccessSimulationThread implements Runnable {
     //            else {
     //              fOnClient.updateSize(fOnServer);
     //            }
-                fOnServer.increaseWriteHit(cache.getFirst()[i].hashCode());
+                fOnServer.increaseWriteHit(cache.getFirst()[i]);
 
               }
             }
