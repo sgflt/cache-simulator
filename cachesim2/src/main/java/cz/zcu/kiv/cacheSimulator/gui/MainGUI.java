@@ -70,6 +70,7 @@ import javax.swing.table.TableRowSorter;
 
 import org.jfree.ui.RefineryUtilities;
 
+import cz.zcu.kiv.cacheSimulator.ClassLoader;
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.consistency.IConsistencySimulation;
 import cz.zcu.kiv.cacheSimulator.dataAccess.GaussianFileNameGenerator;
@@ -517,7 +518,7 @@ public class MainGUI extends JFrame implements Observer {
       list = this.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/consistency/");
     } else {
       final String sep = System.getProperty("file.separator");
-      list = this.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep
+      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep
           + "consistency" + sep);
     }
     for (final String name : list) {
@@ -551,7 +552,7 @@ public class MainGUI extends JFrame implements Observer {
       cachingAlgorithms = this.loadClassInfoFromJar(path, "/cz/zcu/kiv/cacheSimulator/cachePolicies/");
     } else {
       final String sep = System.getProperty("file.separator");
-      cachingAlgorithms = this.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep
+      cachingAlgorithms = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep
           + "cachePolicies" + sep);
     }
 
@@ -591,7 +592,7 @@ public class MainGUI extends JFrame implements Observer {
       list = this.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/gui/configuration");
     } else {
       final String sep = System.getProperty("file.separator");
-      list = this.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep + "gui"
+      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep + "gui"
           + sep + "configuration" + sep);
     }
 
@@ -656,59 +657,6 @@ public class MainGUI extends JFrame implements Observer {
     }
     return classInfo;
   }
-
-
-  /**
-   * metoda pro nacteni cache policies z adresare
-   *
-   * @param path
-   *          cesta
-   */
-  private List<String> loadClassInfo(final String path, final String packageName) {
-    final List<String> classInfo = new ArrayList<String>();
-    final String pathToPackage = (path + packageName);
-    final File dir = new File(pathToPackage);
-    final File[] files = dir.listFiles();
-    for (final File file : files) {
-      if (file.isFile() && !file.getName().startsWith("I") && !file.getName().contains("$")
-          && !file.getName().contains("Data") && !file.getName().contains("MainGUI")) {
-        try {
-          try {
-            final Class<?> myClass = Class.forName(packageName.replace('/', '.').replace('\\', '.')
-                + file.getName().substring(0, file.getName().lastIndexOf(".class")));
-            Object newObject = null;
-            // chceme pouze tridy s konstruktory bez parametru
-            final Constructor<?>[] cons = myClass.getConstructors();
-            if (cons.length == 1 && cons[0].getParameterTypes().length == 0) {
-              newObject = myClass.newInstance();
-            } else {
-              continue;
-            }
-
-            if (newObject instanceof ICache) {
-              classInfo.add(((ICache) newObject).cacheInfo());
-            }
-            if (newObject instanceof IConsistencySimulation) {
-              classInfo.add(((IConsistencySimulation) newObject).getInfo());
-            }
-            if (file.getName().contains("Panel")) {
-              classInfo.add(myClass.getName());
-            }
-          } catch (final InstantiationException ex) {
-            Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-          } catch (final IllegalAccessException ex) {
-            Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-          }
-        } catch (final ClassNotFoundException ex) {
-          Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (final Exception e) {
-          e.printStackTrace();
-        }
-      }
-    }
-    return classInfo;
-  }
-
 
   /**
    * Creates new form MainGUI
