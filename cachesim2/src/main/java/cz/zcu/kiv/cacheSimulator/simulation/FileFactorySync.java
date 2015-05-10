@@ -82,7 +82,7 @@ public class FileFactorySync implements IFileQueue {
 
     try {
       /* wait for threads that are going to run this iteration */
-      while (!this.canWait) {
+      while (!this.canWait && this.threads > 1) {
           this.wait();
       }
       ++this.waitingThreads;
@@ -97,7 +97,7 @@ public class FileFactorySync implements IFileQueue {
       }
 
       /* wait for all threads to run previous iteration */
-      while (this.canWait) {
+      while (this.canWait && this.threads > 1) {
           this.wait();
       }
       --this.waitingThreads;
