@@ -1,7 +1,7 @@
 package cz.zcu.kiv.cacheSimulator.server;
 
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -54,8 +54,8 @@ public class Server {
    * konstruktor - zaplneni struktury soubory
    */
   private Server() {
-    this.fileTable = new Hashtable<String, FileOnServer>(200000, 0.8f);
-    this.fileNames = new ArrayList<String>();
+    this.fileTable = new HashMap<>(200000, 0.8f);
+    this.fileNames = new ArrayList<>();
     this.rnd = new Random(seedValue);
   }
 
@@ -230,17 +230,15 @@ public class Server {
   public synchronized long getFileSize(final String fname){
     if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname))
       return this.lastFile.getFileSize();
-    else{
-      final FileOnServer file = this.fileTable.get(fname);
-      if (file != null){
-        this.lastFile = file;
-        return file.getFileSize();
-      }
-      else{
-        System.out.println("Chyba!");
-        return 0;
-      }
+
+    final FileOnServer file = this.fileTable.get(fname);
+    if (file != null) {
+      this.lastFile = file;
+      return file.getFileSize();
     }
+
+    System.out.println("Chyba!");
+    return 0;
   }
 
   /**

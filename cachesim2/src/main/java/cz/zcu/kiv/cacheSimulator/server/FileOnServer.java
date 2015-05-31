@@ -73,7 +73,7 @@ public class FileOnServer {
     super();
     this.fileName = fileName;
     this.fileSize = fileSize;
-    this.writeTimes = new ArrayList<Long>();
+    this.writeTimes = new ArrayList<>();
     this.version = 1;
     this.readHit = new ConcurrentHashMap<>();
     this.writeHit = new ConcurrentHashMap<>();
@@ -263,6 +263,7 @@ public class FileOnServer {
     long sumTime = 0;
     long nejmensi = Long.MAX_VALUE, nejvetsi = Long.MIN_VALUE;
     long time;
+
     for (int i = 0; i < this.writeTimes.size() - 1; i++) {
       time = this.writeTimes.get(i + 1) - this.writeTimes.get(i);
       sumTime += time;
@@ -271,12 +272,14 @@ public class FileOnServer {
       if (nejvetsi < time)
         nejvetsi = time;
     }
-    if (this.writeTimes.size() > 1)
+
+    if (this.writeTimes.size() > 1) {
       return "FileOnServer [Version=;" + this.version + "; prumernyCasPristupu=;" + sumTime
           / (this.writeTimes.size() - 1) + "; nejmensiPerioda=;" + nejmensi + "; nejvetsiPerioda=;"
           + nejvetsi + "; fileName=;" + this.fileName + "]";
-    else
-      return "FileOnServer [Version=;" + this.version + "; fileName=;" + this.fileName + ";]";
+    }
+
+    return "FileOnServer [Version=;" + this.version + "; fileName=;" + this.fileName + ";]";
   }
 
 
