@@ -12,10 +12,6 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,8 +19,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -60,6 +54,7 @@ import javax.swing.RowSorter;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
 import javax.swing.WindowConstants;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
@@ -71,7 +66,6 @@ import javax.swing.table.TableRowSorter;
 import org.jfree.ui.RefineryUtilities;
 
 import cz.zcu.kiv.cacheSimulator.ClassLoader;
-import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.consistency.IConsistencySimulation;
 import cz.zcu.kiv.cacheSimulator.dataAccess.GaussianFileNameGenerator;
 import cz.zcu.kiv.cacheSimulator.dataAccess.IFileQueue;
@@ -492,7 +486,8 @@ public class MainGUI extends JFrame implements Observer {
    * metoda nahraje z global variables nastaveni
    */
   private void loadValuesFromGlobalVar() {
-    this.slidingWindwowSpinner.setValue((int) (GlobalVariables.getCacheCapacityForDownloadWindow() * 100));
+    this.slidingWindwowSpinner
+        .setValue((int) (GlobalVariables.getCacheCapacityForDownloadWindow() * 100));
     this.networkSpeedSpinner.setValue(GlobalVariables.getAverageNetworkSpeed());
     this.statLimitSpinner.setValue(GlobalVariables.getLimitForStatistics());
     this.maxGenFileSizejSpinner.setValue(GlobalVariables.getMaxGeneratedFileSize());
@@ -511,15 +506,15 @@ public class MainGUI extends JFrame implements Observer {
    * metoda pro nacteni consistency control algoritmu
    */
   private void loadConsistencyAlgorithms() {
-    this.consistencyCheckBoxes = new ArrayList<JCheckBox>();
+    this.consistencyCheckBoxes = new ArrayList<>();
     final String path = MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     List<String> list;
     if (path.endsWith(".jar")) {
-      list = this.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/consistency/");
+      list = ClassLoader.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/consistency/");
     } else {
       final String sep = System.getProperty("file.separator");
-      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep
-          + "consistency" + sep);
+      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep
+          + "cacheSimulator" + sep + "consistency" + sep);
     }
     for (final String name : list) {
       final String[] names = name.split(";");
@@ -544,22 +539,24 @@ public class MainGUI extends JFrame implements Observer {
    * metoda pro nahrani zaskrtavatek pro cache algoritmy
    */
   private void loadCaches() {
-    this.cacheCheckBoxes = new ArrayList<JCheckBox>();
+    this.cacheCheckBoxes = new ArrayList<>();
     final String path = MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
     List<String> cachingAlgorithms;
 
     if (path.endsWith(".jar")) {
-      cachingAlgorithms = this.loadClassInfoFromJar(path, "/cz/zcu/kiv/cacheSimulator/cachePolicies/");
+      cachingAlgorithms = ClassLoader.loadClassInfoFromJar(path,
+          "/cz/zcu/kiv/cacheSimulator/cachePolicies/");
     } else {
       final String sep = System.getProperty("file.separator");
-      cachingAlgorithms = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep
-          + "cachePolicies" + sep);
+      cachingAlgorithms = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv"
+          + sep + "cacheSimulator" + sep + "cachePolicies" + sep);
     }
+
 
     // nacteni cache policies do checkboxlistu
     for (final String name : cachingAlgorithms) {
       final String[] names = name.split(";");
-      final JCheckBox cacheCheckbox = new JCheckBox(names[1], true);
+      final JCheckBox cacheCheckbox = new JCheckBox(names[1], false);
 
       cacheCheckbox.setName(names[0]);
       cacheCheckbox.addActionListener(evt -> MainGUI.this.cacheCheckBoxActionPerformed(evt));
@@ -584,16 +581,16 @@ public class MainGUI extends JFrame implements Observer {
    * metoda pro nacteni jmen trid, ktere vykresluji panely pro ruzna nastaveni
    */
   private void loadSettingsPanelNames() {
-    this.settingsPanels = new ArrayList<JPanel>();
+    this.settingsPanels = new ArrayList<>();
     List<String> list;
     final String path = MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
 
     if (path.endsWith(".jar")) {
-      list = this.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/gui/configuration");
+      list = ClassLoader.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/gui/configuration");
     } else {
       final String sep = System.getProperty("file.separator");
-      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep + "cacheSimulator" + sep + "gui"
-          + sep + "configuration" + sep);
+      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep
+          + "cacheSimulator" + sep + "gui" + sep + "configuration" + sep);
     }
 
     for (final String panelName : list) {
@@ -605,58 +602,6 @@ public class MainGUI extends JFrame implements Observer {
     }
   }
 
-
-  /**
-   * metoda pro nacteni cache simulatoru z jar souboru
-   *
-   * @param path
-   *          cesta k jar souboru
-   */
-  private List<String> loadClassInfoFromJar(final String path, final String packageName) {
-    final List<String> classNames = GlobalMethods.getJarClassNames(path, packageName);
-    final List<String> classInfo = new ArrayList<String>();
-    for (final String className : classNames) {
-      if (className.contains("ICache") || className.contains("IConsistency") || className.contains("Data")) {
-        continue;
-      }
-      try {
-        final URL url = new URL("jar:file:/" + path + "!/");
-        final URLClassLoader ucl = new URLClassLoader(new URL[] {url});
-
-        final Class<?> myClass = Class.forName(className.replace("/", "."), true, ucl);
-        Object newObject = null;
-        // chceme pouze tridy s konstruktory bez parametru
-        final Constructor<?>[] cons = myClass.getConstructors();
-        if (cons.length == 1 && cons[0].getParameterTypes().length == 0) {
-          newObject = myClass.newInstance();
-        } else {
-          continue;
-        }
-
-        newObject = myClass.newInstance();
-        if (newObject instanceof ICache) {
-          classInfo.add(((ICache) newObject).cacheInfo());
-        }
-        if (newObject instanceof IConsistencySimulation) {
-          classInfo.add(((IConsistencySimulation) newObject).getInfo());
-        }
-        if (className.contains("Panel")) {
-          classInfo.add(myClass.getName());
-        }
-      } catch (final InstantiationException ex) {
-        Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-      } catch (final IllegalAccessException ex) {
-        Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-      } catch (final MalformedURLException ex) {
-        ex.printStackTrace();
-        Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-      } catch (final ClassNotFoundException ex) {
-        Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
-        ex.printStackTrace();
-      }
-    }
-    return classInfo;
-  }
 
   /**
    * Creates new form MainGUI
@@ -711,7 +656,6 @@ public class MainGUI extends JFrame implements Observer {
       this.simulationThread.stopSimulation();
     }
 
-
     Server.getInstance().hardReset();
 
     this.enableComponentsAfterSimulaton(false);
@@ -756,11 +700,13 @@ public class MainGUI extends JFrame implements Observer {
       // vytvoreni objektu generatoru pristupovanych souboru
       IFileQueue fileQueue = null;
       if (this.requestsInputComboBox.getSelectedIndex() == 2) {
-        fileQueue = new GaussianFileNameGenerator(GlobalVariables.getRequestCountForRandomGenerator());
+        fileQueue = new GaussianFileNameGenerator(
+            GlobalVariables.getRequestCountForRandomGenerator());
       } else if (this.requestsInputComboBox.getSelectedIndex() == 3) {
         fileQueue = new RandomFileNameGenerator(GlobalVariables.getRequestCountForRandomGenerator());
       } else if (this.requestsInputComboBox.getSelectedIndex() == 4) {
-        fileQueue = new RandomFileNameGeneratorWithPrefences(GlobalVariables.getRequestCountForRandomGenerator());
+        fileQueue = new RandomFileNameGeneratorWithPrefences(
+            GlobalVariables.getRequestCountForRandomGenerator());
       } else if (this.requestsInputComboBox.getSelectedIndex() == 5) {
         fileQueue = new ZipfFileNameGenerator(GlobalVariables.getRequestCountForRandomGenerator());
       } else if (GlobalVariables.isLoadDataFromLog()) {
@@ -770,7 +716,8 @@ public class MainGUI extends JFrame implements Observer {
       this.consSimulation = this.selectConsistencyControl();
 
       // velikosti cache
-      final Integer[] sizes = ((CacheCapacityListModel) this.cacheCapacityList.getModel()).getArray();
+      final Integer[] sizes = ((CacheCapacityListModel) this.cacheCapacityList.getModel())
+          .getArray();
 
       // nastaveni progress baru
       this.simulationProgressBar.setMinimum(0);
@@ -804,7 +751,8 @@ public class MainGUI extends JFrame implements Observer {
     } else if (this.requestsInputComboBox.getSelectedItem().equals("From AFS log file")) {
       final File f = new File(GlobalVariables.getLogAFSFIleName());
       if (!f.isFile()) {
-        JOptionPane.showMessageDialog(this, "You have to select AFS log file!", "Alert", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "You have to select AFS log file!", "Alert",
+            JOptionPane.ERROR_MESSAGE);
         this.panelsPane.setSelectedIndex(0);
         return false;
       }
@@ -812,8 +760,8 @@ public class MainGUI extends JFrame implements Observer {
 
     // kontrola zaskrtavatek u cache algoritmu
     if (this.getCachesNames() == null || this.getCachesNames().length == 0) {
-      JOptionPane.showMessageDialog(this, "You have to select simulated cache algorithms!", "Alert",
-          JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, "You have to select simulated cache algorithms!",
+          "Alert", JOptionPane.ERROR_MESSAGE);
       this.panelsPane.setSelectedIndex(1);
       return false;
     }
@@ -828,8 +776,8 @@ public class MainGUI extends JFrame implements Observer {
         }
       }
       if (!selected) {
-        JOptionPane.showMessageDialog(this, "You have to select consistency control algorithm!", "Alert",
-            JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, "You have to select consistency control algorithm!",
+            "Alert", JOptionPane.ERROR_MESSAGE);
         this.panelsPane.setSelectedIndex(2);
         return false;
       }
@@ -883,10 +831,10 @@ public class MainGUI extends JFrame implements Observer {
       return;
     if (this.userList.getSelectedIndex() < 0)
       return;
-    this.totalNetTextField.setText(Long.toString(this.cacheResults.get(this.userList.getSelectedIndex())
-        .getTotalNetworkBandwidth() / 1024 / 1024));
-    this.totalReqTextField.setText(Long.toString(this.cacheResults.get(this.userList.getSelectedIndex())
-        .getFileAccessed()));
+    this.totalNetTextField.setText(Long.toString(this.cacheResults.get(
+        this.userList.getSelectedIndex()).getTotalNetworkBandwidth() / 1024 / 1024));
+    this.totalReqTextField.setText(Long.toString(this.cacheResults.get(
+        this.userList.getSelectedIndex()).getFileAccessed()));
     final UserStatistics stat = this.cacheResults.get(this.userList.getSelectedIndex());
 
     final String[] cacheNames = stat.getCacheNames();
@@ -927,7 +875,7 @@ public class MainGUI extends JFrame implements Observer {
     final TableModel tm = new PolicyResultTable(rowData, names);
 
     this.resultsTable.setModel(tm);
-    final RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(tm);
+    final RowSorter<TableModel> sorter = new TableRowSorter<>(tm);
 
     this.resultsTable.setRowSorter(sorter);
   }
@@ -951,7 +899,8 @@ public class MainGUI extends JFrame implements Observer {
     if (consName.length() == 0)
       return null;
     try {
-      return (IConsistencySimulation) Class.forName("cz.zcu.kiv.cacheSimulator.consistency." + consName).newInstance();
+      return (IConsistencySimulation) Class.forName(
+          "cz.zcu.kiv.cacheSimulator.consistency." + consName).newInstance();
     } catch (final InstantiationException e) {
       return null;
     } catch (final IllegalAccessException e) {
@@ -1067,7 +1016,8 @@ public class MainGUI extends JFrame implements Observer {
     final Integer newCacheCap = (Integer) this.cacheCapSpinner.getValue();
 
     if (newCacheCap <= 0) {
-      JOptionPane.showMessageDialog(this, "You have to insert positive integer!", "Alert", JOptionPane.OK_OPTION);
+      JOptionPane.showMessageDialog(this, "You have to insert positive integer!", "Alert",
+          JOptionPane.OK_OPTION);
       return;
     }
 
@@ -1078,9 +1028,7 @@ public class MainGUI extends JFrame implements Observer {
       this.cacheCapacityList.invalidate();
       this.cacheCapacityList.repaint();
     } catch (final Exception e) {
-      JOptionPane.showMessageDialog(this,
-          e.getMessage(), "Alert",
-          JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(this, e.getMessage(), "Alert", JOptionPane.ERROR_MESSAGE);
     }
   }
 
@@ -1143,7 +1091,8 @@ public class MainGUI extends JFrame implements Observer {
     } else if ((Integer) this.slidingWindwowSpinner.getValue() > 75) {
       this.slidingWindwowSpinner.setValue(75);
     }
-    GlobalVariables.setCacheCapacityForDownloadWindow(((Integer) this.slidingWindwowSpinner.getValue()).intValue());
+    GlobalVariables.setCacheCapacityForDownloadWindow(((Integer) this.slidingWindwowSpinner
+        .getValue()).intValue());
   }
 
 
@@ -1155,7 +1104,8 @@ public class MainGUI extends JFrame implements Observer {
   private void maxGenFileSizejSpinnerStateChanged(final ChangeEvent evt) {
     if ((Integer) this.maxGenFileSizejSpinner.getValue() < 0) {
       this.maxGenFileSizejSpinner.setValue(0);
-    } else if ((Integer) this.maxGenFileSizejSpinner.getValue() <= (Integer) this.minGenFileSizejSpinner.getValue()) {
+    } else if ((Integer) this.maxGenFileSizejSpinner.getValue() <= (Integer) this.minGenFileSizejSpinner
+        .getValue()) {
       this.maxGenFileSizejSpinner.setValue((Long) this.minGenFileSizejSpinner.getValue() + 1);
     }
     GlobalVariables.setMaxGeneratedFileSize((Integer) this.maxGenFileSizejSpinner.getValue());
@@ -1170,7 +1120,8 @@ public class MainGUI extends JFrame implements Observer {
   private void minGenFileSizejSpinnerStateChanged(final ChangeEvent evt) {
     if ((Integer) this.minGenFileSizejSpinner.getValue() < 0) {
       this.minGenFileSizejSpinner.setValue(0);
-    } else if ((Integer) this.maxGenFileSizejSpinner.getValue() <= (Integer) this.minGenFileSizejSpinner.getValue()) {
+    } else if ((Integer) this.maxGenFileSizejSpinner.getValue() <= (Integer) this.minGenFileSizejSpinner
+        .getValue()) {
       this.minGenFileSizejSpinner.setValue((Integer) this.maxGenFileSizejSpinner.getValue() - 1);
     }
     GlobalVariables.setMinGeneratedFileSize((Integer) this.minGenFileSizejSpinner.getValue());
@@ -1222,7 +1173,8 @@ public class MainGUI extends JFrame implements Observer {
     if ((Integer) this.preferenceDivisibleSpinner.getValue() <= 0) {
       this.preferenceDivisibleSpinner.setValue(1);
     }
-    GlobalVariables.setFileRequestPreferenceStep((Integer) this.preferenceDivisibleSpinner.getValue());
+    GlobalVariables.setFileRequestPreferenceStep((Integer) this.preferenceDivisibleSpinner
+        .getValue());
   }
 
 
@@ -1248,7 +1200,8 @@ public class MainGUI extends JFrame implements Observer {
     if ((Integer) this.maenValueGaussSpinner.getValue() <= 0) {
       this.maenValueGaussSpinner.setValue(1);
     }
-    GlobalVariables.setFileRequestGeneratorMeanValue((Integer) this.maenValueGaussSpinner.getValue());
+    GlobalVariables.setFileRequestGeneratorMeanValue((Integer) this.maenValueGaussSpinner
+        .getValue());
   }
 
 
@@ -1284,7 +1237,8 @@ public class MainGUI extends JFrame implements Observer {
     if ((Integer) this.requestCountSpinner.getValue() <= 0) {
       this.requestCountSpinner.setValue(1);
     }
-    GlobalVariables.setRequestCountForRandomGenerator((Integer) this.requestCountSpinner.getValue());
+    GlobalVariables
+        .setRequestCountForRandomGenerator((Integer) this.requestCountSpinner.getValue());
   }
 
 
@@ -1312,7 +1266,7 @@ public class MainGUI extends JFrame implements Observer {
       tm = dtm;
     }
     this.consistencyTable.setModel(tm);
-    final RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(tm);
+    final RowSorter<TableModel> sorter = new TableRowSorter<>(tm);
     this.consistencyTable.setRowSorter(sorter);
   }
 
@@ -1341,7 +1295,7 @@ public class MainGUI extends JFrame implements Observer {
       tm = dtm;
     }
     this.consistencyTable.setModel(tm);
-    final RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(tm);
+    final RowSorter<TableModel> sorter = new TableRowSorter<>(tm);
     this.consistencyTable.setRowSorter(sorter);
   }
 
@@ -1506,8 +1460,8 @@ public class MainGUI extends JFrame implements Observer {
       public void approveSelection() {
         final File f = this.getSelectedFile();
         if (f.exists() && this.getDialogType() == SAVE_DIALOG) {
-          final int result = JOptionPane.showConfirmDialog(this, "The file exists, overwrite?", "Existing file",
-              JOptionPane.YES_NO_CANCEL_OPTION);
+          final int result = JOptionPane.showConfirmDialog(this, "The file exists, overwrite?",
+              "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
           switch (result) {
             case JOptionPane.YES_OPTION:
               super.approveSelection();
@@ -1631,7 +1585,8 @@ public class MainGUI extends JFrame implements Observer {
    */
   private void barChartButtonActionPerformed(final ActionEvent evt) {
     final BarChart chart = new BarChart(this.resultsChangeCombo.getSelectedItem().toString(),
-        this.cacheResults.get(this.userList.getSelectedIndex()), this.resultsChangeCombo.getSelectedIndex());
+        this.cacheResults.get(this.userList.getSelectedIndex()),
+        this.resultsChangeCombo.getSelectedIndex());
     chart.pack();
     RefineryUtilities.centerFrameOnScreen(chart);
     chart.setVisible(true);
@@ -1645,7 +1600,8 @@ public class MainGUI extends JFrame implements Observer {
    */
   private void lineChartButtonActionPerformed(final ActionEvent evt) {
     final LineChart chart = new LineChart(this.resultsChangeCombo.getSelectedItem().toString(),
-        this.cacheResults.get(this.userList.getSelectedIndex()), this.resultsChangeCombo.getSelectedIndex());
+        this.cacheResults.get(this.userList.getSelectedIndex()),
+        this.resultsChangeCombo.getSelectedIndex());
     chart.pack();
     RefineryUtilities.centerFrameOnScreen(chart);
     chart.setVisible(true);
@@ -1770,14 +1726,14 @@ public class MainGUI extends JFrame implements Observer {
     public void add(final Integer i) {
       if (this.cacheSizes.contains(i)) {
         throw new RuntimeException("You have to insert different value!");
-      }
-      else if (this.cacheSizes.size() > 6) {
+      } else if (this.cacheSizes.size() > 6) {
         throw new RuntimeException("Maximum count of sizes reached.");
       }
 
       this.cacheSizes.add(i);
       Collections.sort(this.cacheSizes);
     }
+
 
     /**
      * metoda pro odebrani polozky
@@ -1791,10 +1747,9 @@ public class MainGUI extends JFrame implements Observer {
 
 
     public CacheCapacityListModel() {
-      this.cacheSizes = new LinkedList<Integer>(
-          Arrays.asList(16, 32, 64, 128, 256, 512, 1024)
-          );
+      this.cacheSizes = new LinkedList<>(Arrays.asList(16, 32, 64, 128, 256, 512, 1024));
     }
+
 
     /**
      * metoda pro ziskani pole velikosti
@@ -1894,7 +1849,7 @@ public class MainGUI extends JFrame implements Observer {
     if (this.cacheCheckBoxes == null) {
       return null;
     }
-    final ArrayList<String> names = new ArrayList<String>();
+    final ArrayList<String> names = new ArrayList<>();
     for (final JCheckBox box : this.cacheCheckBoxes) {
       if (box.isSelected()) {
         names.add(box.getName());
@@ -2233,26 +2188,32 @@ public class MainGUI extends JFrame implements Observer {
     this.simulatorToolbar.add(this.printConsoleButton);
     this.simulatorToolbar.add(this.toolbarSeparator2);
 
-    this.saveCSVConsistencyButton.setIcon(new ImageIcon(this.getClass().getResource("/ico/csv.png")));
+    this.saveCSVConsistencyButton
+        .setIcon(new ImageIcon(this.getClass().getResource("/ico/csv.png")));
     this.saveCSVConsistencyButton.setToolTipText("Save Consistency Control results to CSV");
     this.saveCSVConsistencyButton.setEnabled(false);
     this.saveCSVConsistencyButton.setFocusable(false);
     this.saveCSVConsistencyButton.setHorizontalTextPosition(SwingConstants.CENTER);
     this.saveCSVConsistencyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-    this.saveCSVConsistencyButton.addActionListener(evt -> MainGUI.this.saveCSVConsistencyActionPerformed(evt));
+    this.saveCSVConsistencyButton.addActionListener(evt -> MainGUI.this
+        .saveCSVConsistencyActionPerformed(evt));
     this.simulatorToolbar.add(this.saveCSVConsistencyButton);
 
-    this.saveXLSConsistencyButton.setIcon(new ImageIcon(this.getClass().getResource("/ico/xls.png"))); // NOI18N
+    this.saveXLSConsistencyButton
+        .setIcon(new ImageIcon(this.getClass().getResource("/ico/xls.png"))); // NOI18N
     this.saveXLSConsistencyButton.setToolTipText("Save Consistency Control results to XLS");
     this.saveXLSConsistencyButton.setEnabled(false);
     this.saveXLSConsistencyButton.setFocusable(false);
     this.saveXLSConsistencyButton.setHorizontalTextPosition(SwingConstants.CENTER);
     this.saveXLSConsistencyButton.setVerticalTextPosition(SwingConstants.BOTTOM);
-    this.saveXLSConsistencyButton.addActionListener(evt -> MainGUI.this.saveXLSConsistencyActionPerformed(evt));
+    this.saveXLSConsistencyButton.addActionListener(evt -> MainGUI.this
+        .saveXLSConsistencyActionPerformed(evt));
     this.simulatorToolbar.add(this.saveXLSConsistencyButton);
 
-    this.printConsoleConsistencyButton.setIcon(new ImageIcon(this.getClass().getResource("/ico/console.png"))); // NOI18N
-    this.printConsoleConsistencyButton.setToolTipText("Print Consistency Control results to console");
+    this.printConsoleConsistencyButton.setIcon(new ImageIcon(this.getClass().getResource(
+        "/ico/console.png"))); // NOI18N
+    this.printConsoleConsistencyButton
+        .setToolTipText("Print Consistency Control results to console");
     this.printConsoleConsistencyButton.setEnabled(false);
     this.printConsoleConsistencyButton.setFocusable(false);
     this.printConsoleConsistencyButton.setHorizontalTextPosition(SwingConstants.CENTER);
@@ -2289,22 +2250,28 @@ public class MainGUI extends JFrame implements Observer {
     this.cachePlusButton.addActionListener(evt -> MainGUI.this.cachePlusButtonActionPerformed(evt));
 
     this.cacheMinusButton.setText("-");
-    this.cacheMinusButton.addActionListener(evt -> MainGUI.this.cacheMinusButtonActionPerformed(evt));
+    this.cacheMinusButton.addActionListener(evt -> MainGUI.this
+        .cacheMinusButtonActionPerformed(evt));
 
     final GroupLayout cacheCapacityPanelLayout = new GroupLayout(this.cacheCapacityPanel);
     this.cacheCapacityPanel.setLayout(cacheCapacityPanelLayout);
     cacheCapacityPanelLayout.setHorizontalGroup(cacheCapacityPanelLayout
         .createParallelGroup(GroupLayout.Alignment.LEADING)
         .addGroup(
-            cacheCapacityPanelLayout.createSequentialGroup().addContainerGap().addComponent(this.cacheCapScrollPane)
-                .addContainerGap())
+            cacheCapacityPanelLayout.createSequentialGroup().addContainerGap()
+                .addComponent(this.cacheCapScrollPane).addContainerGap())
         .addGroup(
             GroupLayout.Alignment.TRAILING,
-            cacheCapacityPanelLayout.createSequentialGroup().addContainerGap(70, Short.MAX_VALUE)
-                .addComponent(this.cacheCapSpinner, GroupLayout.PREFERRED_SIZE, 121, GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18).addComponent(this.cachePlusButton).addGap(18, 18, 18)
-                .addComponent(this.cacheMinusButton, GroupLayout.PREFERRED_SIZE, 38, GroupLayout.PREFERRED_SIZE)
-                .addGap(52, 52, 52)));
+            cacheCapacityPanelLayout
+                .createSequentialGroup()
+                .addContainerGap(70, Short.MAX_VALUE)
+                .addComponent(this.cacheCapSpinner, GroupLayout.PREFERRED_SIZE, 121,
+                    GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(this.cachePlusButton)
+                .addGap(18, 18, 18)
+                .addComponent(this.cacheMinusButton, GroupLayout.PREFERRED_SIZE, 38,
+                    GroupLayout.PREFERRED_SIZE).addGap(52, 52, 52)));
     cacheCapacityPanelLayout.setVerticalGroup(cacheCapacityPanelLayout.createParallelGroup(
         GroupLayout.Alignment.LEADING).addGroup(
         cacheCapacityPanelLayout
@@ -2314,9 +2281,10 @@ public class MainGUI extends JFrame implements Observer {
             .addGroup(
                 cacheCapacityPanelLayout
                     .createParallelGroup(GroupLayout.Alignment.BASELINE)
-                    .addComponent(this.cacheCapSpinner, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                        GroupLayout.PREFERRED_SIZE).addComponent(this.cachePlusButton)
-                    .addComponent(this.cacheMinusButton)).addContainerGap()));
+                    .addComponent(this.cacheCapSpinner, GroupLayout.PREFERRED_SIZE,
+                        GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+                    .addComponent(this.cachePlusButton).addComponent(this.cacheMinusButton))
+            .addContainerGap()));
 
     this.settingsPane.add(this.cacheCapacityPanel);
     this.cacheCapacityPanel.setBounds(369, 11, 372, 270);
@@ -2344,7 +2312,8 @@ public class MainGUI extends JFrame implements Observer {
 
     this.networkSpeedSpinner.setFont(new java.awt.Font("Tahoma", 0, 10));
     this.networkSpeedSpinner.setValue(80);
-    this.networkSpeedSpinner.addChangeListener(evt -> MainGUI.this.networkSpeedSpinnerStateChanged(evt));
+    this.networkSpeedSpinner.addChangeListener(evt -> MainGUI.this
+        .networkSpeedSpinnerStateChanged(evt));
     this.othersSettingsPanel.add(this.networkSpeedSpinner);
     this.networkSpeedSpinner.setBounds(210, 72, 90, 18);
 
@@ -2354,7 +2323,8 @@ public class MainGUI extends JFrame implements Observer {
 
     this.slidingWindwowSpinner.setFont(new java.awt.Font("Tahoma", 0, 10));
     this.slidingWindwowSpinner.setValue(25);
-    this.slidingWindwowSpinner.addChangeListener(evt -> MainGUI.this.slidingWindwowSpinnerStateChanged(evt));
+    this.slidingWindwowSpinner.addChangeListener(evt -> MainGUI.this
+        .slidingWindwowSpinnerStateChanged(evt));
 
     this.othersSettingsPanel.add(this.slidingWindwowSpinner);
     this.slidingWindwowSpinner.setBounds(296, 108, 60, 18);
@@ -2372,9 +2342,11 @@ public class MainGUI extends JFrame implements Observer {
     this.requestsSettingsPanel.setBorder(BorderFactory.createTitledBorder("Requests"));
     this.requestsSettingsPanel.setLayout(null);
 
-    this.requestsInputComboBox.setModel(new DefaultComboBoxModel(new String[] {"-- Choose one --", "From AFS log file",
-        "Gaussian random", "Uniformly Random", "Random with preference", "Zipf random"}));
-    this.requestsInputComboBox.addItemListener(evt -> MainGUI.this.requestsInputComboBoxItemStateChanged(evt));
+    this.requestsInputComboBox.setModel(new DefaultComboBoxModel(new String[] {"-- Choose one --",
+        "From AFS log file", "Gaussian random", "Uniformly Random", "Random with preference",
+        "Zipf random"}));
+    this.requestsInputComboBox.addItemListener(evt -> MainGUI.this
+        .requestsInputComboBoxItemStateChanged(evt));
     this.requestsSettingsPanel.add(this.requestsInputComboBox);
     this.requestsInputComboBox.setBounds(180, 30, 156, 22);
 
@@ -2383,8 +2355,10 @@ public class MainGUI extends JFrame implements Observer {
     this.inputRequestLabel.setBounds(30, 30, 173, 20);
 
     this.randomFileSizeCheckBox.setText("Generate random file sizes");
-    this.randomFileSizeCheckBox.addItemListener(evt -> MainGUI.this.randomFileSizeCheckBoxItemStateChanged(evt));
-    this.randomFileSizeCheckBox.addActionListener(evt -> MainGUI.this.randomFileSizeCheckBoxActionPerformed(evt));
+    this.randomFileSizeCheckBox.addItemListener(evt -> MainGUI.this
+        .randomFileSizeCheckBoxItemStateChanged(evt));
+    this.randomFileSizeCheckBox.addActionListener(evt -> MainGUI.this
+        .randomFileSizeCheckBoxActionPerformed(evt));
     this.requestsSettingsPanel.add(this.randomFileSizeCheckBox);
     this.randomFileSizeCheckBox.setBounds(80, 350, 190, 23);
 
@@ -2412,13 +2386,15 @@ public class MainGUI extends JFrame implements Observer {
 
     this.minGenFileSizejSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.minGenFileSizejSpinner.setValue(500);
-    this.minGenFileSizejSpinner.addChangeListener(evt -> MainGUI.this.minGenFileSizejSpinnerStateChanged(evt));
+    this.minGenFileSizejSpinner.addChangeListener(evt -> MainGUI.this
+        .minGenFileSizejSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.minGenFileSizejSpinner);
     this.minGenFileSizejSpinner.setBounds(190, 381, 88, 18);
 
     this.maxGenFileSizejSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.maxGenFileSizejSpinner.setValue(32000);
-    this.maxGenFileSizejSpinner.addChangeListener(evt -> MainGUI.this.maxGenFileSizejSpinnerStateChanged(evt));
+    this.maxGenFileSizejSpinner.addChangeListener(evt -> MainGUI.this
+        .maxGenFileSizejSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.maxGenFileSizejSpinner);
     this.maxGenFileSizejSpinner.setBounds(190, 411, 88, 18);
 
@@ -2439,7 +2415,8 @@ public class MainGUI extends JFrame implements Observer {
 
     this.generateFileSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.generateFileSpinner.setMinimumSize(new java.awt.Dimension(30, 20));
-    this.generateFileSpinner.addChangeListener(evt -> MainGUI.this.generateFileSpinnerStateChanged(evt));
+    this.generateFileSpinner.addChangeListener(evt -> MainGUI.this
+        .generateFileSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.generateFileSpinner);
     this.generateFileSpinner.setBounds(220, 120, 80, 20);
 
@@ -2453,7 +2430,8 @@ public class MainGUI extends JFrame implements Observer {
 
     this.maenValueGaussSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.maenValueGaussSpinner.setMinimumSize(new java.awt.Dimension(30, 20));
-    this.maenValueGaussSpinner.addChangeListener(evt -> MainGUI.this.maenValueGaussSpinnerStateChanged(evt));
+    this.maenValueGaussSpinner.addChangeListener(evt -> MainGUI.this
+        .maenValueGaussSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.maenValueGaussSpinner);
     this.maenValueGaussSpinner.setBounds(220, 150, 80, 20);
 
@@ -2462,7 +2440,8 @@ public class MainGUI extends JFrame implements Observer {
     this.preferenceDivisibleLabel.setBounds(20, 190, 180, 20);
 
     this.preferenceDivisibleSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.preferenceDivisibleSpinner.addChangeListener(evt -> MainGUI.this.preferenceDivisibleSpinnerStateChanged(evt));
+    this.preferenceDivisibleSpinner.addChangeListener(evt -> MainGUI.this
+        .preferenceDivisibleSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.preferenceDivisibleSpinner);
     this.preferenceDivisibleSpinner.setBounds(220, 190, 80, 20);
 
@@ -2489,7 +2468,8 @@ public class MainGUI extends JFrame implements Observer {
     this.dispersionLabel.setBounds(40, 190, 170, 14);
 
     this.dispersionSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.dispersionSpinner.addChangeListener(evt -> MainGUI.this.dispersionSpinnerStateChanged(evt));
+    this.dispersionSpinner
+        .addChangeListener(evt -> MainGUI.this.dispersionSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.dispersionSpinner);
     this.dispersionSpinner.setBounds(220, 190, 80, 18);
 
@@ -2499,7 +2479,8 @@ public class MainGUI extends JFrame implements Observer {
 
     this.requestCountSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.requestCountSpinner.setMinimumSize(new java.awt.Dimension(30, 20));
-    this.requestCountSpinner.addChangeListener(evt -> MainGUI.this.requestCountSpinnerStateChanged(evt));
+    this.requestCountSpinner.addChangeListener(evt -> MainGUI.this
+        .requestCountSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.requestCountSpinner);
     this.requestCountSpinner.setBounds(220, 90, 80, 20);
 
@@ -2509,7 +2490,8 @@ public class MainGUI extends JFrame implements Observer {
 
     this.zipfLamdbaSpinner.setModel(zipfModel);
     this.zipfLamdbaSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.zipfLamdbaSpinner.addChangeListener(evt -> MainGUI.this.zipfLamdbaSpinnerStateChanged(evt));
+    this.zipfLamdbaSpinner
+        .addChangeListener(evt -> MainGUI.this.zipfLamdbaSpinnerStateChanged(evt));
     this.requestsSettingsPanel.add(this.zipfLamdbaSpinner);
     this.zipfLamdbaSpinner.setBounds(220, 190, 80, 18);
 
@@ -2523,6 +2505,7 @@ public class MainGUI extends JFrame implements Observer {
 
     this.cachePanel.setBorder(BorderFactory.createEmptyBorder(10, 6, 10, 6));
     this.cachePanel.setLayout(new BoxLayout(this.cachePanel, BoxLayout.Y_AXIS));
+
     this.cachePane.setLeftComponent(this.cachePanel);
 
     this.consistencyPanel.setBorder(BorderFactory.createEmptyBorder(10, 6, 10, 6));
@@ -2565,12 +2548,12 @@ public class MainGUI extends JFrame implements Observer {
     this.userLabel.setBounds(37, 30, 110, 14);
 
     this.resultsChangeCombo.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.resultsChangeCombo
-        .setModel(new DefaultComboBoxModel(new String[] {"Read Hit Ratio [%]", "Read Hit Count",
-            "Saved Bytes Ratio [%]", "Saved Bytes [MB]", "Data Transfer Degrease Ratio [%]",
-            "Data Transfer Degrease [MB]"}));
+    this.resultsChangeCombo.setModel(new DefaultComboBoxModel(new String[] {"Read Hit Ratio [%]",
+        "Read Hit Count", "Saved Bytes Ratio [%]", "Saved Bytes [MB]",
+        "Data Transfer Degrease Ratio [%]", "Data Transfer Degrease [MB]"}));
     this.resultsChangeCombo.setMaximumSize(new java.awt.Dimension(192, 22));
-    this.resultsChangeCombo.addActionListener(evt -> MainGUI.this.resultsChangeComboActionPerformed(evt));
+    this.resultsChangeCombo.addActionListener(evt -> MainGUI.this
+        .resultsChangeComboActionPerformed(evt));
     this.resultsPane.add(this.resultsChangeCombo);
     this.resultsChangeCombo.setBounds(11, 338, 140, 21);
 
@@ -2633,7 +2616,8 @@ public class MainGUI extends JFrame implements Observer {
     this.userListConsistency.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     this.userListConScroll.setViewportView(this.userListConsistency);
 
-    this.userListConsistency.addListSelectionListener(evt -> MainGUI.this.userListConsistencyValueChanged(evt));
+    this.userListConsistency.addListSelectionListener(evt -> MainGUI.this
+        .userListConsistencyValueChanged(evt));
 
     this.ConReultsPanel.add(this.userListConScroll);
     this.userListConScroll.setBounds(19, 43, 140, 192);
@@ -2655,19 +2639,21 @@ public class MainGUI extends JFrame implements Observer {
 
     this.panelsPane.addTab("Consistency Results", this.ConReultsPanel);
 
-    this.statusPanel.setBorder(new SoftBevelBorder(SoftBevelBorder.LOWERED));
+    this.statusPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED));
 
     final GroupLayout statusPanelLayout = new GroupLayout(this.statusPanel);
     this.statusPanel.setLayout(statusPanelLayout);
-    statusPanelLayout.setHorizontalGroup(statusPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING)
-        .addComponent(this.simulationProgressBar, GroupLayout.DEFAULT_SIZE, 748, Short.MAX_VALUE));
-    statusPanelLayout.setVerticalGroup(statusPanelLayout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
+    statusPanelLayout.setHorizontalGroup(statusPanelLayout.createParallelGroup(
+        GroupLayout.Alignment.LEADING).addComponent(this.simulationProgressBar,
+        GroupLayout.DEFAULT_SIZE, 748, Short.MAX_VALUE));
+    statusPanelLayout.setVerticalGroup(statusPanelLayout.createParallelGroup(
+        GroupLayout.Alignment.LEADING).addGroup(
         GroupLayout.Alignment.TRAILING,
         statusPanelLayout
             .createSequentialGroup()
             .addGap(0, 0, Short.MAX_VALUE)
-            .addComponent(this.simulationProgressBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                GroupLayout.PREFERRED_SIZE)));
+            .addComponent(this.simulationProgressBar, GroupLayout.PREFERRED_SIZE,
+                GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)));
 
     this.fileMenu.setMnemonic('F');
     this.fileMenu.setText("File");
@@ -2692,30 +2678,36 @@ public class MainGUI extends JFrame implements Observer {
     this.saveConsoleMenuItem.setMnemonic('P');
     this.saveConsoleMenuItem.setText("Print Policies Results to Console");
     this.saveConsoleMenuItem.setEnabled(false);
-    this.saveConsoleMenuItem.addActionListener(evt -> MainGUI.this.printConsoleActionPerformed(evt));
+    this.saveConsoleMenuItem
+        .addActionListener(evt -> MainGUI.this.printConsoleActionPerformed(evt));
     this.fileMenu.add(this.saveConsoleMenuItem);
     this.fileMenu.add(this.fileMenuSeparator);
 
     this.saveCSVConsistencyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, 0));
     this.saveCSVConsistencyMenuItem.setMnemonic('A');
     this.saveCSVConsistencyMenuItem.setText("Save Consistency Results to CSV");
-    this.saveCSVConsistencyMenuItem.setToolTipText("Saves tables with consistency control results to CSV file");
+    this.saveCSVConsistencyMenuItem
+        .setToolTipText("Saves tables with consistency control results to CSV file");
     this.saveCSVConsistencyMenuItem.setEnabled(false);
-    this.saveCSVConsistencyMenuItem.addActionListener(evt -> MainGUI.this.saveCSVConsistencyActionPerformed(evt));
+    this.saveCSVConsistencyMenuItem.addActionListener(evt -> MainGUI.this
+        .saveCSVConsistencyActionPerformed(evt));
     this.fileMenu.add(this.saveCSVConsistencyMenuItem);
 
     this.saveXLSConsistencyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0));
     this.saveXLSConsistencyMenuItem.setMnemonic('S');
     this.saveXLSConsistencyMenuItem.setText("Save Consistency Results to XLS");
-    this.saveXLSConsistencyMenuItem.setToolTipText("Saves tables with consistency control results to XLS file");
+    this.saveXLSConsistencyMenuItem
+        .setToolTipText("Saves tables with consistency control results to XLS file");
     this.saveXLSConsistencyMenuItem.setEnabled(false);
-    this.saveXLSConsistencyMenuItem.addActionListener(evt -> MainGUI.this.saveXLSConsistencyActionPerformed(evt));
+    this.saveXLSConsistencyMenuItem.addActionListener(evt -> MainGUI.this
+        .saveXLSConsistencyActionPerformed(evt));
     this.fileMenu.add(this.saveXLSConsistencyMenuItem);
 
     this.saveConsoleConsistencyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0));
     this.saveConsoleConsistencyMenuItem.setMnemonic('D');
     this.saveConsoleConsistencyMenuItem.setText("Print Consistency Results to Console");
-    this.saveConsoleConsistencyMenuItem.setToolTipText("Print tables with consistency control results to console");
+    this.saveConsoleConsistencyMenuItem
+        .setToolTipText("Print tables with consistency control results to console");
     this.saveConsoleConsistencyMenuItem.setEnabled(false);
     this.saveConsoleConsistencyMenuItem.addActionListener(evt -> MainGUI.this
         .printConsoleConsistencyActionPerformed(evt));
@@ -2743,21 +2735,26 @@ public class MainGUI extends JFrame implements Observer {
     this.inputAFSMenuItem.setMnemonic('F');
     this.inputAFSMenuItem.setText("From AFS log file");
     this.inputAFSMenuItem.setToolTipText("Requests to the files are from AFS log file");
-    this.inputAFSMenuItem.addActionListener(evt -> MainGUI.this.inputAFSMenuItemActionPerformed(evt));
+    this.inputAFSMenuItem.addActionListener(evt -> MainGUI.this
+        .inputAFSMenuItemActionPerformed(evt));
     this.requestMenu.add(this.inputAFSMenuItem);
 
     this.inputGaussianMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_G, 0));
     this.inputGaussianMenuItem.setMnemonic('G');
     this.inputGaussianMenuItem.setText("Gaussian random");
-    this.inputGaussianMenuItem.setToolTipText("Requests to the files are from Gaussian distribution");
-    this.inputGaussianMenuItem.addActionListener(evt -> MainGUI.this.inputGaussianMenuItemActionPerformed(evt));
+    this.inputGaussianMenuItem
+        .setToolTipText("Requests to the files are from Gaussian distribution");
+    this.inputGaussianMenuItem.addActionListener(evt -> MainGUI.this
+        .inputGaussianMenuItemActionPerformed(evt));
     this.requestMenu.add(this.inputGaussianMenuItem);
 
     this.inputUniformlyMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0));
     this.inputUniformlyMenuItem.setMnemonic('R');
     this.inputUniformlyMenuItem.setText("Uniformly random");
-    this.inputUniformlyMenuItem.setToolTipText("Requests to the files are from uniformly random distribution");
-    this.inputUniformlyMenuItem.addActionListener(evt -> MainGUI.this.inputUniformlyMenuItemActionPerformed(evt));
+    this.inputUniformlyMenuItem
+        .setToolTipText("Requests to the files are from uniformly random distribution");
+    this.inputUniformlyMenuItem.addActionListener(evt -> MainGUI.this
+        .inputUniformlyMenuItemActionPerformed(evt));
     this.requestMenu.add(this.inputUniformlyMenuItem);
 
     this.inputRandomPrefMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, 0));
@@ -2765,14 +2762,16 @@ public class MainGUI extends JFrame implements Observer {
     this.inputRandomPrefMenuItem.setText("Random with preferences");
     this.inputRandomPrefMenuItem
         .setToolTipText("Requests to the files are from random distribution with preferention of files");
-    this.inputRandomPrefMenuItem.addActionListener(evt -> MainGUI.this.inputRandomPrefMenuItemActionPerformed(evt));
+    this.inputRandomPrefMenuItem.addActionListener(evt -> MainGUI.this
+        .inputRandomPrefMenuItemActionPerformed(evt));
     this.requestMenu.add(this.inputRandomPrefMenuItem);
 
     this.inputZipfMenuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0));
     this.inputZipfMenuItem.setMnemonic('Z');
     this.inputZipfMenuItem.setText("Zipf random");
     this.inputZipfMenuItem.setToolTipText("Requests to the files are from Zipf distribution");
-    this.inputZipfMenuItem.addActionListener(evt -> MainGUI.this.inputZipfMenuItemActionPerformed(evt));
+    this.inputZipfMenuItem.addActionListener(evt -> MainGUI.this
+        .inputZipfMenuItemActionPerformed(evt));
     this.requestMenu.add(this.inputZipfMenuItem);
 
     this.simulationMenu.add(this.requestMenu);
@@ -2806,24 +2805,27 @@ public class MainGUI extends JFrame implements Observer {
         .addComponent(this.simulatorToolbar, GroupLayout.DEFAULT_SIZE, 754, Short.MAX_VALUE)
         .addComponent(this.panelsPane)
         .addGroup(
-            layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(this.statusPanel,
-                GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
+            layout.createParallelGroup(GroupLayout.Alignment.LEADING).addComponent(
+                this.statusPanel, GroupLayout.Alignment.TRAILING, GroupLayout.DEFAULT_SIZE,
+                GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)));
     layout.setVerticalGroup(layout
         .createParallelGroup(GroupLayout.Alignment.LEADING)
         .addGroup(
-            layout.createSequentialGroup()
-                .addComponent(this.simulatorToolbar, GroupLayout.PREFERRED_SIZE, 40, GroupLayout.PREFERRED_SIZE)
+            layout
+                .createSequentialGroup()
+                .addComponent(this.simulatorToolbar, GroupLayout.PREFERRED_SIZE, 40,
+                    GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(this.panelsPane, GroupLayout.PREFERRED_SIZE, 499, GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(27, Short.MAX_VALUE))
+                .addComponent(this.panelsPane, GroupLayout.PREFERRED_SIZE, 499,
+                    GroupLayout.PREFERRED_SIZE).addContainerGap(27, Short.MAX_VALUE))
         .addGroup(
             layout.createParallelGroup(GroupLayout.Alignment.LEADING).addGroup(
                 GroupLayout.Alignment.TRAILING,
                 layout
                     .createSequentialGroup()
                     .addGap(0, 550, Short.MAX_VALUE)
-                    .addComponent(this.statusPanel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE,
-                        GroupLayout.PREFERRED_SIZE))));
+                    .addComponent(this.statusPanel, GroupLayout.PREFERRED_SIZE,
+                        GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))));
 
     this.panelsPane.setEnabledAt(3, false);
     this.panelsPane.setEnabledAt(4, false);
