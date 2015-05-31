@@ -11,6 +11,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Hashtable;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Observable;
@@ -89,7 +91,10 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
   private static final DateFormat fmt = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy",  Locale.ENGLISH);
 
-  private static final int PRELOAD_COUNT = 1;
+  private static final int PRELOAD_COUNT = 100;
+
+  private final List<RequestedFile> files = new LinkedList<>();
+
   /**
    * promenna pro uchovani casti prave zpracovavaneho logu
    */
@@ -210,15 +215,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
   @Override
   public RequestedFile getNextServerFile() {
-    final RequestedFile f = this.getNextFile(true);
-    if (f != null){
-      if (this.fileReadPos / this.modulo > this.procent){
-        this.procent++;
-        this.setChanged();
-        this.notifyObservers(this.info + " " + this.procent + "%");
-      }
-    }
-    return f;
+    return this.getNextServerFile(true);
   }
 
   /**
@@ -227,15 +224,25 @@ public class LogReaderAFS extends Observable implements IFileQueue {
    * @return nacteny soubor
    */
   public RequestedFile getNextServerFile(final boolean skipFile) {
-    final RequestedFile f = this.getNextFile(skipFile);
-    if (f != null){
+
+    if (this.files.size() > 0){
       if (this.fileReadPos / this.modulo > this.procent){
         this.procent++;
         this.setChanged();
         this.notifyObservers(this.info + " " + this.procent + "%");
       }
+    } else {
+      while (this.files.size() < PRELOAD_COUNT) {
+        final RequestedFile f = this.getNextFile(skipFile);
+
+        if (f == null)
+          break;
+
+        this.files.add(f);
+      }
     }
-    return f;
+
+    return this.files.size() > 0 ? this.files.remove(0) : null;
   }
 
   /**
