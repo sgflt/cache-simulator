@@ -7,7 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Date;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.Hashtable;
 import java.util.Map.Entry;
 import java.util.Observable;
@@ -37,52 +38,52 @@ public class LogReaderAFS extends Observable implements IFileQueue {
   /**
    * konstanta, ktera udava, na ktere radce mame zacit davat pozor na cteni souboru
    */
-  private final static String beginListenRead = "SRXAFS_FetchData, Fid =";
+  private static final String BEGIN_LISTEN_READ = "SRXAFS_FetchData, Fid =";
 
   /**
    * konstanta, ktera udava, na ktere radce mame zacit davat pozor na ulozeni souboru
    */
-  private final String beginListenStore = "StoreData: Fid =";
+  private static final String BEGIN_LISTEN_STORE = "StoreData: Fid =";
 
   /**
    * konstanta, ktera udava, na ktere radce mame skoncit se ctenim souboru
    */
-  private final String endListenRead = "SRXAFS_FetchData returns";
+  private static final String END_LISTEN_READ = "SRXAFS_FetchData returns";
 
   /**
    * konstanta, ktera udava, na ktere radce mame skoncit s ulozenim souboru
    */
-  private final String endListenStore = "SAFS_StoreData\treturns";
+  private static final String END_LISTEN_STORE = "SAFS_StoreData\treturns";
 
   /**
    * konstanta pro nalezeni fid souboru pri ukladani souboru
    */
-  private final String storeFid = "StoreData: Fid = ";
+  private static final String STORE_FID = "StoreData: Fid = ";
 
   /**
    * konstanta pro identifikaci retezce se jmenem souboru
    */
-  private final String fid = "Fid = ";
+  private static final String FID = "Fid = ";
 
   /**
    * konstanta pro urceni vyskytu retezce file size
    */
-  private final String fsize = "file size ";
+  private static final String FILE_SIZE = "file size ";
 
   /**
    * konstanta pro zjisteni velikosti souboru pri zapisu do souboru
    */
-  private final String fLength = "Length ";
+  private static final String FILE_LENGHT = "Length ";
 
   /**
    * konstanta pro retezec host
    */
-  private final String hostString = "Host ";
+  private static final String HOST = "Host ";
 
   /**
    * konstanta pro retezec host id
    */
-  private final String hostID = "Id ";
+  private static final String HOST_ID = "Id ";
 
   /**
    * promenna pro uchovani casti prave zpracovavaneho logu
@@ -155,7 +156,6 @@ public class LogReaderAFS extends Observable implements IFileQueue {
    * konstruktor - overeni existence souboru
    */
   public LogReaderAFS(final boolean readFSize) {
-    super();
     GlobalVariables.setActualTime(0);
     this.linesRead = new String[6];
     this.linesStore = new String[7];
@@ -253,7 +253,6 @@ public class LogReaderAFS extends Observable implements IFileQueue {
    * @param skipFiles parametr pro utceni, jestli se maji preskakovat soubory
    * @return zaznam z logu
    */
-  @SuppressWarnings("deprecation")
   private RequestedFile getNextFile(final boolean skipFiles) {
     if (this.bf == null)
       return null;
@@ -269,7 +268,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
         this.fileReadPos += line.length();
 
         //log cteni souboru
-        if (line.contains(beginListenRead)) {
+        if (line.contains(BEGIN_LISTEN_READ)) {
           splittedLine = line.split(", ");
           // jsme tam, kde chceme byt
           if (splittedLine.length == 2) {
@@ -285,13 +284,13 @@ public class LogReaderAFS extends Observable implements IFileQueue {
               // pokud nektera z radek obsahuje koncovou formuli a
               // neni posledni -
               // pokracujeme v nacitani souboru
-              if ((i < 4 && this.linesRead[i].contains(this.endListenRead)))
+              if ((i < 4 && this.linesRead[i].contains(END_LISTEN_READ)))
                 continue;
             }
-            if (!this.linesRead[5].contains(this.endListenRead))
+            if (!this.linesRead[5].contains(END_LISTEN_READ))
               continue;
             //kontrola, zda je pritomna velikost souboru
-            if  (!this.linesRead[4].contains(this.fsize))
+            if  (!this.linesRead[4].contains(FILE_SIZE))
               continue;
 
             // zde mame v poli nacten cely log
@@ -299,18 +298,17 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
             // zjisteni casu pristupu, jmena souboru (identifikator)
             // a velikosti souboru
-            accessTime = Date.parse(this.linesRead[1]
-                .substring(0, 24));
-            fname = this.linesRead[0].substring(this.linesRead[0].lastIndexOf(this.fid)
-                + this.fid.length());
+            accessTime = DateFormat.getDateInstance().parse(this.linesRead[1].substring(0, 24)).getTime();
+            fname = this.linesRead[0].substring(this.linesRead[0].lastIndexOf(FID)
+                + FID.length());
 
             if (this.readFSize){
               try{
               fileSize = Long
                 .parseLong(splittedLine[splittedLine.length - 1]
                     .substring(splittedLine[splittedLine.length - 1]
-                        .lastIndexOf(this.fsize)
-                        + this.fsize.length()));
+                        .lastIndexOf(FILE_SIZE)
+                        + FILE_SIZE.length()));
               }
               catch (final Exception e){
                 e.printStackTrace();
@@ -323,12 +321,12 @@ public class LogReaderAFS extends Observable implements IFileQueue {
             // zjisteni ip adresy a id uzivatele
             splittedLine = this.linesRead[1].split(", ");
             ip = splittedLine[2].substring(
-                splittedLine[2].indexOf(this.hostString)
-                    + this.hostString.length(),
+                splittedLine[2].indexOf(HOST)
+                    + HOST.length(),
                 splittedLine[2].lastIndexOf(":"));
 
             id = splittedLine[3].substring(splittedLine[3]
-                .lastIndexOf(this.hostID) + this.hostID.length());
+                .lastIndexOf(HOST_ID) + HOST_ID.length());
 
             userID = Long.parseLong(id);
 
@@ -351,8 +349,8 @@ public class LogReaderAFS extends Observable implements IFileQueue {
         }
 
         //log zapis souboru
-        if (line.contains(this.beginListenStore)){
-          if (line.contains(this.storeFid)) {
+        if (line.contains(BEGIN_LISTEN_STORE)){
+          if (line.contains(STORE_FID)) {
             this.linesStore[0] = line;
           }
           else
@@ -368,7 +366,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
             // pokud nektera z radek obsahuje koncovou formuli a
             // neni posledni -
             // pokracujeme v nacitani souboru
-            if ((i < 5 && this.linesStore[i].contains(this.endListenStore)))
+            if ((i < 5 && this.linesStore[i].contains(END_LISTEN_STORE)))
               continue;
           }
 
@@ -382,28 +380,27 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
           // zjisteni casu pristupu, jmena souboru (identifikator)
           // a velikosti souboru
-          accessTime = Date.parse(this.linesStore[1]
-              .substring(0, 24));
-          fname = this.linesStore[0].substring(this.linesStore[0].lastIndexOf(this.storeFid)
-              + this.storeFid.length());
+          accessTime = DateFormat.getDateInstance().parse(this.linesStore[1].substring(0, 24)).getTime();
+          fname = this.linesStore[0].substring(this.linesStore[0].lastIndexOf(STORE_FID)
+              + STORE_FID.length());
 
           fileSize = Long
               .parseLong(splittedLine[splittedLine.length - 1]
                   .substring(splittedLine[splittedLine.length - 1]
-                      .lastIndexOf(this.fLength)
-                      + this.fLength.length()));
+                      .lastIndexOf(FILE_LENGHT)
+                      + FILE_LENGHT.length()));
 
 
 
           // zjisteni ip adresy a id uzivatele
           splittedLine = this.linesStore[1].split(", ");
           ip = splittedLine[1].substring(
-              splittedLine[1].indexOf(this.hostString)
-                  + this.hostString.length(),
+              splittedLine[1].indexOf(HOST)
+                  + HOST.length(),
               splittedLine[1].lastIndexOf(":"));
 
           id = splittedLine[2].substring(splittedLine[2]
-              .lastIndexOf(this.hostID) + this.hostID.length());
+              .lastIndexOf(HOST_ID) + HOST_ID.length());
 
           userID = Long.parseLong(id);
           userID = userID << 32;
@@ -424,7 +421,11 @@ public class LogReaderAFS extends Observable implements IFileQueue {
         e1.printStackTrace();
       }
       return null;
+    } catch (final ParseException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
     }
+
     try {
       this.bf.close();
     } catch (final IOException e) {
@@ -442,13 +443,13 @@ public class LogReaderAFS extends Observable implements IFileQueue {
    */
   private boolean checkLogSave(final String[] linesStore) {
     if (linesStore.length != 7) return false;
-    if (!linesStore[0].contains(this.beginListenStore)) return false;
-    if (!linesStore[1].contains(this.beginListenStore)) return false;
+    if (!linesStore[0].contains(BEGIN_LISTEN_STORE)) return false;
+    if (!linesStore[1].contains(BEGIN_LISTEN_STORE)) return false;
     if (!linesStore[2].contains("CheckRights")) return false;
     if (!linesStore[3].contains("BCB: BreakCallBack")) return false;
     if (!linesStore[4].contains("StoreData_RXStyle")) return false;
     if (!linesStore[5].contains("StoreData_RXStyle")) return false;
-    if (!linesStore[6].contains(this.endListenStore)) return false;
+    if (!linesStore[6].contains(END_LISTEN_STORE)) return false;
     return true;
   }
 
