@@ -19,6 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractListModel;
 import javax.swing.BorderFactory;
@@ -508,19 +509,13 @@ public class MainGUI extends JFrame implements Observer {
   private void loadConsistencyAlgorithms() {
     this.consistencyCheckBoxes = new ArrayList<>();
     final String path = MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-    List<String> list;
-    if (path.endsWith(".jar")) {
-      list = ClassLoader.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/consistency/");
-    } else {
-      final String sep = System.getProperty("file.separator");
-      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep
-          + "cacheSimulator" + sep + "consistency" + sep);
-    }
+    final List<String> list = ClassLoader.loadClassInfo(path, "cz/zcu/kiv/cacheSimulator/consistency");
+
     for (final String name : list) {
       final String[] names = name.split(";");
       final JCheckBox novy = new JCheckBox(names[1], false);
       novy.setName(names[0]);
-      novy.addActionListener(evt -> MainGUI.this.consistencyCheckBoxActionPerformed(evt));
+      novy.addActionListener(MainGUI.this::consistencyCheckBoxActionPerformed);
       novy.addMouseMotionListener(new MouseMotionAdapter() {
 
         @Override
@@ -528,7 +523,7 @@ public class MainGUI extends JFrame implements Observer {
           MainGUI.this.consistencyCheckBoxMouseMove(e);
         }
       });
-      novy.setSelected(false);
+
       this.consistencyPanel.add(novy);
       this.consistencyCheckBoxes.add(novy);
     }
@@ -541,17 +536,7 @@ public class MainGUI extends JFrame implements Observer {
   private void loadCaches() {
     this.cacheCheckBoxes = new ArrayList<>();
     final String path = MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
-    List<String> cachingAlgorithms;
-
-    if (path.endsWith(".jar")) {
-      cachingAlgorithms = ClassLoader.loadClassInfoFromJar(path,
-          "/cz/zcu/kiv/cacheSimulator/cachePolicies/");
-    } else {
-      final String sep = System.getProperty("file.separator");
-      cachingAlgorithms = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv"
-          + sep + "cacheSimulator" + sep + "cachePolicies" + sep);
-    }
-
+    final List<String> cachingAlgorithms = ClassLoader.loadClassInfo(path, "cz/zcu/kiv/cacheSimulator/cachePolicies");
 
     // nacteni cache policies do checkboxlistu
     for (final String name : cachingAlgorithms) {
@@ -559,7 +544,7 @@ public class MainGUI extends JFrame implements Observer {
       final JCheckBox cacheCheckbox = new JCheckBox(names[1], false);
 
       cacheCheckbox.setName(names[0]);
-      cacheCheckbox.addActionListener(evt -> MainGUI.this.cacheCheckBoxActionPerformed(evt));
+      cacheCheckbox.addActionListener(MainGUI.this::cacheCheckBoxActionPerformed);
       cacheCheckbox.addMouseMotionListener(new MouseMotionAdapter() {
 
         @Override
@@ -582,16 +567,9 @@ public class MainGUI extends JFrame implements Observer {
    */
   private void loadSettingsPanelNames() {
     this.settingsPanels = new ArrayList<>();
-    List<String> list;
     final String path = MainGUI.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+    final List<String> list = ClassLoader.loadClassInfo(path, "cz/zcu/kiv/cacheSimulator/gui/configuration");
 
-    if (path.endsWith(".jar")) {
-      list = ClassLoader.loadClassInfoFromJar(path, "cz/zcu/kiv/cacheSimulator/gui/configuration");
-    } else {
-      final String sep = System.getProperty("file.separator");
-      list = ClassLoader.loadClassInfo(path + sep, "cz" + sep + "zcu" + sep + "kiv" + sep
-          + "cacheSimulator" + sep + "gui" + sep + "configuration" + sep);
-    }
 
     for (final String panelName : list) {
       try {
@@ -759,7 +737,8 @@ public class MainGUI extends JFrame implements Observer {
     }
 
     // kontrola zaskrtavatek u cache algoritmu
-    if (this.getCachesNames() == null || this.getCachesNames().length == 0) {
+    final List<String> cachenames = this.getCachesNames();
+    if (cachenames == null || cachenames.size() == 0) {
       JOptionPane.showMessageDialog(this, "You have to select simulated cache algorithms!",
           "Alert", JOptionPane.ERROR_MESSAGE);
       this.panelsPane.setSelectedIndex(1);
@@ -1845,21 +1824,15 @@ public class MainGUI extends JFrame implements Observer {
    *
    * @return pole nazvu cache trid
    */
-  public String[] getCachesNames() {
+  public List<String> getCachesNames() {
     if (this.cacheCheckBoxes == null) {
       return null;
     }
-    final ArrayList<String> names = new ArrayList<>();
-    for (final JCheckBox box : this.cacheCheckBoxes) {
-      if (box.isSelected()) {
-        names.add(box.getName());
-      }
-    }
-    final String[] ret = new String[names.size()];
-    for (int i = 0; i < ret.length; i++) {
-      ret[i] = names.get(i);
-    }
-    return ret;
+
+    return this.cacheCheckBoxes.stream()
+        .filter(checkbox -> checkbox.isSelected())
+        .map(checkbox -> checkbox.getName())
+        .collect(Collectors.toList());
   }
 
 

@@ -27,6 +27,14 @@ public class ClassLoader {
 
   private final static Logger LOGGER = Logger.getLogger(ClassLoader.class.getName());
 
+  public static List<String> loadClassInfo(final String path, final String packageName) {
+    if (path.endsWith(".jar")) {
+      return ClassLoader.loadClassInfoFromJar(path, packageName + "/");
+    }
+
+   final String sep = System.getProperty("file.separator");
+   return ClassLoader.loadClassInfoFromDirectory(path + sep, packageName  + sep);
+  }
 
   /**
    * metoda pro nacteni cache policies z adresare
@@ -34,41 +42,38 @@ public class ClassLoader {
    * @param path
    *          cesta
    */
-  public static List<String> loadClassInfo(final String path, final String packageName) {
+  private static List<String> loadClassInfoFromDirectory(final String path, final String packageName) {
     final List<String> classInfo = new ArrayList<>();
     final String pathToPackage = (path + packageName);
     final File dir = new File(pathToPackage);
     final File[] files = dir.listFiles();
+
     for (final File file : files) {
       if (file.isFile() && !file.getName().startsWith("I") && !file.getName().contains("$")
           && !file.getName().contains("Data") && !file.getName().contains("MainGUI")) {
         try {
-          try {
-            final Class<?> myClass = Class.forName(packageName.replace('/', '.').replace('\\', '.')
-                + file.getName().substring(0, file.getName().lastIndexOf(".class")));
-            Object newObject = null;
-            // chceme pouze tridy s konstruktory bez parametru
-            final Constructor<?>[] cons = myClass.getConstructors();
-            if (cons.length == 1 && cons[0].getParameterTypes().length == 0) {
-              newObject = myClass.newInstance();
-            } else {
-              continue;
-            }
-
-            if (newObject instanceof ICache) {
-              classInfo.add(((ICache) newObject).cacheInfo());
-            }
-            if (newObject instanceof IConsistencySimulation) {
-              classInfo.add(((IConsistencySimulation) newObject).getInfo());
-            }
-            if (file.getName().contains("Panel")) {
-              classInfo.add(myClass.getName());
-            }
-          } catch (final InstantiationException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
-          } catch (final IllegalAccessException ex) {
-            LOGGER.log(Level.SEVERE, null, ex);
+          final Class<?> myClass = Class.forName(packageName.replace('/', '.').replace('\\', '.')
+              + file.getName().substring(0, file.getName().lastIndexOf(".class")));
+          Object newObject = null;
+          // chceme pouze tridy s konstruktory bez parametru
+          final Constructor<?>[] cons = myClass.getConstructors();
+          if (cons.length == 1 && cons[0].getParameterTypes().length == 0) {
+            newObject = myClass.newInstance();
+          } else {
+            continue;
           }
+
+          if (newObject instanceof ICache) {
+            classInfo.add(((ICache) newObject).cacheInfo());
+          } else if (newObject instanceof IConsistencySimulation) {
+            classInfo.add(((IConsistencySimulation) newObject).getInfo());
+          } else if (file.getName().contains("Panel")) {
+            classInfo.add(myClass.getName());
+          }
+        } catch (final InstantiationException ex) {
+          LOGGER.log(Level.SEVERE, null, ex);
+        } catch (final IllegalAccessException ex) {
+          LOGGER.log(Level.SEVERE, null, ex);
         } catch (final ClassNotFoundException ex) {
           LOGGER.log(Level.SEVERE, null, ex);
         } catch (final Exception e) {
@@ -76,6 +81,7 @@ public class ClassLoader {
         }
       }
     }
+
     return classInfo;
   }
 
@@ -89,11 +95,13 @@ public class ClassLoader {
   public static List<String> loadClassInfoFromJar(final String path, final String packageName) {
     final List<String> classNames = GlobalMethods.getJarClassNames(path, packageName);
     final List<String> classInfo = new ArrayList<>();
+
     for (final String className : classNames) {
       if (className.contains("ICache") || className.contains("IConsistency")
           || className.contains("Data")) {
         continue;
       }
+
       try {
         final URL url = new URL("jar:file:/" + path + "!/");
         try (final URLClassLoader ucl = new URLClassLoader(new URL[] {url})) {
@@ -101,6 +109,7 @@ public class ClassLoader {
           Object newObject = null;
           // chceme pouze tridy s konstruktory bez parametru
           final Constructor<?>[] cons = myClass.getConstructors();
+
           if (cons.length == 1 && cons[0].getParameterTypes().length == 0) {
             newObject = myClass.newInstance();
           } else {
@@ -132,6 +141,7 @@ public class ClassLoader {
         Logger.getLogger(MainGUI.class.getName()).log(Level.SEVERE, null, ex);
       }
     }
+
     return classInfo;
   }
 }
