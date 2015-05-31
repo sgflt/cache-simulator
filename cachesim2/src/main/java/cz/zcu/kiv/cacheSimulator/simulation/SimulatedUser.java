@@ -2,8 +2,9 @@ package cz.zcu.kiv.cacheSimulator.simulation;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
@@ -21,6 +22,8 @@ import cz.zcu.kiv.cacheSimulator.shared.Triplet;
  */
 public class SimulatedUser {
 
+  private static final Logger LOG = LoggerFactory.getLogger(SimulatedUser.class);
+
   /**
    * identifikator uzivatele
    */
@@ -30,12 +33,14 @@ public class SimulatedUser {
    * promenna pro uchovani cachovacich algoritmu prvni je pro uchovani odkazu
    * na cache, druha je pro urceni cacheHit, treti je pro urceni saved traffic
    */
+  //TODO better OOP decomposition
   private ArrayList<Triplet<ICache[], Long[], Long[]>> caches;
 
   /**
    * promenna pro uchovani archivu
    */
-  private final Hashtable<String, Quartet<Long[], Long[], Double[], Double[]>> cachesResults;
+  //TODO better OOP decomposition
+  private final Hashtable<String, Quartet<Long[], Long[], Double[], Double[]>> cachesResults = new Hashtable<>();
 
   /**
    * promenna pro ulozeni celkoveho poctu pristupu k souborum
@@ -52,16 +57,12 @@ public class SimulatedUser {
   /**
    * konstruktor - inicializace user ID
    *
-   * @param iD
+   * @param ID
    *            user ID
    */
-  public SimulatedUser(final long iD) {
-    super();
-    this.ID = iD;
-    this.fileAccessed = 0;
-    this.totalNetworkBandwidth = 0;
+  public SimulatedUser(final long ID) {
+    this.ID = ID;
     this.loadCaches(MainGUI.getInstance().getCacheSizes());
-    this.cachesResults = new Hashtable<>();
   }
 
   /**
@@ -71,12 +72,10 @@ public class SimulatedUser {
   private void loadCaches(final Integer[] cacheSizes) {
     if (this.caches != null) {
       this.caches.clear();
-    }
-    else {
+    } else {
       this.caches = new ArrayList<>();
     }
 
-    ICache cache = null;
     for (final String cacheName : MainGUI.getInstance().getCachesNames()) {
       final ICache[] cachePolicies = new ICache[cacheSizes.length];
       final Long cacheHit[] = new Long[cacheSizes.length];
@@ -85,20 +84,21 @@ public class SimulatedUser {
 
       for (int i = 0; i < cacheSizes.length; i++) {
         try {
-          cache = (ICache) Class.forName(
-              "cz.zcu.kiv.cacheSimulator.cachePolicies." + cacheName)
-              .newInstance();
-          cache.setCapacity(cacheSizes[i]*1024L*1024L);
+          final ICache cache = (ICache) Class.forName(
+              "cz.zcu.kiv.cacheSimulator.cachePolicies." + cacheName
+              ).newInstance();
+          cache.setCapacity(cacheSizes[i] * 1024L * 1024L);
           cacheStat.getFirst()[i] = cache;
           cacheStat.getSecond()[i] = 0L;
           cacheStat.getThird()[i] = 0L;
         } catch (final Exception ex) {
-          Logger.getLogger(SimulatedUser.class.getName()).log(
-              Level.SEVERE, null, ex);
+          LOG.error("loadCaches", ex);
         }
       }
       this.caches.add(cacheStat);
     }
+
+    LOG.debug("SimulatedUser(ID={}, caches.size()={})", this.ID, this.caches.size());
   }
 
   /**
@@ -133,7 +133,7 @@ public class SimulatedUser {
    * cachovaciho algoritmu
    */
   public void incereaseFileAccess() {
-    this.fileAccessed += 1;
+    this.fileAccessed++;
   }
 
   /**
