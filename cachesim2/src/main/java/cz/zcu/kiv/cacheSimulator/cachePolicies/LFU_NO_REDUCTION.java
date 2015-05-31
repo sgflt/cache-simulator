@@ -23,15 +23,11 @@ public class LFU_NO_REDUCTION implements ICache {
    *
    * @author Pavel Bzoch
    */
-  private class PairCompare implements Comparator<Pair<Integer, FileOnClient>> {
+  private static class PairCompare implements Comparator<Pair<Integer, FileOnClient>> {
 
     @Override
     public int compare(final Pair<Integer, FileOnClient> o1, final Pair<Integer, FileOnClient> o2) {
-      if (o1.getFirst() > o2.getFirst())
-        return 1;
-      else if (o1.getFirst() < o2.getFirst())
-        return -1;
-      return 0;
+      return Double.compare(o1.getFirst(), o2.getFirst());
     }
   }
 
@@ -139,7 +135,7 @@ public class LFU_NO_REDUCTION implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    this.list.add(new Pair<>(new Integer(1), f));
+    this.list.add(new Pair<>(1, f));
     this.needSort = true;
   }
 

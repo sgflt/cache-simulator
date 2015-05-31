@@ -541,7 +541,7 @@ public class MainGUI extends JFrame implements Observer {
     // nacteni cache policies do checkboxlistu
     for (final String name : cachingAlgorithms) {
       final String[] names = name.split(";");
-      final JCheckBox cacheCheckbox = new JCheckBox(names[1], false);
+      final JCheckBox cacheCheckbox = new JCheckBox(names[1], true);
 
       cacheCheckbox.setName(names[0]);
       cacheCheckbox.addActionListener(MainGUI.this::cacheCheckBoxActionPerformed);
@@ -774,7 +774,7 @@ public class MainGUI extends JFrame implements Observer {
   public void loadConResultsToPanel(final IConsistencySimulation cons) {
     if (cons == null)
       return;
-    this.userListConsistency.setModel(new UserListModel());
+    this.userListConsistency.setModel(new UserListModel(this));
     this.cachePolList.setModel(new CacheNamesListModel());
 
     this.userListConsistency.setSelectedIndex(0);
@@ -788,7 +788,7 @@ public class MainGUI extends JFrame implements Observer {
   @SuppressWarnings("unchecked")
   public void loadResultsToPanel() {
     // nacteni uzivatelu
-    this.userList.setModel(new UserListModel());
+    this.userList.setModel(new UserListModel(this));
     this.userList.setSelectedIndex(0);
 
     // oznaceni prvniho
@@ -1684,8 +1684,7 @@ public class MainGUI extends JFrame implements Observer {
   /**
    * trida pro prezentaci modelu pro pole velikosti
    */
-  @SuppressWarnings("rawtypes")
-  private class CacheCapacityListModel extends AbstractListModel {
+  private static class CacheCapacityListModel extends AbstractListModel<Integer> {
 
     List<Integer> cacheSizes;
 
@@ -1697,7 +1696,7 @@ public class MainGUI extends JFrame implements Observer {
 
 
     @Override
-    public Object getElementAt(final int i) {
+    public Integer getElementAt(final int i) {
       return this.cacheSizes.get(i);
     }
 
@@ -1743,8 +1742,7 @@ public class MainGUI extends JFrame implements Observer {
   /**
    * trida pro prezentaci modelu pro pole velikosti
    */
-  @SuppressWarnings("rawtypes")
-  private class UserListModel extends AbstractListModel {
+  private static class UserListModel extends AbstractListModel<String> {
 
     long[] userIDs;
     String[] userNames;
@@ -1757,16 +1755,16 @@ public class MainGUI extends JFrame implements Observer {
 
 
     @Override
-    public Object getElementAt(final int i) {
+    public String getElementAt(final int i) {
       return this.userNames[i];
     }
 
 
-    public UserListModel() {
-      this.userIDs = new long[MainGUI.this.cacheResults.size()];
-      this.userNames = new String[MainGUI.this.cacheResults.size()];
-      for (int i = 0; i < MainGUI.this.cacheResults.size(); i++) {
-        this.userIDs[i] = MainGUI.this.cacheResults.get(i).getUserID();
+    public UserListModel(final MainGUI gui) {
+      this.userIDs = new long[gui.cacheResults.size()];
+      this.userNames = new String[gui.cacheResults.size()];
+      for (int i = 0; i < gui.cacheResults.size(); i++) {
+        this.userIDs[i] = gui.cacheResults.get(i).getUserID();
         if (this.userIDs[i] == 0) {
           this.userNames[i] = "Simulated user";
         } else {

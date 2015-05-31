@@ -24,7 +24,7 @@ public class LRFU_SS implements ICache {
    * @author Pavel Bzoch
    *
    */
-  private class QuartetCompare implements
+  private static class QuartetCompare implements
       Comparator<Quartet<FileOnClient, Long, Double, Integer>> {
 
     @Override
@@ -152,7 +152,7 @@ public class LRFU_SS implements ICache {
     this.needSort = false;
     this.needRecalculate = false;
     if (this.list.size() > 0){
-      this.list.remove(0).getFirst();
+      this.list.remove(0);
     }
 
   }

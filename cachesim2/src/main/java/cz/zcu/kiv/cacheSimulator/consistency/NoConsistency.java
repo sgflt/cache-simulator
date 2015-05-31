@@ -9,7 +9,7 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  *
  * @author Pavel Bžoch
  */
-public class NoConsistency extends NearStrongConsistency implements IConsistencySimulation {
+public class NoConsistency extends NearStrongConsistency {
 
   @Override
   public void updateConsistencyWrite(final ICache cache, final long userID,

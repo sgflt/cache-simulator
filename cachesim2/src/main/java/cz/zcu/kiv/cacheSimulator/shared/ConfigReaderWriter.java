@@ -206,7 +206,7 @@ public class ConfigReaderWriter {
                 }
 
     } catch (final Exception e) {
-    e.printStackTrace();
+      e.printStackTrace();
     }
   }
 }

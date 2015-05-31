@@ -164,7 +164,7 @@ public class TTLConsistency implements IConsistencySimulation {
         ret[row][1] = data.getAsksCount();
         ret[row][2] = data.getUpdatesCount();
         ret[row][3] = data.getInconsistenciesCount();
-        ret[row][4] = data.getTransferredData() / 1024 / 1024.0;
+        ret[row][4] = data.getTransferredData() / 1024.0 / 1024.0;
         ;
         row++;
         isRes = true;

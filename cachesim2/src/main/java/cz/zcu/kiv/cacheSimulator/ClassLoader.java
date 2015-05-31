@@ -116,7 +116,6 @@ public class ClassLoader {
             continue;
           }
 
-          newObject = myClass.newInstance();
           if (newObject instanceof ICache) {
             classInfo.add(((ICache) newObject).cacheInfo());
           }

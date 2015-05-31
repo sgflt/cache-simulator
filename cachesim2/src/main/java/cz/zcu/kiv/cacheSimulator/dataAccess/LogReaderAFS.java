@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.Hashtable;
+import java.util.Map.Entry;
 import java.util.Observable;
 
 import org.tukaani.xz.XZInputStream;
@@ -36,7 +37,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
   /**
    * konstanta, ktera udava, na ktere radce mame zacit davat pozor na cteni souboru
    */
-  private final String beginListenRead = "SRXAFS_FetchData, Fid =";
+  private final static String beginListenRead = "SRXAFS_FetchData, Fid =";
 
   /**
    * konstanta, ktera udava, na ktere radce mame zacit davat pozor na ulozeni souboru
@@ -199,7 +200,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
     this.procent = 0;
     this.fileReadPos = 0;
     this.setChanged();
-    this.notifyObservers(new Integer(0));
+    this.notifyObservers(0);
   }
 
   @Override
@@ -268,7 +269,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
         this.fileReadPos += line.length();
 
         //log cteni souboru
-        if (line.contains(this.beginListenRead)) {
+        if (line.contains(beginListenRead)) {
           splittedLine = line.split(", ");
           // jsme tam, kde chceme byt
           if (splittedLine.length == 2) {
@@ -525,8 +526,9 @@ public class LogReaderAFS extends Observable implements IFileQueue {
     System.out.println("\nVysledky cteni souboru");
     System.out.println("Celkem cteni: " + cteni + ", cteni verze>1 : "+cteniVetsiVerze+", celkem zapisu: " + zapisu + ", z toho pred ctenim souboru: " + zapisuPoprve);
     System.out.println("Velikost ctenych souboru: " + fSizes/1024/1024);
-    for (final Long userIDs : userReads.keySet()){
-      final Pair<Integer, Integer> pair = userReads.get(userIDs);
+    for (final Entry<Long, Pair<Integer, Integer>> entry : userReads.entrySet()){
+      final Long userIDs = entry.getKey();
+      final Pair<Integer, Integer> pair = entry.getValue();
       if (pair.getSecond() > 0){
         final long id = userIDs >> 32;
                 final String ip = (GlobalMethods.intToIp(userIDs - (id << 32)));
@@ -609,8 +611,10 @@ public class LogReaderAFS extends Observable implements IFileQueue {
     //  System.out.println(pairOut.getFirst() + ";" + pairOut.getSecond());
     }
 
-    for (final Long userID: numberOfStores.keySet()){
-      System.out.println(GlobalMethods.intToIp(userID) + ":" + (userID >> 32) + "     " + numberOfStores.get(userID) + "    " + numberOfReads.get(userID));
+    for (final Entry<Long, Integer> entry : numberOfStores.entrySet()){
+      final Long userID = entry.getKey();
+      final Integer count = entry.getValue();
+      System.out.println(GlobalMethods.intToIp(userID) + ":" + (userID >> 32) + "     " + count + "    " + numberOfReads.get(userID));
     }
     System.out.println("Total number of users: " +  numberOfStores.keySet().size());
     System.out.println("Total writes: " + writeAccesses + " to " + tableStore.values().size() + " files.  " + writeHit);

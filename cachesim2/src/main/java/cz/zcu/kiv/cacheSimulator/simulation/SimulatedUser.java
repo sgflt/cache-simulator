@@ -158,7 +158,7 @@ public class SimulatedUser {
         + ", ip: " + ip + " ===================\n");
     for (final Triplet<ICache[], Long[], Long[]> cache : this.caches) {
       System.out
-          .println(cache.getFirst().toString()
+          .println(cache.getFirst()
               + " read hits: "
               + cache.getSecond()
               + ", saved capacity: "

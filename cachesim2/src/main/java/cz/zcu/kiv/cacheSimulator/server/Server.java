@@ -42,7 +42,7 @@ public class Server {
   /**
    * promenna pro ziskani instance serveru
    */
-  private static Server instance = null;
+  private static volatile Server instance = null;
 
   /**
    * promenna pro uchovani posledniho pristupovaneho nebo vytvoreneho souboru
@@ -77,10 +77,10 @@ public class Server {
    * @param maxSize maximalni velikost
    * @return nove vytvoreny soubor
    */
-  public FileOnServer generateRandomFileSize(final String name, final long minSize, final long maxSize){
+  public synchronized FileOnServer generateRandomFileSize(final String name, final long minSize, final long maxSize){
     long size;
     FileOnServer f;
-    size = Math.abs(this.rnd.nextLong()) % (maxSize - minSize) + minSize;
+    size = this.rnd.nextLong() % (maxSize - minSize) + minSize;
     f = new FileOnServer(name, size);
     this.fileTable.put(f.getFileName(), f);
     this.lastFile = f;
@@ -93,7 +93,7 @@ public class Server {
    * @param size velikost souboru
    * @return nove vytvoreny soubor
    */
-  public FileOnServer insertNewFile(final String name, final long size){
+  public synchronized FileOnServer insertNewFile(final String name, final long size){
     final FileOnServer f = new FileOnServer(name, size);
     this.fileTable.put(f.getFileName(), f);
     this.lastFile = f;

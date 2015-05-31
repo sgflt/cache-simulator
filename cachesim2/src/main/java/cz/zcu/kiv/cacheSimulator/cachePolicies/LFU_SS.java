@@ -23,15 +23,11 @@ public class LFU_SS implements ICache {
    *
    * @author Pavel Bzoch
    */
-  protected class PairCompare implements Comparator<Pair<Double, FileOnClient>> {
+  protected static class PairCompare implements Comparator<Pair<Double, FileOnClient>> {
 
     @Override
     public int compare(final Pair<Double, FileOnClient> o1, final Pair<Double, FileOnClient> o2) {
-      if (o1.getFirst() > o2.getFirst())
-        return 1;
-      else if (o1.getFirst() < o2.getFirst())
-        return -1;
-      return 0;
+      return Double.compare(o1.getFirst(), o2.getFirst());
     }
   }
 
@@ -177,7 +173,7 @@ public class LFU_SS implements ICache {
     final double readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
         / this.globalReadCount * localReadCount + 1.0;
 
-    this.list.add(new Pair<>(new Double(readHits), f));
+    this.list.add(new Pair<>(readHits, f));
     this.needSort = true;
   }
 

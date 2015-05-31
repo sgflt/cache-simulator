@@ -437,7 +437,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
         ret[row][10] = data.getInconsFrequentCount();
 
         ret[row][11] = data.getNoOfUpdates();
-        ret[row][12] = data.getNetTraffic() / 1024 / 1024.0;
+        ret[row][12] = data.getNetTraffic() / 1024.0 / 1024.0;
 
         row++;
         isRes = true;

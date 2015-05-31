@@ -60,16 +60,12 @@ public class LIRS implements ICache {
    *
    * @author Pavel Bzoch
    */
-  private class TripletCompare implements Comparator<Triplet<FileOnClient, Long, Long>> {
+  private static class TripletCompare implements Comparator<Triplet<FileOnClient, Long, Long>> {
 
     @Override
     public int compare(final Triplet<FileOnClient, Long, Long> arg0,
         final Triplet<FileOnClient, Long, Long> arg1) {
-      if (arg0.getThird() > arg1.getThird())
-        return 1;
-      else if (arg0.getThird() < arg1.getThird())
-        return -1;
-      return 0;
+      return Double.compare(arg0.getThird(), arg1.getThird());
     }
   }
 

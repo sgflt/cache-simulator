@@ -118,7 +118,7 @@ public class MQ implements ICache {
     }
 
     this.fQueues[index].add(file);
-    this.Adjust();
+    this.adjust();
 
     return file.getFirst();
   }
@@ -127,7 +127,7 @@ public class MQ implements ICache {
   /**
    * metoda pro zarovnani LRU cache podle casu
    */
-  private void Adjust() {
+  private void adjust() {
     for (int i = 1; i < this.fQueues.length; i++) {
       for (final Triplet<FileOnClient, Integer, Long> f : this.fQueues[i]) {
         if (f.getThird() < this.timeCounter) {
@@ -216,7 +216,7 @@ public class MQ implements ICache {
     if (index >= QUEUE_COUNT)
       index = QUEUE_COUNT - 1;
     this.fQueues[index].add(newFile);
-    this.Adjust();
+    this.adjust();
   }
 
 

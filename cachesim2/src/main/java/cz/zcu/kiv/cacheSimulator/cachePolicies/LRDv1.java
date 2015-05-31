@@ -31,16 +31,12 @@ public class LRDv1 implements ICache {
    *
    * @author Pavel Bzoch
    */
-  private class QuartetCompare implements Comparator<Quartet<FileOnClient, Long, Long, Double>> {
+  private static class QuartetCompare implements Comparator<Quartet<FileOnClient, Long, Long, Double>> {
 
     @Override
     public int compare(final Quartet<FileOnClient, Long, Long, Double> arg0,
         final Quartet<FileOnClient, Long, Long, Double> arg1) {
-      if (arg0.getFourth() > arg1.getFourth())
-        return 1;
-      else if (arg0.getFourth() < arg1.getFourth())
-        return -1;
-      return 0;
+      return Double.compare(arg0.getFourth(), arg1.getFourth());
     }
   }
 

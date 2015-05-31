@@ -31,7 +31,7 @@ public class GlobalMethods {
     long result = 0;
     for (final String str: ips)
     {
-        result = result << 8 | ((Integer.valueOf(str)) & 0xFF);
+        result = result << 8 | ((Integer.parseInt(str)) & 0xFF);
     }
     return result;
   }

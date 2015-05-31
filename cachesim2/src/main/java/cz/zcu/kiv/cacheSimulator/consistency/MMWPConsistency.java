@@ -272,7 +272,7 @@ public class MMWPConsistency implements IConsistencySimulation {
         ret[row][5] = data.getInconsMediumSecCount();
         ret[row][6] = data.getInconsMediumFirCount();
         ret[row][7] = data.getInconsFrequentCount();
-        ret[row][8] = data.getTransferredData() / 1024 / 1024.0;
+        ret[row][8] = data.getTransferredData() / 1024.0 / 1024.0;
         ;
         row++;
         isRes = true;

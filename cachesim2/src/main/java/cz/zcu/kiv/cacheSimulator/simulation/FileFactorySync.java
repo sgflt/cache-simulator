@@ -45,22 +45,19 @@ public class FileFactorySync implements IFileQueue {
 
 
   private RequestedFile generateNewFile() {
-    FileOnServer fOnServer = null;
     this.requestedFile = this.fileQueue.getNextServerFile();
 
     if ( this.requestedFile != null ) {
-      fOnServer = this.server.existFileOnServer(this.requestedFile.getFname());
+      final FileOnServer fOnServer = this.server.existFileOnServer(this.requestedFile.getFname());
       if (fOnServer == null) {
         if (this.requestedFile.getfSize() < 0) {
-          fOnServer = this.server.generateRandomFileSize(this.requestedFile.getFname(),
+          this.server.generateRandomFileSize(this.requestedFile.getFname(),
               GlobalVariables.getMinGeneratedFileSize(),
               GlobalVariables.getMaxGeneratedFileSize());
-        }
-        else{
-          fOnServer = this.server.insertNewFile(this.requestedFile.getFname(), this.requestedFile.getfSize());
+        } else {
+          this.server.insertNewFile(this.requestedFile.getFname(), this.requestedFile.getfSize());
         }
       }
-
       //soubor byl zapsan, je treba aktualizovat velikost a verzi souboru
       else if (!this.requestedFile.isRead()){
         fOnServer.updateFile(this.requestedFile.getfSize());

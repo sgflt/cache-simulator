@@ -64,17 +64,12 @@ public class LRFU implements ICache {
    *
    * @author Pavel Bzoch
    */
-  private class TripletCompare implements Comparator<Triplet<FileOnClient, Long, Double>> {
+  private static class TripletCompare implements Comparator<Triplet<FileOnClient, Long, Double>> {
 
     @Override
     public int compare(final Triplet<FileOnClient, Long, Double> arg0,
         final Triplet<FileOnClient, Long, Double> arg1) {
-
-      if (arg0.getThird() > arg1.getThird())
-        return 1;
-      else if (arg0.getThird() < arg1.getThird())
-        return -1;
-      return 0;
+      return Double.compare(arg0.getThird(), arg1.getThird());
     }
   }
 
