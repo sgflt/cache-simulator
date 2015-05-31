@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.dataAccess.RequestedFile;
 
@@ -18,6 +21,8 @@ import cz.zcu.kiv.cacheSimulator.dataAccess.RequestedFile;
  *
  */
 public class Server {
+
+  private static final Logger LOG = LoggerFactory.getLogger(Server.class);
 
   /**
    * struktura pro uchovavni souboru pro bezne cachovaci algoritmy
@@ -43,12 +48,6 @@ public class Server {
    * promenna pro ziskani instance serveru
    */
   private static volatile Server instance = null;
-
-  /**
-   * promenna pro uchovani posledniho pristupovaneho nebo vytvoreneho souboru
-   * pro rychlejsi pristup (predpoklad - naposledy pristupovany soubor bude zrejme jeste parkrat pristupovan)
-   */
-  private FileOnServer lastFile = null;
 
   /**
    * konstruktor - zaplneni struktury soubory
@@ -77,13 +76,12 @@ public class Server {
    * @param maxSize maximalni velikost
    * @return nove vytvoreny soubor
    */
-  public synchronized FileOnServer generateRandomFileSize(final String name, final long minSize, final long maxSize){
+  public FileOnServer generateRandomFileSize(final String name, final long minSize, final long maxSize){
     long size;
     FileOnServer f;
     size = this.rnd.nextLong() % (maxSize - minSize) + minSize;
     f = new FileOnServer(name, size);
     this.fileTable.put(f.getFileName(), f);
-    this.lastFile = f;
     return f;
   }
 
@@ -93,10 +91,9 @@ public class Server {
    * @param size velikost souboru
    * @return nove vytvoreny soubor
    */
-  public synchronized FileOnServer insertNewFile(final String name, final long size){
+  public FileOnServer insertNewFile(final String name, final long size){
     final FileOnServer f = new FileOnServer(name, size);
     this.fileTable.put(f.getFileName(), f);
-    this.lastFile = f;
     return f;
   }
 
@@ -105,10 +102,7 @@ public class Server {
    * @param name jmeno souboru
    * @return soubor, pokud existuje, jinak null
    */
-  public synchronized FileOnServer existFileOnServer(final String name){
-    if (this.fileTable == null) return null;
-    if (this.lastFile  != null && this.lastFile.getFileName().equalsIgnoreCase(name))
-      return this.lastFile;
+  public FileOnServer existFileOnServer(final String name) {
     return this.fileTable.get(name);
   }
 
@@ -119,21 +113,16 @@ public class Server {
    *            jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
-  public synchronized FileOnServer getFileRead(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty())
-      return null;
-    FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)){
-      ret = this.lastFile;
-    }
-    else ret = this.fileTable.get(fname);
-    if (ret == null)
-      return null;
+  public FileOnServer getFileRead(final String fname, final ICache cache) {
+    //LOG.trace("getFileRead(fname, cache={})", fname, cache);
+
+    final FileOnServer ret = this.fileTable.get(fname);
+
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
-    if (cache.needServerStatistics()){
+    if (ret != null && cache.needServerStatistics()){
       ret.increaseReadHit(cache);
     }
-    this.lastFile = ret;
+
     return ret;
   }
 
@@ -144,21 +133,14 @@ public class Server {
    *            jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
-  public synchronized FileOnServer getFileWrite(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty())
-      return null;
-    FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)){
-      ret = this.lastFile;
-    }
-    else ret = this.fileTable.get(fname);
-    if (ret == null)
-      return null;
+  public FileOnServer getFileWrite(final String fname, final ICache cache) {
+    final FileOnServer ret = this.fileTable.get(fname);
+
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
-    if (cache.needServerStatistics()){
+    if (ret != null && cache.needServerStatistics()){
       ret.increaseWriteHit(cache);
     }
-    this.lastFile = ret;
+
     return ret;
   }
 
@@ -169,22 +151,15 @@ public class Server {
    *            jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
-  public synchronized FileOnServer getFileReadWrite(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty())
-      return null;
-    FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)){
-      ret = this.lastFile;
-    }
-    else ret = this.fileTable.get(fname);
-    if (ret == null)
-      return null;
+  public FileOnServer getFileReadWrite(final String fname, final ICache cache) {
+    final FileOnServer ret = this.fileTable.get(fname);
+
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
-    if (cache.needServerStatistics()){
+    if (ret != null && cache.needServerStatistics()){
       ret.increaseWriteHit(cache);
       ret.increaseReadHit(cache);
     }
-    this.lastFile = ret;
+
     return ret;
   }
 
@@ -195,17 +170,8 @@ public class Server {
    *            jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
-  public synchronized FileOnServer getFile(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty())
-      return null;
-    FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)){
-      ret = this.lastFile;
-    }
-    else ret = this.fileTable.get(fname);
-    if (ret == null)
-      return null;
-    return ret;
+  public FileOnServer getFile(final String fname, final ICache cache) {
+    return this.fileTable.get(fname);
   }
 
   /**
@@ -213,13 +179,9 @@ public class Server {
    *
    * @return pocet hitu
    */
-  public synchronized long getGlobalReadHits(final ICache cache) {
-    long ret = 0;
-    for (final FileOnServer f: this.fileTable.values())
-    {
-      ret += f.getReadHit(cache);
-    }
-    return ret;
+  public long getGlobalReadHits(final ICache cache) {
+    //LOG.trace("getGlobalReadHits(cache={})", cache);
+    return this.fileTable.values().stream().mapToLong(file -> file.getReadHit(cache)).sum();
   }
 
   /**
@@ -227,17 +189,14 @@ public class Server {
    * @param fname jmeno souboru
    * @return velikost souboru
    */
-  public synchronized long getFileSize(final String fname){
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname))
-      return this.lastFile.getFileSize();
-
+  public long getFileSize(final String fname){
     final FileOnServer file = this.fileTable.get(fname);
+
     if (file != null) {
-      this.lastFile = file;
       return file.getFileSize();
     }
 
-    System.out.println("Chyba!");
+    LOG.error("File not found!");
     return 0;
   }
 
