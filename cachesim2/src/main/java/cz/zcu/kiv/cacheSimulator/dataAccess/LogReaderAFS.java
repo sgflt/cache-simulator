@@ -9,7 +9,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Hashtable;
+import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Observable;
 
@@ -85,6 +87,9 @@ public class LogReaderAFS extends Observable implements IFileQueue {
    */
   private static final String HOST_ID = "Id ";
 
+  private static final DateFormat fmt = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy",  Locale.ENGLISH);
+
+  private static final int PRELOAD_COUNT = 1;
   /**
    * promenna pro uchovani casti prave zpracovavaneho logu
    */
@@ -298,7 +303,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
             // zjisteni casu pristupu, jmena souboru (identifikator)
             // a velikosti souboru
-            accessTime = DateFormat.getDateInstance().parse(this.linesRead[1].substring(0, 24)).getTime();
+            accessTime = fmt.parse(this.linesRead[1].substring(0, 24)).getTime();
             fname = this.linesRead[0].substring(this.linesRead[0].lastIndexOf(FID)
                 + FID.length());
 
@@ -380,7 +385,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
           // zjisteni casu pristupu, jmena souboru (identifikator)
           // a velikosti souboru
-          accessTime = DateFormat.getDateInstance().parse(this.linesStore[1].substring(0, 24)).getTime();
+          accessTime = fmt.parse(this.linesStore[1].substring(0, 24)).getTime();
           fname = this.linesStore[0].substring(this.linesStore[0].lastIndexOf(STORE_FID)
               + STORE_FID.length());
 
