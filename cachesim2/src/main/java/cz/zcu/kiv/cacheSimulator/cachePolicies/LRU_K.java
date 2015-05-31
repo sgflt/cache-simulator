@@ -55,8 +55,8 @@ public class LRU_K implements ICache {
 
   public LRU_K() {
     super();
-    this.fList = new ArrayList<Triplet<FileOnClient, Long[], Long>>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fList = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -156,7 +156,7 @@ public class LRU_K implements ICache {
       lastTimes[i] = 0L;
     }
     lastTimes[0] = actTime;
-    this.fList.add(new Triplet<FileOnClient, Long[], Long>(f, lastTimes, actTime));
+    this.fList.add(new Triplet<>(f, lastTimes, actTime));
 
   }
 
@@ -261,7 +261,7 @@ public class LRU_K implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.fList.size());
+    final List<FileOnClient> list = new ArrayList<>(this.fList.size());
     for (final Triplet<FileOnClient, Long[], Long> file : this.fList) {
       list.add(file.getFirst());
     }

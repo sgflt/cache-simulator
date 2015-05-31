@@ -23,7 +23,7 @@ public class QLFU_SS extends LFU_SS {
     }
 
     final double readHits = 1;
-    this.list.add(new Pair<Double, FileOnClient>(new Double(readHits), f));
+    this.list.add(new Pair<>(new Double(readHits), f));
 
     this.needSort = true;
   }

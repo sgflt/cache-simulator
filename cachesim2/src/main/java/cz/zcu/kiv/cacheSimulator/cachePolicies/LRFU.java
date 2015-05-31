@@ -87,8 +87,8 @@ public class LRFU implements ICache {
   public LRFU() {
     super();
     this.needSort = true;
-    this.fList = new ArrayList<Triplet<FileOnClient, Long, Double>>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fList = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -170,7 +170,7 @@ public class LRFU implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    this.fList.add(new Triplet<FileOnClient, Long, Double>(f, ++this.timeCounter, this
+    this.fList.add(new Triplet<>(f, ++this.timeCounter, this
         .calculateF(0)));
   }
 
@@ -288,7 +288,7 @@ public class LRFU implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.fList.size());
+    final List<FileOnClient> list = new ArrayList<>(this.fList.size());
     for (final Triplet<FileOnClient, Long, Double> file : this.fList) {
       list.add(file.getFirst());
     }

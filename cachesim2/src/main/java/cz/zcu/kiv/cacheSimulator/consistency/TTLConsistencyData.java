@@ -108,11 +108,7 @@ public class TTLConsistencyData {
    * @return true, pokud je shoda
    */
   public boolean compareTo(final long userID, final ICache cache) {
-    final boolean ret = this.cache == cache && userID == this.userID;
-    if (ret)
-      return true;
-    else
-      return false;
+    return this.cache == cache && userID == this.userID;
   }
 
 

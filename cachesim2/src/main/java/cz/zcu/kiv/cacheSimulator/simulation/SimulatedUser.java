@@ -61,7 +61,7 @@ public class SimulatedUser {
     this.fileAccessed = 0;
     this.totalNetworkBandwidth = 0;
     this.loadCaches(MainGUI.getInstance().getCacheSizes());
-    this.cachesResults = new Hashtable<String, Quartet<Long[], Long[], Double[], Double[]>>();
+    this.cachesResults = new Hashtable<>();
   }
 
   /**
@@ -73,7 +73,7 @@ public class SimulatedUser {
       this.caches.clear();
     }
     else {
-      this.caches = new ArrayList<Triplet<ICache[], Long[], Long[]>>();
+      this.caches = new ArrayList<>();
     }
 
     ICache cache = null;
@@ -81,7 +81,7 @@ public class SimulatedUser {
       final ICache[] cachePolicies = new ICache[cacheSizes.length];
       final Long cacheHit[] = new Long[cacheSizes.length];
       final Long savedTraffic[] = new Long[cacheSizes.length];
-      final Triplet<ICache[], Long[], Long[]> cacheStat = new Triplet<ICache[], Long[], Long[]>(cachePolicies, cacheHit, savedTraffic);
+      final Triplet<ICache[], Long[], Long[]> cacheStat = new Triplet<>(cachePolicies, cacheHit, savedTraffic);
 
       for (int i = 0; i < cacheSizes.length; i++) {
         try {
@@ -194,7 +194,7 @@ public class SimulatedUser {
       }
 
       this.cachesResults.put(cacheName,
-          new Quartet<Long[], Long[], Double[], Double[]>(
+          new Quartet<>(
               cacheHit, savedTraffic, hitRatio, savedTrafRatio
               )
           );

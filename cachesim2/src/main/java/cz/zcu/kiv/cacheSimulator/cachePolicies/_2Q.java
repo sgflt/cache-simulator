@@ -12,237 +12,240 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
 /**
  * trida pro prezentaci cache algoritmu 2Q
  * class for 2Q algorithm
- * 
- * SOURCE: Adapted from article "2Q: A Low Overhead High Performance Buffer Management Replacement Algorithm", 
+ *
+ * SOURCE: Adapted from article "2Q: A Low Overhead High Performance Buffer Management Replacement Algorithm",
  * by Theodore Johnson, Dennis  Shasha
- * 
+ *
  * @author Pavel Bzoch
- * 
+ *
  */
 public class _2Q implements ICache {
 
-	/**
-	 * prvni fronta pro jen jednou referencovane soubory
-	 */
-	private Queue<FileOnClient> fQueueFIFO;
-	
-	/**
-	 * LRU fronta pro vicekrat referencovane soubory
-	 */
-	private Queue<FileOnClient> fQueueLRU;
+  /**
+   * prvni fronta pro jen jednou referencovane soubory
+   */
+  private final Queue<FileOnClient> fQueueFIFO;
 
-	/**
-	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
-	 */
-	private ArrayList<FileOnClient> fOverCapacity;
+  /**
+   * LRU fronta pro vicekrat referencovane soubory
+   */
+  private final Queue<FileOnClient> fQueueLRU;
 
-	/**
-	 * velikost cache v B
-	 */
-	private long capacity = 0;
-	
-	/**
-	 * pocatecni kapacita cache
-	 */
-	private long initialCapacity = 0;
+  /**
+   * struktura pro ukladani souboru, ktere jsou vetsi nez cache
+   */
+  private final ArrayList<FileOnClient> fOverCapacity;
 
-	/**
-	 * konstanta pro urceni, jak ma byt velka fifo pamet (v % velikosti cache)
-	 */
-	private static double FIFO_CAPACITY = 0.50f;
+  /**
+   * velikost cache v B
+   */
+  private long capacity = 0;
 
-	public _2Q() {
-		super();
-		fQueueFIFO = new LinkedList<FileOnClient>();
-		fQueueLRU = new LinkedList<FileOnClient>();
-		fOverCapacity = new ArrayList<FileOnClient>();
-	}
+  /**
+   * pocatecni kapacita cache
+   */
+  private long initialCapacity = 0;
 
-	@Override
-	public boolean isInCache(String fName) {
-		for (FileOnClient f : fQueueFIFO) {
-			if (f.getFileName().equalsIgnoreCase(fName))
-				return true;
-		}
-		for (FileOnClient f : fQueueLRU) {
-			if (f.getFileName().equalsIgnoreCase(fName))
-				return true;
-		}
-		return false;
-	}
+  /**
+   * konstanta pro urceni, jak ma byt velka fifo pamet (v % velikosti cache)
+   */
+  private static double FIFO_CAPACITY = 0.50f;
 
-	@Override
-	public FileOnClient getFileFromCache(String fName) {
-		FileOnClient fromCache = null;
-		for (FileOnClient f : fQueueFIFO) {
-			if (f.getFileName().equalsIgnoreCase(fName)) {
-				fromCache = f;
-				break;
-			}
-		}
-		if (fromCache != null) {
-			fQueueFIFO.remove(fromCache);
-			fQueueLRU.add(fromCache);
-			return fromCache;
-		} else {
-			for (FileOnClient f : fQueueLRU) {
-				if (f.getFileName().equalsIgnoreCase(fName)) {
-					fromCache = f;
-					break;
-				}
-			}
-			if (fromCache != null) {
-				fQueueLRU.remove(fromCache);
-				fQueueLRU.add(fromCache);
-				return fromCache;
-			}
-		}
-		return null;
-	}
+  public _2Q() {
+    super();
+    this.fQueueFIFO = new LinkedList<>();
+    this.fQueueLRU = new LinkedList<>();
+    this.fOverCapacity = new ArrayList<>();
+  }
 
-	@Override
-	public long freeCapacity() {
-		long obsazeno = 0;
-		for (FileOnClient f : fQueueFIFO) {
-			obsazeno += f.getFileSize();
-		}
-		for (FileOnClient f : fQueueLRU) {
-			obsazeno += f.getFileSize();
-		}
-		return capacity - obsazeno;
-	}
+  @Override
+  public boolean isInCache(final String fName) {
+    for (final FileOnClient f : this.fQueueFIFO) {
+      if (f.getFileName().equalsIgnoreCase(fName))
+        return true;
+    }
+    for (final FileOnClient f : this.fQueueLRU) {
+      if (f.getFileName().equalsIgnoreCase(fName))
+        return true;
+    }
+    return false;
+  }
 
-	@Override
-	public void removeFile() {
-		if (!fQueueFIFO.isEmpty())
-			fQueueFIFO.remove();
-		else {
-			if (!fQueueLRU.isEmpty())
-				fQueueLRU.remove();
-		}
+  @Override
+  public FileOnClient getFileFromCache(final String fName) {
+    FileOnClient fromCache = null;
+    for (final FileOnClient f : this.fQueueFIFO) {
+      if (f.getFileName().equalsIgnoreCase(fName)) {
+        fromCache = f;
+        break;
+      }
+    }
 
-	}
+    if (fromCache != null) {
+      this.fQueueFIFO.remove(fromCache);
+      this.fQueueLRU.add(fromCache);
+      return fromCache;
+    }
 
-	@Override
-	public void insertFile(FileOnClient f) {
-		// napred zkontrolujeme, jestli se soubor vejde do cache
-		// pokud se nevejde, vztvorime pro nej okenko
-		if (f.getFileSize() > this.capacity) {
-			if (!fOverCapacity.isEmpty()) {
-				fOverCapacity.add(f);
-				return;
-			}
-			while (freeCapacity() < (long) ((double) this.capacity * GlobalVariables
-					.getCacheCapacityForDownloadWindow()))
-				removeFile();
-			fOverCapacity.add(f);
-			this.capacity = (long) ((double) this.capacity * (1 - GlobalVariables
-					.getCacheCapacityForDownloadWindow()));
-			return;
-		}
+    for (final FileOnClient f : this.fQueueLRU) {
+      if (f.getFileName().equalsIgnoreCase(fName)) {
+        fromCache = f;
+        break;
+      }
+    }
 
-		if (!fOverCapacity.isEmpty())
-			checkTimes();
+    if (fromCache != null) {
+      this.fQueueLRU.remove(fromCache);
+      this.fQueueLRU.add(fromCache);
+      return fromCache;
+    }
 
-		// pokud se soubor vejde, fungujeme spravne
-		while (freeCapacity() < f.getFileSize()) {
-			removeFile();
-		}
-		long fifoSize = 0;
-		for (FileOnClient fifo : fQueueFIFO) {
-			fifoSize += fifo.getFileSize();
-		}
-		while (fifoSize > (int) ((double) FIFO_CAPACITY * (double) this.capacity)) {
-			fifoSize -= fQueueFIFO.remove().getFileSize();
-		}
-		fQueueFIFO.add(f);
+    return null;
+  }
 
-	}
+  @Override
+  public long freeCapacity() {
+    long obsazeno = 0;
+    for (final FileOnClient f : this.fQueueFIFO) {
+      obsazeno += f.getFileSize();
+    }
+    for (final FileOnClient f : this.fQueueLRU) {
+      obsazeno += f.getFileSize();
+    }
+    return this.capacity - obsazeno;
+  }
 
-	/**
-	 * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache
-	 * stazene - pak odstranime okenko
-	 */
-	private void checkTimes() {
-		boolean hasBeenRemoved = true;
-		while (hasBeenRemoved) {
-			hasBeenRemoved = false;
-			if (!fOverCapacity.isEmpty()
-					&& fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
-							.getActualTime()) {
-				fOverCapacity.remove(0);
-				hasBeenRemoved = true;
-			}
-		}
-		if (fOverCapacity.isEmpty()) {
-			this.capacity = this.initialCapacity;
-		}
-	}
+  @Override
+  public void removeFile() {
+    if (!this.fQueueFIFO.isEmpty())
+      this.fQueueFIFO.remove();
+    else {
+      if (!this.fQueueLRU.isEmpty())
+        this.fQueueLRU.remove();
+    }
 
-	@Override
-	public String toString() {
-		return "2Q";
-	}
+  }
 
-	@Override
-	public boolean needServerStatistics() {
-		return false;
-	}
+  @Override
+  public void insertFile(final FileOnClient f) {
+    // napred zkontrolujeme, jestli se soubor vejde do cache
+    // pokud se nevejde, vztvorime pro nej okenko
+    if (f.getFileSize() > this.capacity) {
+      if (!this.fOverCapacity.isEmpty()) {
+        this.fOverCapacity.add(f);
+        return;
+      }
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
+          .getCacheCapacityForDownloadWindow()))
+        this.removeFile();
+      this.fOverCapacity.add(f);
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables
+          .getCacheCapacityForDownloadWindow()));
+      return;
+    }
 
-	@Override
-	public void setCapacity(long capacity) {
-		this.capacity = capacity;
-		this.initialCapacity = capacity;
+    if (!this.fOverCapacity.isEmpty())
+      this.checkTimes();
 
-	}
+    // pokud se soubor vejde, fungujeme spravne
+    while (this.freeCapacity() < f.getFileSize()) {
+      this.removeFile();
+    }
+    long fifoSize = 0;
+    for (final FileOnClient fifo : this.fQueueFIFO) {
+      fifoSize += fifo.getFileSize();
+    }
+    while (fifoSize > (int) (FIFO_CAPACITY * this.capacity)) {
+      fifoSize -= this.fQueueFIFO.remove().getFileSize();
+    }
+    this.fQueueFIFO.add(f);
 
-	@Override
-	public void reset() {
-		fQueueFIFO.clear();
-		fQueueLRU.clear();
-		fOverCapacity.clear();
-	}
+  }
 
-	@Override
-	public String cacheInfo() {
-		return "_2Q;2 Queues";
-	}
+  /**
+   * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache
+   * stazene - pak odstranime okenko
+   */
+  private void checkTimes() {
+    boolean hasBeenRemoved = true;
+    while (hasBeenRemoved) {
+      hasBeenRemoved = false;
+      if (!this.fOverCapacity.isEmpty()
+          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
+              .getActualTime()) {
+        this.fOverCapacity.remove(0);
+        hasBeenRemoved = true;
+      }
+    }
+    if (this.fOverCapacity.isEmpty()) {
+      this.capacity = this.initialCapacity;
+    }
+  }
 
-	public static double getFIFO_CAPACITY() {
-		return FIFO_CAPACITY;
-	}
+  @Override
+  public String toString() {
+    return "2Q";
+  }
 
-	public static void setFIFO_CAPACITY(double FIFO_CAPACITY) {
-		_2Q.FIFO_CAPACITY = FIFO_CAPACITY;
-	}
+  @Override
+  public boolean needServerStatistics() {
+    return false;
+  }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + (int) (initialCapacity ^ (initialCapacity >>> 32));
-		result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
-		return result;
-	}
+  @Override
+  public void setCapacity(final long capacity) {
+    this.capacity = capacity;
+    this.initialCapacity = capacity;
 
-	@Override
-	public void removeFile(FileOnClient f) {
-		if (fQueueFIFO.contains(f))
-			fQueueFIFO.remove(f);
-		if (fQueueLRU.contains(f))
-			fQueueLRU.remove(f);
-	}
+  }
 
-	@Override
-	public List<FileOnClient> getCachedFiles() {
-		List<FileOnClient> list = new ArrayList<FileOnClient>(fQueueFIFO.size() + fQueueLRU.size());
-		list.addAll(fQueueFIFO);
-		list.addAll(fQueueLRU);
-		return list;
-	}
+  @Override
+  public void reset() {
+    this.fQueueFIFO.clear();
+    this.fQueueLRU.clear();
+    this.fOverCapacity.clear();
+  }
 
-	@Override
-	public long getCacheCapacity() {
-		return this.initialCapacity;
-	}
+  @Override
+  public String cacheInfo() {
+    return "_2Q;2 Queues";
+  }
+
+  public static double getFIFO_CAPACITY() {
+    return FIFO_CAPACITY;
+  }
+
+  public static void setFIFO_CAPACITY(final double FIFO_CAPACITY) {
+    _2Q.FIFO_CAPACITY = FIFO_CAPACITY;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + (int) (this.initialCapacity ^ (this.initialCapacity >>> 32));
+    result = prime * result + ((this.toString() == null) ? 0 : this.toString().hashCode());
+    return result;
+  }
+
+  @Override
+  public void removeFile(final FileOnClient f) {
+    if (this.fQueueFIFO.contains(f))
+      this.fQueueFIFO.remove(f);
+    if (this.fQueueLRU.contains(f))
+      this.fQueueLRU.remove(f);
+  }
+
+  @Override
+  public List<FileOnClient> getCachedFiles() {
+    final List<FileOnClient> list = new ArrayList<>(this.fQueueFIFO.size() + this.fQueueLRU.size());
+    list.addAll(this.fQueueFIFO);
+    list.addAll(this.fQueueLRU);
+    return list;
+  }
+
+  @Override
+  public long getCacheCapacity() {
+    return this.initialCapacity;
+  }
 }

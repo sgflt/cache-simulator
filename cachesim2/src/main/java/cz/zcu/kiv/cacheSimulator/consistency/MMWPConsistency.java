@@ -29,7 +29,7 @@ public class MMWPConsistency implements IConsistencySimulation {
    * konstruktor - iniciace promennych
    */
   public MMWPConsistency() {
-    this.inconsistencyHist = new ArrayList<MMWPConsistencyData>();
+    this.inconsistencyHist = new ArrayList<>();
   }
 
 

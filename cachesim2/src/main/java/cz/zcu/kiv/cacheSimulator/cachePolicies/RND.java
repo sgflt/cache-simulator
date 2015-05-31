@@ -53,9 +53,9 @@ public class RND implements ICache {
    * @param capacity
    */
   public RND() {
-    this.list = new ArrayList<FileOnClient>();
+    this.list = new ArrayList<>();
     this.rnd = new Random(this.seedValue);
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -197,7 +197,7 @@ public class RND implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.list.size());
+    final List<FileOnClient> list = new ArrayList<>(this.list.size());
     list.addAll(this.list);
     return list;
   }

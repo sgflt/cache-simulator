@@ -80,8 +80,8 @@ public class LFU_SS implements ICache {
    * konstruktor - inicializace cache
    */
   public LFU_SS() {
-    this.list = new LinkedList<Pair<Double, FileOnClient>>();
-    this.fOverCapacity = new LinkedList<FileOnClient>();
+    this.list = new LinkedList<>();
+    this.fOverCapacity = new LinkedList<>();
   }
 
 
@@ -177,7 +177,7 @@ public class LFU_SS implements ICache {
     final double readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
         / this.globalReadCount * localReadCount + 1.0;
 
-    this.list.add(new Pair<Double, FileOnClient>(new Double(readHits), f));
+    this.list.add(new Pair<>(new Double(readHits), f));
     this.needSort = true;
   }
 
@@ -275,7 +275,7 @@ public class LFU_SS implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.list.size());
+    final List<FileOnClient> list = new ArrayList<>(this.list.size());
     for (final Pair<Double, FileOnClient> file : this.list) {
       list.add(file.getSecond());
     }

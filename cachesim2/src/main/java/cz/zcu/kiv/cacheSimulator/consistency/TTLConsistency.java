@@ -32,7 +32,7 @@ public class TTLConsistency implements IConsistencySimulation {
    * konstruktor - iniciace promennych
    */
   public TTLConsistency() {
-    this.inconsistencyHist = new ArrayList<TTLConsistencyData>();
+    this.inconsistencyHist = new ArrayList<>();
   }
 
 

@@ -53,8 +53,8 @@ public class FBR implements ICache {
    * konstruktor - inicializace cache
    */
   public FBR() {
-    this.fQueue = new ArrayList<Pair<FileOnClient, Integer>>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fQueue = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -80,25 +80,24 @@ public class FBR implements ICache {
     }
     if (foundFile == null)
       return null;
-    else {
-      // rozdeleni cache podle indexu
-      long sumCap = 0;
-      int newIndex = 0;
-      for (int i = 0; i < this.fQueue.size(); i++) {
-        sumCap += this.fQueue.get(i).getFirst().getFileSize();
-        if (sumCap > (NEW_SECTION) * this.capacity) {
-          newIndex = i;
-          break;
-        }
+
+    // rozdeleni cache podle indexu
+    long sumCap = 0;
+    int newIndex = 0;
+    for (int i = 0; i < this.fQueue.size(); i++) {
+      sumCap += this.fQueue.get(i).getFirst().getFileSize();
+      if (sumCap > (NEW_SECTION) * this.capacity) {
+        newIndex = i;
+        break;
       }
-
-      if (newIndex < pairIndex)
-        foundFile.setSecond(foundFile.getSecond() + 1);
-
-      this.fQueue.remove(foundFile);
-      this.fQueue.add(foundFile);
-      return foundFile.getFirst();
     }
+
+    if (newIndex < pairIndex)
+      foundFile.setSecond(foundFile.getSecond() + 1);
+
+    this.fQueue.remove(foundFile);
+    this.fQueue.add(foundFile);
+    return foundFile.getFirst();
   }
 
 
@@ -168,7 +167,7 @@ public class FBR implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    this.fQueue.add(new Pair<FileOnClient, Integer>(f, 1));
+    this.fQueue.add(new Pair<>(f, 1));
   }
 
 
@@ -271,7 +270,7 @@ public class FBR implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.fQueue.size());
+    final List<FileOnClient> list = new ArrayList<>(this.fQueue.size());
     for (final Pair<FileOnClient, Integer> file : this.fQueue) {
       list.add(file.getFirst());
     }

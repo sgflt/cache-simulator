@@ -93,8 +93,8 @@ public class LRFU_SS implements ICache {
    * konstruktor - inicializce cache
    */
   public LRFU_SS() {
-    this.list = new ArrayList<Quartet<FileOnClient, Long, Double, Integer>>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.list = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
   @Override
@@ -224,7 +224,7 @@ public class LRFU_SS implements ICache {
       readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
           / this.globalReadCount * localReadCount + 1;
 
-    this.list.add(new Quartet<FileOnClient, Long, Double, Integer>(f, GlobalVariables.getActualTime(), readHits, 0));
+    this.list.add(new Quartet<>(f, GlobalVariables.getActualTime(), readHits, 0));
 
     this.needSort = true;
     this.needRecalculate = true;
@@ -334,7 +334,7 @@ public class LRFU_SS implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> listRet = new ArrayList<FileOnClient>(this.list.size());
+    final List<FileOnClient> listRet = new ArrayList<>(this.list.size());
     for (final Quartet<FileOnClient, Long, Double, Integer> file: this.list){
       listRet.add(file.getFirst());
     }

@@ -62,7 +62,7 @@ public class AccessSimulation implements Runnable {
   @SuppressWarnings("unused")
   private long firstFileAccessTime = 0;
 
-  public int threads = 4;
+  public int threads = 16;
 
   /**
    * konstruktor - inicializace promennych
@@ -74,7 +74,7 @@ public class AccessSimulation implements Runnable {
    */
   public AccessSimulation(final IFileQueue fileQueue, final IConsistencySimulation consistency, final MainGUI gui) {
     this.fileQueue = fileQueue;
-    this.userTable = new Hashtable<Long, SimulatedUser>();
+    this.userTable = new Hashtable<>();
     this.consistency = consistency;
     this.gui = gui;
     this.sync = new FileFactorySync(fileQueue, this.threads);
@@ -230,7 +230,7 @@ public class AccessSimulation implements Runnable {
    * @return vysledky vsech uzivatelu
    */
   public ArrayList<UserStatistics> getResults() {
-    final ArrayList<UserStatistics> ret = new ArrayList<UserStatistics>();
+    final ArrayList<UserStatistics> ret = new ArrayList<>();
     for (final Iterator<SimulatedUser> it = this.userTable.values().iterator(); it
         .hasNext();) {
       final SimulatedUser user = it.next();

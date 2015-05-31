@@ -24,7 +24,7 @@ public class WLFU_SS10Y extends LFU_SS {
   public void removeFile() {
 
     double cacheMaxSize = 0.0;
-    final ArrayList<Pair<Double, FileOnClient>> priorityQueue = new ArrayList<Pair<Double, FileOnClient>>(
+    final ArrayList<Pair<Double, FileOnClient>> priorityQueue = new ArrayList<>(
         this.list.size());
 
     for (final Pair<Double, FileOnClient> pair : this.list) {
@@ -34,7 +34,7 @@ public class WLFU_SS10Y extends LFU_SS {
 
     for (Pair<Double, FileOnClient> pair : this.list) {
       final double penalty = pair.getSecond().getFileSize() / cacheMaxSize;
-      pair = new Pair<Double, FileOnClient>(pair.getFirst() + 1 - penalty, pair.getSecond());
+      pair = new Pair<>(pair.getFirst() + 1 - penalty, pair.getSecond());
       priorityQueue.add(pair);
     }
 

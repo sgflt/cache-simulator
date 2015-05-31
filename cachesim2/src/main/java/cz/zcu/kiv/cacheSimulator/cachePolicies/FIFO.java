@@ -43,8 +43,8 @@ public class FIFO implements ICache {
    * konstruktor - inicializace cache
    */
   public FIFO() {
-    this.fQueue = new LinkedList<FileOnClient>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fQueue = new LinkedList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -184,7 +184,7 @@ public class FIFO implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.fQueue.size());
+    final List<FileOnClient> list = new ArrayList<>(this.fQueue.size());
     list.addAll(this.fQueue);
     return list;
   }

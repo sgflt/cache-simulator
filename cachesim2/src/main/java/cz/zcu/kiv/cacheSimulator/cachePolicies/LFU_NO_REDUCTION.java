@@ -65,8 +65,8 @@ public class LFU_NO_REDUCTION implements ICache {
    * konstruktor - inicializace cache
    */
   public LFU_NO_REDUCTION() {
-    this.list = new ArrayList<Pair<Integer, FileOnClient>>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.list = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -139,7 +139,7 @@ public class LFU_NO_REDUCTION implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    this.list.add(new Pair<Integer, FileOnClient>(new Integer(1), f));
+    this.list.add(new Pair<>(new Integer(1), f));
     this.needSort = true;
   }
 
@@ -224,7 +224,7 @@ public class LFU_NO_REDUCTION implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.list.size());
+    final List<FileOnClient> list = new ArrayList<>(this.list.size());
     for (final Pair<Integer, FileOnClient> file : this.list) {
       list.add(file.getSecond());
     }

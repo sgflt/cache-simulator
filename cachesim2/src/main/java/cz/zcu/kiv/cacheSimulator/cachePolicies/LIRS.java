@@ -83,10 +83,10 @@ public class LIRS implements ICache {
   public LIRS() {
     super();
     this.timeCounter = 1;
-    this.zasobnikSouboru = new Stack<Triplet<FileOnClient, Long, Long>>();
-    this.LIR = new ArrayList<Triplet<FileOnClient, Long, Long>>();
-    this.HIR = new ArrayList<Triplet<FileOnClient, Long, Long>>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.zasobnikSouboru = new Stack<>();
+    this.LIR = new ArrayList<>();
+    this.HIR = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -108,6 +108,7 @@ public class LIRS implements ICache {
   public FileOnClient getFileFromCache(final String fName) {
     Triplet<FileOnClient, Long, Long> file = null;
     final long actTime = ++this.timeCounter;
+
     // soubor je v LIR - aktualizujeme IRR (treti parametr)
     for (final Triplet<FileOnClient, Long, Long> files : this.LIR) {
       if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
@@ -115,6 +116,7 @@ public class LIRS implements ICache {
         break;
       }
     }
+
     if (file != null) {
       // spocteme a ulozime novou hodnotu IRR
       final long IRR = this.zasobnikSouboru.size() - this.zasobnikSouboru.lastIndexOf(file);
@@ -124,54 +126,55 @@ public class LIRS implements ICache {
       this.zasobnikSouboru.add(file);
       return file.getFirst();
     }
+
     // soubor je v HIR - aktualizujeme IRR (treti parametr), +- vymenime s
     // LIR
-    else {
-      for (final Triplet<FileOnClient, Long, Long> files : this.HIR) {
-        if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
-          file = files;
-          break;
-        }
+    for (final Triplet<FileOnClient, Long, Long> files : this.HIR) {
+      if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
+        file = files;
+        break;
       }
-      if (file != null) {
-        // spocteme a ulozime novou hodnotu IRR
-        final long IRR = this.zasobnikSouboru.size() - this.zasobnikSouboru.lastIndexOf(file);
-        this.zasobnikSouboru.remove(file);
-        file.setThird(IRR);
-        file.setSecond(actTime);
-        this.zasobnikSouboru.add(file);
+    }
 
-        // zjistime, zda soubor muzeme presunout do LIR ihned
+    if (file != null) {
+      // spocteme a ulozime novou hodnotu IRR
+      final long IRR = this.zasobnikSouboru.size() - this.zasobnikSouboru.lastIndexOf(file);
+      this.zasobnikSouboru.remove(file);
+      file.setThird(IRR);
+      file.setSecond(actTime);
+      this.zasobnikSouboru.add(file);
+
+      // zjistime, zda soubor muzeme presunout do LIR ihned
+      if (this.LIRsize() + file.getFirst().getFileSize() < this.capacity * LIR_CAPACITY) {
+        this.HIR.remove(file);
+        this.LIR.add(file);
+      }
+      // zjistime, zda IRR posledniho z LIR je vetsi nez IRR
+      // aktualniho souboru
+      else {
+        // setridime kolekci
+        Collections.sort(this.LIR, new TripletCompare());
+        // vsechny soubory s IRR vetsim nez aktualni prehazeme do
+        // HIR
+        while (this.LIR.size() > 0 && this.LIR.get(this.LIR.size() - 1).getThird() > IRR) {
+          this.HIR.add(this.LIR.get(this.LIR.size() - 1));
+          this.LIR.remove(this.LIR.size() - 1);
+        }
+        // pokud se novy soubor vejde do LIR, presuneme jej tam
         if (this.LIRsize() + file.getFirst().getFileSize() < this.capacity * LIR_CAPACITY) {
           this.HIR.remove(file);
           this.LIR.add(file);
         }
-        // zjistime, zda IRR posledniho z LIR je vetsi nez IRR
-        // aktualniho souboru
+        // jinak jej presuneme na konec HIR
         else {
-          // setridime kolekci
-          Collections.sort(this.LIR, new TripletCompare());
-          // vsechny soubory s IRR vetsim nez aktualni prehazeme do
-          // HIR
-          while (this.LIR.size() > 0 && this.LIR.get(this.LIR.size() - 1).getThird() > IRR) {
-            this.HIR.add(this.LIR.get(this.LIR.size() - 1));
-            this.LIR.remove(this.LIR.size() - 1);
-          }
-          // pokud se novy soubor vejde do LIR, presuneme jej tam
-          if (this.LIRsize() + file.getFirst().getFileSize() < this.capacity * LIR_CAPACITY) {
-            this.HIR.remove(file);
-            this.LIR.add(file);
-          }
-          // jinak jej presuneme na konec HIR
-          else {
-            this.HIR.remove(file);
-            this.HIR.add(file);
-          }
-
+          this.HIR.remove(file);
+          this.HIR.add(file);
         }
-        return file.getFirst();
+
       }
+      return file.getFirst();
     }
+
     return null;
   }
 
@@ -240,7 +243,7 @@ public class LIRS implements ICache {
       this.removeFile();
     }
     final long time = ++this.timeCounter;
-    final Triplet<FileOnClient, Long, Long> file = new Triplet<FileOnClient, Long, Long>(f, time,
+    final Triplet<FileOnClient, Long, Long> file = new Triplet<>(f, time,
         Long.MAX_VALUE);
     this.HIR.add(file);
     this.zasobnikSouboru.add(file);
@@ -349,7 +352,7 @@ public class LIRS implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.HIR.size() + this.LIR.size());
+    final List<FileOnClient> list = new ArrayList<>(this.HIR.size() + this.LIR.size());
     for (final Triplet<FileOnClient, Long, Long> triplet : this.HIR) {
       list.add(triplet.getFirst());
     }

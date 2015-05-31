@@ -41,8 +41,8 @@ public class MRU implements ICache {
    * konstruktor - inicializace cache
    */
   public MRU() {
-    this.mruQueue = new ArrayList<FileOnClient>();
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.mruQueue = new ArrayList<>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -67,11 +67,10 @@ public class MRU implements ICache {
     }
     if (fileForGetting == null)
       return null;
-    else {
-      this.mruQueue.remove(fileForGetting);
-      this.mruQueue.add(fileForGetting);
-      return fileForGetting;
-    }
+
+    this.mruQueue.remove(fileForGetting);
+    this.mruQueue.add(fileForGetting);
+    return fileForGetting;
   }
 
 
@@ -190,7 +189,7 @@ public class MRU implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.mruQueue.size());
+    final List<FileOnClient> list = new ArrayList<>(this.mruQueue.size());
     this.mruQueue.addAll(this.mruQueue);
     return list;
   }

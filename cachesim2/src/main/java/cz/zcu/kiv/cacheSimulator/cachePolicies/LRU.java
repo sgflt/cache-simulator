@@ -41,8 +41,8 @@ public class LRU implements ICache {
    * konstruktor - inicializace cache
    */
   public LRU() {
-    this.lruQueue = new LinkedList<FileOnClient>();
-    this.fOverCapacity = new LinkedList<FileOnClient>();
+    this.lruQueue = new LinkedList<>();
+    this.fOverCapacity = new LinkedList<>();
   }
 
 
@@ -67,11 +67,10 @@ public class LRU implements ICache {
     }
     if (fileForGetting == null)
       return null;
-    else {
-      this.lruQueue.remove(fileForGetting);
-      this.lruQueue.add(fileForGetting);
-      return fileForGetting;
-    }
+
+    this.lruQueue.remove(fileForGetting);
+    this.lruQueue.add(fileForGetting);
+    return fileForGetting;
   }
 
 
@@ -190,7 +189,7 @@ public class LRU implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.lruQueue.size());
+    final List<FileOnClient> list = new ArrayList<>(this.lruQueue.size());
     this.lruQueue.addAll(this.lruQueue);
     return list;
   }

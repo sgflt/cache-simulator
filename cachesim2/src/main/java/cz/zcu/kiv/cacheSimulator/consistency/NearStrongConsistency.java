@@ -25,7 +25,7 @@ public class NearStrongConsistency implements IConsistencySimulation {
    * konstruktor - iniciace promennych
    */
   public NearStrongConsistency() {
-    this.inconsistencyHist = new ArrayList<NearStrongConsistencyData>();
+    this.inconsistencyHist = new ArrayList<>();
   }
 
 

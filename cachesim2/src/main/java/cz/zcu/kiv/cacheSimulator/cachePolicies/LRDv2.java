@@ -80,9 +80,9 @@ public class LRDv2 implements ICache {
 
   public LRDv2() {
     super();
-    this.fList = new ArrayList<Quartet<FileOnClient, Long, Long, Double>>();
+    this.fList = new ArrayList<>();
     this.GC = 0;
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -159,7 +159,7 @@ public class LRDv2 implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    this.fList.add(new Quartet<FileOnClient, Long, Long, Double>(f, (long) 1, this.GC++, 1.0));
+    this.fList.add(new Quartet<>(f, (long) 1, this.GC++, 1.0));
     this.needRecalculate = true;
     this.recalculateReferences();
   }
@@ -278,7 +278,7 @@ public class LRDv2 implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>(this.fList.size());
+    final List<FileOnClient> list = new ArrayList<>(this.fList.size());
     for (final Quartet<FileOnClient, Long, Long, Double> file : this.fList) {
       list.add(file.getFirst());
     }

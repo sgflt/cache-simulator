@@ -70,13 +70,13 @@ public class MQ implements ICache {
   @SuppressWarnings("unchecked")
   public MQ() {
     super();
-    this.fQueueOut = new LinkedList<Triplet<FileOnClient, Integer, Long>>();
+    this.fQueueOut = new LinkedList<>();
     this.fQueues = new Queue[QUEUE_COUNT];
     for (int i = 0; i < QUEUE_COUNT; i++) {
-      this.fQueues[i] = new LinkedList<Triplet<FileOnClient, Integer, Long>>();
+      this.fQueues[i] = new LinkedList<>();
     }
     this.timeCounter = 0;
-    this.fOverCapacity = new ArrayList<FileOnClient>();
+    this.fOverCapacity = new ArrayList<>();
   }
 
 
@@ -108,16 +108,19 @@ public class MQ implements ICache {
     }
     if (file == null)
       return null;
-    else {
-      file.setSecond(file.getSecond() + 1);
-      file.setThird(++this.timeCounter + LIFE_TIME);
-      int index = (int) (Math.log10(file.getSecond()) / Math.log10(2));
-      if (index >= QUEUE_COUNT)
-        index = QUEUE_COUNT - 1;
-      this.fQueues[index].add(file);
-      this.Adjust();
-      return file.getFirst();
+
+    file.setSecond(file.getSecond() + 1);
+    file.setThird(++this.timeCounter + LIFE_TIME);
+    int index = (int) (Math.log10(file.getSecond()) / Math.log10(2));
+
+    if (index >= QUEUE_COUNT) {
+      index = QUEUE_COUNT - 1;
     }
+
+    this.fQueues[index].add(file);
+    this.Adjust();
+
+    return file.getFirst();
   }
 
 
@@ -155,14 +158,15 @@ public class MQ implements ICache {
     for (int i = 0; i < this.fQueues.length; i++) {
       if (this.fQueues[i].size() == 0)
         continue;
-      else {
-        final Triplet<FileOnClient, Integer, Long> out = this.fQueues[i].remove();
-        // v qout jsou uchovany metadata souboru
-        if (this.fQueueOut.size() > QOUT_CAPACITY)
-          this.fQueueOut.remove();
-        this.fQueueOut.add(out);
-        return;
-      }
+
+      final Triplet<FileOnClient, Integer, Long> out = this.fQueues[i].remove();
+      // v qout jsou uchovany metadata souboru
+      if (this.fQueueOut.size() > QOUT_CAPACITY)
+        this.fQueueOut.remove();
+
+      this.fQueueOut.add(out);
+
+      return;
     }
   }
 
@@ -204,7 +208,7 @@ public class MQ implements ICache {
     }
     // soubor je uplne novy, zakladame parametry
     if (newFile == null)
-      newFile = new Triplet<FileOnClient, Integer, Long>(f, 1, ++this.timeCounter + LIFE_TIME);
+      newFile = new Triplet<>(f, 1, ++this.timeCounter + LIFE_TIME);
 
     // umistime soubor do spravne LRU fronty
     final int refCount = newFile.getSecond();
@@ -332,7 +336,7 @@ public class MQ implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<FileOnClient>();
+    final List<FileOnClient> list = new ArrayList<>();
     for (int i = 0; i < this.fQueues.length; i++) {
       if (this.fQueues[i].size() == 0)
         continue;
