@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -38,7 +39,7 @@ public class LineChart extends JFrame{
 
         this.setIconImage(new javax.swing.ImageIcon(this.getClass().getResource("/ico/results.png")).getImage());
 
-        this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        this.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         this.setLayout(new BorderLayout(0, 5));
 
         final CategoryDataset dataset = this.createDataset(sc, dataSelect);
