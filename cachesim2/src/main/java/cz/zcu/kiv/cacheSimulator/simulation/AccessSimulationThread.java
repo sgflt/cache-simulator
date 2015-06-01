@@ -91,7 +91,7 @@ public class AccessSimulationThread  extends Observable implements Runnable {
             final FileOnClient fOnClient;
 
             synchronized (cache.getFirst()[i]) {
-              fOnClient = cache.getFirst()[i].getFileFromCache(file.getFname());
+              fOnClient = cache.getFirst()[i].getFile(file.getFname());
             }
 
             if (fOnClient != null) {

@@ -90,7 +90,7 @@ public class NearStrongConsistencyData {
     final String ip = (GlobalMethods.intToIp(this.userID - (id << 32)));
 
     return "AccessCOnsistencyData [userID=" + id + ", ip=" + ip + ", cache=" + this.cache
-        + ", cache cap=" + this.cache.getCacheCapacity() + ", inconsistencyCount="
+        + ", cache cap=" + this.cache.getCapacity() + ", inconsistencyCount="
         + this.inconsistencyCount + ", inconsistencySize=" + this.inconsistencySize + "]";
   }
 

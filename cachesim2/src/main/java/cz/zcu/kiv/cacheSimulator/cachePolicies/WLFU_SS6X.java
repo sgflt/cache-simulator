@@ -15,7 +15,7 @@ public class WLFU_SS6X extends WLFU_SS6 {
   @Override
   public void insertFile(final FileOnClient f) {
 
-    if (f.getFileSize() > this.getCacheCapacity() / 2)
+    if (f.getFileSize() > this.getCapacity() / 2)
       return;
 
     super.insertFile(f);

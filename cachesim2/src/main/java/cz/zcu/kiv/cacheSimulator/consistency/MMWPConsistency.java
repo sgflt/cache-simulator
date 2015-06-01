@@ -264,7 +264,7 @@ public class MMWPConsistency implements IConsistencySimulation {
             "There are inconsistencies in results!\n", "Error", JOptionPane.ERROR_MESSAGE);
       }
       if (data.getUserID() == userID && data.getCache().getClass().getName().contains(cacheName)) {
-        ret[row][0] = data.getCache().getCacheCapacity() / 1024 / 1024;
+        ret[row][0] = data.getCache().getCapacity() / 1024 / 1024;
         ret[row][1] = data.getAsksCount();
         ret[row][2] = data.getUpdatesCount();
         ret[row][3] = data.getInconsLeastCount();

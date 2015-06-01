@@ -82,7 +82,7 @@ public class LFU_SS implements ICache {
 
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fName) {
     for (final Pair<Double, FileOnClient> f : this.list) {
       if (f.getSecond().getFileName().equalsIgnoreCase(fName))
         return true;
@@ -92,7 +92,7 @@ public class LFU_SS implements ICache {
 
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient getFile(final String fName) {
     this.accessCount++;
     if (this.accessCount % 20 == 0) {
       this.setGlobalReadCountServer(this.server.getGlobalReadHits(this));
@@ -280,7 +280,7 @@ public class LFU_SS implements ICache {
 
 
   @Override
-  public long getCacheCapacity() {
+  public long getCapacity() {
     return this.initialCapacity;
   }
 }

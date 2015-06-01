@@ -61,7 +61,7 @@ public class LRU_K implements ICache {
 
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fName) {
     for (final Triplet<FileOnClient, Long[], Long> files : this.fList) {
       if (files.getFirst().getFileName().equalsIgnoreCase(fName))
         return true;
@@ -71,7 +71,7 @@ public class LRU_K implements ICache {
 
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient getFile(final String fName) {
     Triplet<FileOnClient, Long[], Long> fileInCache = null;
     for (final Triplet<FileOnClient, Long[], Long> files : this.fList) {
       if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
@@ -270,7 +270,7 @@ public class LRU_K implements ICache {
 
 
   @Override
-  public long getCacheCapacity() {
+  public long getCapacity() {
     return this.initialCapacity;
   }
 

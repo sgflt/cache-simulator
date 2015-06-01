@@ -49,7 +49,7 @@ public class FIFO_2ndChance implements ICache {
 
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fName) {
     for (final Pair<FileOnClient, Boolean> f : this.fQueue) {
       if (f.getFirst().getFileName().equalsIgnoreCase(fName))
         return true;
@@ -59,7 +59,7 @@ public class FIFO_2ndChance implements ICache {
 
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient getFile(final String fName) {
     for (final Pair<FileOnClient, Boolean> f : this.fQueue) {
       if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
         f.setSecond(true);
@@ -208,7 +208,7 @@ public class FIFO_2ndChance implements ICache {
 
 
   @Override
-  public long getCacheCapacity() {
+  public long getCapacity() {
     return this.initialCapacity;
   }
 }

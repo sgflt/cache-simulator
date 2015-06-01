@@ -105,7 +105,7 @@ public class NearStrongConsistency implements IConsistencySimulation {
     boolean isRes = false;
     for (final NearStrongConsistencyData data : this.inconsistencyHist) {
       if (data.getUserID() == userID && data.getCache().getClass().getName().contains(cacheName)) {
-        ret[row][0] = data.getCache().getCacheCapacity() / 1024 / 1024;
+        ret[row][0] = data.getCache().getCapacity() / 1024 / 1024;
         ret[row][1] = data.getInconsistencyCount();
         ret[row][2] = data.getInconsistencySize() / 1024.0 / 1024.0;
         row++;

@@ -12,7 +12,7 @@ public class QLFU_SSX extends QLFU_SS {
   public void insertFile(final FileOnClient f) {
 
     /* ignore large files */
-    if (f.getFileSize() > this.getCacheCapacity() / 2)
+    if (f.getFileSize() > this.getCapacity() / 2)
       return;
 
     super.insertFile(f);

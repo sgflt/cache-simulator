@@ -27,7 +27,7 @@ public class NoConsistencyData extends NearStrongConsistencyData {
     final String ip = (GlobalMethods.intToIp(this.userID - (id << 32)));
 
     return "NoConsistency [userID=" + id + ", ip=" + ip + ", cache=" + this.cache + ", cache cap="
-        + this.cache.getCacheCapacity() + ", inconsistencyCount=" + this.inconsistencyCount
+        + this.cache.getCapacity() + ", inconsistencyCount=" + this.inconsistencyCount
         + ", inconsistencySize=" + this.inconsistencySize + "]";
   }
 

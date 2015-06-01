@@ -14,7 +14,7 @@ public class WLFU_SS8X extends WLFU_SS8 {
    */
   @Override
   public void insertFile(final FileOnClient f) {
-    if (f.getFileSize() > this.getCacheCapacity() / 2)
+    if (f.getFileSize() > this.getCapacity() / 2)
       return;
 
     super.insertFile(f);

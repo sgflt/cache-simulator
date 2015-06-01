@@ -419,7 +419,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
       }
       if (data.getUserID() == userID
           && data.getCache().getClass().getName().contains(cacheName)) {
-        ret[row][0] = data.getCache().getCacheCapacity() / 1024 / 1024;
+        ret[row][0] = data.getCache().getCapacity() / 1024 / 1024;
 
         ret[row][1] = data.getNoOfLeastFreqAsk();
         ret[row][2] = data.getInconsLeastCount();

@@ -194,7 +194,7 @@ public class MMWPBatchConsistencyData {
     final String ip = (GlobalMethods.intToIp(this.userID - (id << 32)));
 
     return "Background Batch Consistency [userID=" + id + ", ip=" + ip + ", cache=" + this.cache
-        + ", cache cap=" + this.cache.getCacheCapacity() + ", pocetPtaniNejcastejsi=;"
+        + ", cache cap=" + this.cache.getCapacity() + ", pocetPtaniNejcastejsi=;"
         + this.noReqFrequent + "; pocetPtaniStredniPrvni=;" + this.noReqMediumFirst
         + "; pocetPtaniStredniDruhe=;" + this.noReqMediumSec + "; pocetPtaniStredniTreti=;"
         + this.noReqMediumThird + "; pocetPtaniNejmeneCaste=;" + this.noReqLeastFrequent

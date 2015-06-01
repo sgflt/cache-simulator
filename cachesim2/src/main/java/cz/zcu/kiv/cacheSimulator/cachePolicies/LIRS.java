@@ -87,7 +87,7 @@ public class LIRS implements ICache {
 
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fName) {
     for (final Triplet<FileOnClient, Long, Long> file : this.LIR) {
       if (file.getFirst().getFileName().equalsIgnoreCase(fName))
         return true;
@@ -101,7 +101,7 @@ public class LIRS implements ICache {
 
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient getFile(final String fName) {
     Triplet<FileOnClient, Long, Long> file = null;
     final long actTime = ++this.timeCounter;
 
@@ -360,7 +360,7 @@ public class LIRS implements ICache {
 
 
   @Override
-  public long getCacheCapacity() {
+  public long getCapacity() {
     return this.initialCapacity;
   }
 

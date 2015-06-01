@@ -78,7 +78,7 @@ public class LRDv1 implements ICache {
 
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fName) {
     for (final Quartet<FileOnClient, Long, Long, Double> files : this.fList) {
       if (files.getFirst().getFileName().equalsIgnoreCase(fName))
         return true;
@@ -88,7 +88,7 @@ public class LRDv1 implements ICache {
 
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient getFile(final String fName) {
     for (final Quartet<FileOnClient, Long, Long, Double> files : this.fList) {
       if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
         files.setSecond(files.getSecond() + 1);
@@ -245,7 +245,7 @@ public class LRDv1 implements ICache {
 
 
   @Override
-  public long getCacheCapacity() {
+  public long getCapacity() {
     return this.initialCapacity;
   }
 }

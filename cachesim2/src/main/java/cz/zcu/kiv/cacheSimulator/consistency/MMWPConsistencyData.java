@@ -156,7 +156,7 @@ public class MMWPConsistencyData {
     final String ip = (GlobalMethods.intToIp(this.userID - (id << 32)));
 
     return "BackgroudSingleConsistency  [userID=" + id + ", ip=" + ip + ", cache=" + this.cache
-        + ", cache cap=" + this.cache.getCacheCapacity() + ", pocetPtani=" + this.asksCount
+        + ", cache cap=" + this.cache.getCapacity() + ", pocetPtani=" + this.asksCount
         + ", pocetUpdatu=" + this.updatesCount + ", pocetInkonzistentnosti="
         + this.inconsistenciesCount + "]";
   }

@@ -14,7 +14,7 @@ public class QLFU_SS extends LFU_SS {
   @Override
   public void insertFile(final FileOnClient f) {
 
-    if (f.getFileSize() > this.getCacheCapacity())
+    if (f.getFileSize() > this.getCapacity())
       return;
 
     // pokud se soubor vejde, fungujeme spravne
