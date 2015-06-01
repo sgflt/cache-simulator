@@ -64,7 +64,6 @@ public class AccessSimulationThread  extends Observable implements Runnable {
     SimulatedUser user;
     RequestedFile filex;
 
-   // final ExecutorService executor = Executors.newSingleThreadExecutor();
     final ExecutorService executor = Executors.newWorkStealingPool();
     do {
       filex = this.fileFactory.getNextServerFile();
@@ -73,7 +72,7 @@ public class AccessSimulationThread  extends Observable implements Runnable {
 
       user = this.simulation.getUser(filex.getUserID());
 
-      final FileOnServer fOnServer = this.server.existFileOnServer(filex.getFname());
+      final FileOnServer fOnServer = this.server.getFile(filex.getFname());
 
 
       if (filex.isRead()) {

@@ -1,10 +1,15 @@
 package cz.zcu.kiv.cacheSimulator.simulation;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 
 import javax.swing.JOptionPane;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import cz.zcu.kiv.cacheSimulator.consistency.IConsistencySimulation;
 import cz.zcu.kiv.cacheSimulator.dataAccess.IFileQueue;
@@ -23,6 +28,7 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
  */
 public class AccessSimulation implements Runnable {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AccessSimulation.class);
 
   private volatile boolean doSimulation = true;
 
@@ -125,8 +131,10 @@ public class AccessSimulation implements Runnable {
     final Thread threads = new Thread(new AccessSimulationThread(this, this.sync, this.consistency, 0));
     threads.start();
 
+    final Instant start = Instant.now();
     try {
       threads.join();
+      LOG.info("Simulation done in {} seconds",  Duration.between(start, Instant.now()).toMillis() / 6000);
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
@@ -171,7 +179,7 @@ public class AccessSimulation implements Runnable {
         timeOfFirstFile = file.getAccessTime();
       timeOfLastFile = file.getAccessTime();
 
-      fOnServer = this.server.existFileOnServer(file.getFname());
+      fOnServer = this.server.getFile(file.getFname());
       if (fOnServer == null){
         if (file.getfSize() < 0){
           fOnServer = this.server.generateRandomFileSize(file.getFname(),

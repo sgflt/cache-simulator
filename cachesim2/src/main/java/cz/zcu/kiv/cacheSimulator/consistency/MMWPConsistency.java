@@ -54,15 +54,15 @@ public class MMWPConsistency implements IConsistencySimulation {
 
 
   @Override
-  public void updateConsistencyWrite(final ICache cache, final long userID,
-      final FileOnClient fOnClient, final FileOnServer fOnServer) {
+  public void updateConsistencyWrite(final ICache cache, final long userID, final FileOnClient fOnClient,
+      final FileOnServer fOnServer) {
     fOnClient.updateVerAndSize(fOnServer);
   }
 
 
   @Override
-  public void updateActualReadFile(final ICache cache, final long userID,
-      final FileOnClient fOnClient, final FileOnServer fOnServer) {
+  public void updateActualReadFile(final ICache cache, final long userID, final FileOnClient fOnClient,
+      final FileOnServer fOnServer) {
     final List<FileOnClient> filesOnClient = cache.getCachedFiles();
 
     final MMWPConsistencyData data = this.getByCacheAndID(cache, userID);
@@ -82,7 +82,7 @@ public class MMWPConsistency implements IConsistencySimulation {
                                                                       * )
                                                                       */);
         if (once) {
-          final FileOnServer fOnSerAct = Server.getInstance().getFile(f.getFileName(), cache);
+          final FileOnServer fOnSerAct = Server.getInstance().getFile(f.getFileName()/*XXX, cache*/);
           if (fOnSerAct.getVersion() != f.getVersion()) {
             data.updateUpdates();
             f.updateVerAndSize(fOnSerAct);
@@ -254,14 +254,13 @@ public class MMWPConsistency implements IConsistencySimulation {
 
   @Override
   public Object[][] getData(final String cacheName, final long userID) {
-    final Object[][] ret = new Object[MainGUI.getInstance().getCacheSizes().length][this
-        .getHeaders().length];
+    final Object[][] ret = new Object[MainGUI.getInstance().getCacheSizes().length][this.getHeaders().length];
     int row = 0;
     boolean isRes = false;
     for (final MMWPConsistencyData data : this.inconsistencyHist) {
       if (!data.checkInconsistrencies()) {
-        JOptionPane.showMessageDialog(MainGUI.getInstance(),
-            "There are inconsistencies in results!\n", "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(MainGUI.getInstance(), "There are inconsistencies in results!\n", "Error",
+            JOptionPane.ERROR_MESSAGE);
       }
       if (data.getUserID() == userID && data.getCache().getClass().getName().contains(cacheName)) {
         ret[row][0] = data.getCache().getCapacity() / 1024 / 1024;

@@ -100,8 +100,8 @@ public class Server {
    * @param name jmeno souboru
    * @return soubor, pokud existuje, jinak null
    */
-  public FileOnServer existFileOnServer(final String name) {
-    return this.fileTable.get(name);
+  public boolean contains(final String name) {
+    return this.fileTable.containsKey(name);
   }
 
   /**
@@ -127,8 +127,7 @@ public class Server {
   /**
    * metoda pro ziskani souboru na zapis
    *
-   * @param fname
-   *            jmeno souboru, ktery pozadujeme
+   * @param fname jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
   public FileOnServer getFileWrite(final String fname, final ICache cache) {
@@ -145,8 +144,7 @@ public class Server {
   /**
    * metoda pro ziskani souboru na zapis i cteni
    *
-   * @param fname
-   *            jmeno souboru, ktery pozadujeme
+   * @param fname jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
   public FileOnServer getFileReadWrite(final String fname, final ICache cache) {
@@ -164,11 +162,10 @@ public class Server {
   /**
    * metoda pro ziskani souboru
    *
-   * @param fname
-   *            jmeno souboru, ktery pozadujeme
+   * @param fname jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
-  public FileOnServer getFile(final String fname, final ICache cache) {
+  public FileOnServer getFile(final String fname) {
     return this.fileTable.get(fname);
   }
 
@@ -178,7 +175,6 @@ public class Server {
    * @return pocet hitu
    */
   public long getGlobalReadHits(final ICache cache) {
-    //LOG.trace("getGlobalReadHits(cache={})", cache);
     return this.fileTable.values().stream().mapToLong(file -> file.getReadHit(cache)).sum();
   }
 

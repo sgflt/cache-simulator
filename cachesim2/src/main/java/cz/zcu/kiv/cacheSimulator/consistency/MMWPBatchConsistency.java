@@ -148,7 +148,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
           if (f.getVersion() < groupG3hits
               && f.getVersion() >= groupG2hits) {
             final FileOnServer fOnSerAct = Server.getInstance().getFile(
-                f.getFileName(), cache);
+                f.getFileName()/*XXX, cache*/);
             if (fOnSerAct.getVersion() != f.getVersion()) {
               data.updateUpdates();
               f.updateVerAndSize(fOnSerAct);
@@ -196,7 +196,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
           if (f.getVersion() < groupG4hits
               && f.getVersion() >= groupG3hits) {
             final FileOnServer fOnSerAct = Server.getInstance().getFile(
-                f.getFileName(), cache);
+                f.getFileName()/*, cache*/);
             if (fOnSerAct.getVersion() != f.getVersion()) {
               data.updateUpdates();
               f.updateVerAndSize(fOnSerAct);
@@ -243,7 +243,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
           if (f.getVersion() < groupG5hits
               && f.getVersion() >= groupG4hits) {
             final FileOnServer fOnSerAct = Server.getInstance().getFile(
-                f.getFileName(), cache);
+                f.getFileName()/*, cache*/);
             if (fOnSerAct.getVersion() != f.getVersion()) {
               data.updateUpdates();
               f.updateVerAndSize(fOnSerAct);
@@ -288,7 +288,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
           // kontrola, jestli se mame ptat na verzi
           if (f.getVersion() < groupG2hits) {
             final FileOnServer fOnSerAct = Server.getInstance().getFile(
-                f.getFileName(), cache);
+                f.getFileName()/*, cache*/);
             if (fOnSerAct.getVersion() != f.getVersion()) {
               data.updateUpdates();
               f.updateVerAndSize(fOnSerAct);
@@ -333,7 +333,7 @@ public class MMWPBatchConsistency implements IConsistencySimulation {
           // kontrola, jestli se mame ptat na verzi
           if (f.getVersion() >= groupG5hits) {
             final FileOnServer fOnSerAct = Server.getInstance().getFile(
-                f.getFileName(), cache);
+                f.getFileName()/*XXX, cache*/);
             if (fOnSerAct.getVersion() != f.getVersion()) {
               data.updateUpdates();
               f.updateVerAndSize(fOnSerAct);

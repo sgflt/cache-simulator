@@ -47,8 +47,8 @@ public class FileFactorySync implements IFileQueue {
   private RequestedFile generateNewFile() {
     this.requestedFile = this.fileQueue.getNextServerFile();
 
-    if ( this.requestedFile != null ) {
-      final FileOnServer fOnServer = this.server.existFileOnServer(this.requestedFile.getFname());
+    if (this.requestedFile != null) {
+      final FileOnServer fOnServer = this.server.getFile(this.requestedFile.getFname());
       if (fOnServer == null) {
         if (this.requestedFile.getfSize() < 0) {
           this.server.generateRandomFileSize(this.requestedFile.getFname(),

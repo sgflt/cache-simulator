@@ -84,7 +84,7 @@ public class TTLConsistency implements IConsistencySimulation {
         data.updateAsks();
         f.setLastVersionCheckTime(f.getLastVersionCheckTime() + TTL);
         if (once) {
-          final FileOnServer fOnSerAct = Server.getInstance().getFile(f.getFileName(), cache);
+          final FileOnServer fOnSerAct = Server.getInstance().getFile(f.getFileName()/*XXX, cache*/);
           if (fOnSerAct.getVersion() != f.getVersion()) {
             data.updateUpdates();
             f.updateVerAndSize(fOnSerAct);
