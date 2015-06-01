@@ -77,10 +77,8 @@ public class Server {
    * @return nove vytvoreny soubor
    */
   public FileOnServer generateRandomFileSize(final String name, final long minSize, final long maxSize){
-    long size;
-    FileOnServer f;
-    size = this.rnd.nextLong() % (maxSize - minSize) + minSize;
-    f = new FileOnServer(name, size);
+    final long size = Math.abs((this.rnd.nextLong()) % (maxSize - minSize)) + minSize;
+    final FileOnServer f = new FileOnServer(name, size);
     this.fileTable.put(f.getFileName(), f);
     return f;
   }
