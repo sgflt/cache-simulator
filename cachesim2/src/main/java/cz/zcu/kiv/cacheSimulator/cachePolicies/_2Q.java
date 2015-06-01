@@ -1,9 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.function.Predicate;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
@@ -34,7 +36,9 @@ public class _2Q implements ICache {
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity;
+
+  private long used = 0;
 
   /**
    * velikost cache v B
@@ -42,7 +46,7 @@ public class _2Q implements ICache {
   private long capacity = 0;
 
   /**
-   * pocatecni kapacita cache
+   * Cache capacity
    */
   private long initialCapacity = 0;
 
@@ -52,52 +56,39 @@ public class _2Q implements ICache {
   private static double FIFO_CAPACITY = 0.50f;
 
   public _2Q() {
-    super();
     this.fQueueFIFO = new LinkedList<>();
     this.fQueueLRU = new LinkedList<>();
-    this.fOverCapacity = new ArrayList<>();
+    this.fOverCapacity = new LinkedList<>();
   }
 
   @Override
   public boolean contains(final String fName) {
-    for (final FileOnClient f : this.fQueueFIFO) {
-      if (f.getFileName().equalsIgnoreCase(fName))
-        return true;
-    }
-    for (final FileOnClient f : this.fQueueLRU) {
-      if (f.getFileName().equalsIgnoreCase(fName))
-        return true;
-    }
-    return false;
+    final Predicate<FileOnClient> predicate = f -> f.getFileName().equalsIgnoreCase(fName);
+
+    if (this.fQueueFIFO.stream().anyMatch(predicate))
+      return true;
+
+    return this.fQueueLRU.stream().anyMatch(predicate);
   }
 
   @Override
   public FileOnClient getFile(final String fName) {
-    FileOnClient fromCache = null;
-    for (final FileOnClient f : this.fQueueFIFO) {
+    for (final Iterator<FileOnClient> it = this.fQueueFIFO.iterator(); it.hasNext(); ) {
+      final FileOnClient f = it.next();
       if (f.getFileName().equalsIgnoreCase(fName)) {
-        fromCache = f;
-        break;
+        it.remove();
+        this.fQueueLRU.add(f);
+        return f;
       }
     }
 
-    if (fromCache != null) {
-      this.fQueueFIFO.remove(fromCache);
-      this.fQueueLRU.add(fromCache);
-      return fromCache;
-    }
-
-    for (final FileOnClient f : this.fQueueLRU) {
+    for (final Iterator<FileOnClient> it = this.fQueueLRU.iterator(); it.hasNext(); ) {
+      final FileOnClient f = it.next();
       if (f.getFileName().equalsIgnoreCase(fName)) {
-        fromCache = f;
+        it.remove();
+        this.fQueueLRU.add(f);
         break;
       }
-    }
-
-    if (fromCache != null) {
-      this.fQueueLRU.remove(fromCache);
-      this.fQueueLRU.add(fromCache);
-      return fromCache;
     }
 
     return null;
@@ -105,25 +96,16 @@ public class _2Q implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.fQueueFIFO) {
-      obsazeno += f.getFileSize();
-    }
-    for (final FileOnClient f : this.fQueueLRU) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
   @Override
   public void removeFile() {
-    if (!this.fQueueFIFO.isEmpty())
-      this.fQueueFIFO.remove();
-    else {
-      if (!this.fQueueLRU.isEmpty())
-        this.fQueueLRU.remove();
+    if (!this.fQueueFIFO.isEmpty()) {
+      this.used -= this.fQueueFIFO.remove().getFileSize();
+    } else if (!this.fQueueLRU.isEmpty()) {
+      this.used -= this.fQueueLRU.remove().getFileSize();
     }
-
   }
 
   @Override
@@ -135,9 +117,13 @@ public class _2Q implements ICache {
         this.fOverCapacity.add(f);
         return;
       }
+
+      /* create window for download */
       while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
-          .getCacheCapacityForDownloadWindow()))
+          .getCacheCapacityForDownloadWindow())) {
         this.removeFile();
+      }
+
       this.fOverCapacity.add(f);
       this.capacity = (long) (this.capacity * (1 - GlobalVariables
           .getCacheCapacityForDownloadWindow()));
@@ -151,15 +137,17 @@ public class _2Q implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    long fifoSize = 0;
-    for (final FileOnClient fifo : this.fQueueFIFO) {
-      fifoSize += fifo.getFileSize();
-    }
-    while (fifoSize > (int) (FIFO_CAPACITY * this.capacity)) {
-      fifoSize -= this.fQueueFIFO.remove().getFileSize();
-    }
-    this.fQueueFIFO.add(f);
 
+    long fifoSize = this.fQueueFIFO.stream().mapToLong(file -> file.getFileSize()).sum();
+
+    while (fifoSize > (int) (FIFO_CAPACITY * this.capacity)) {
+      final long sizeRemoved = this.fQueueFIFO.remove().getFileSize();
+      fifoSize -= sizeRemoved;
+      this.used -= sizeRemoved;
+    }
+
+    this.fQueueFIFO.add(f);
+    this.used += f.getFileSize();
   }
 
   /**
@@ -230,10 +218,15 @@ public class _2Q implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    if (this.fQueueFIFO.contains(f))
+    if (this.fQueueFIFO.contains(f)) {
       this.fQueueFIFO.remove(f);
-    if (this.fQueueLRU.contains(f))
+      this.used -= f.getFileSize();
+    }
+
+    if (this.fQueueLRU.contains(f)) {
       this.fQueueLRU.remove(f);
+      this.used -= f.getFileSize();
+    }
   }
 
   @Override
