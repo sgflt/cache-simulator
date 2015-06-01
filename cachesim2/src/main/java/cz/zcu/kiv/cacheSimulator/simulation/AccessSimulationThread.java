@@ -3,11 +3,21 @@
  */
 package cz.zcu.kiv.cacheSimulator.simulation;
 
+import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.cachePolicies.LFU_SS;
 import cz.zcu.kiv.cacheSimulator.cachePolicies.LRFU_SS;
 import cz.zcu.kiv.cacheSimulator.consistency.IConsistencySimulation;
 import cz.zcu.kiv.cacheSimulator.dataAccess.RequestedFile;
+import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.server.FileOnServer;
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
@@ -20,10 +30,11 @@ import cz.zcu.kiv.cacheSimulator.shared.Triplet;
  * @author Lukáš Kvídera
  *
  */
-public class AccessSimulationThread implements Runnable {
+public class AccessSimulationThread  extends Observable implements Runnable {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AccessSimulationThread.class);
 
   private final AccessSimulation simulation;
-  private final int tid; /* thread id */
   private final FileFactorySync fileFactory;
 
   /**
@@ -39,17 +50,10 @@ public class AccessSimulationThread implements Runnable {
   public AccessSimulationThread(final AccessSimulation simulation, final FileFactorySync fileFactory,
       final IConsistencySimulation consistency, final int threadId)
   {
-    this.tid = threadId;
     this.simulation = simulation;
     this.fileFactory = fileFactory;
     this.consistency = consistency;
-  }
-
-  private void discardThread()
-  {
-    //System.out.println("thread is going away");
-    this.simulation.discardThread();
-    this.fileFactory.discardThread();
+    this.addObserver(MainGUI.getInstance());
   }
 
   /* (non-Javadoc)
@@ -58,40 +62,38 @@ public class AccessSimulationThread implements Runnable {
   @Override
   public void run() {
     SimulatedUser user;
-    RequestedFile file;
-    //int fileN = 0;
+    RequestedFile filex;
+
+   // final ExecutorService executor = Executors.newSingleThreadExecutor();
+    final ExecutorService executor = Executors.newWorkStealingPool();
     do {
-      file = this.fileFactory.getNextServerFile();
-      if (file == null)
+      filex = this.fileFactory.getNextServerFile();
+      if (filex == null)
         break;
 
-      user = this.simulation.getUser(file.getUserID());
+      user = this.simulation.getUser(filex.getUserID());
 
-      if (this.tid >= user.getCaches().size())
-      {
-        this.discardThread();
-        return;
-      }
-
-      //fileN++;
-      final FileOnServer fOnServer = this.server.existFileOnServer(file.getFname());
+      final FileOnServer fOnServer = this.server.existFileOnServer(filex.getFname());
 
 
-      // zvysime pocet pristupovanych souboru jen jednou, ostatní vlákna počet sdílejí
-      if (this.tid == 0 && file.isRead()) {
+      if (filex.isRead()) {
         user.incereaseFileAccess();
         user.increaseTotalNetworkBandwidth(fOnServer.getFileSize());
       }
 
-
       //iterování přes algoritmy
-      for (int alg = this.tid; alg < user.getCaches().size(); alg += this.simulation.threads) {
-        final Triplet<ICache[], Long[], Long[]> cache = user.getCaches().get(alg);
+     for (final Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
+        for (int ix = 0; ix < cache.getFirst().length; ix++) {
+          final int i = ix;
+          final RequestedFile file = filex;
+          executor.execute(() -> {
+            //LOG.trace("run(ix={}, file={}, cache={})", i, file, cache.getFirst()[i] + " " + cache.getFirst()[i].getCacheCapacity());
+            final FileOnClient fOnClient;
 
-        for (int i = 0; i < cache.getFirst().length; i++) {
-            final FileOnClient fOnClient = cache.getFirst()[i].getFileFromCache(file.getFname());
+            synchronized (cache.getFirst()[i]) {
+              fOnClient = cache.getFirst()[i].getFileFromCache(file.getFname());
+            }
 
-            //System.out.println("alg: " + alg + " | size: " + cache.getFirst()[i].getCacheCapacity()/(1024*1024) + " | file: " + file.getFname() + " | hits: " + cache.getSecond()[i] + " | tid: " + tid + " | fN: " + fileN);
             if (fOnClient != null) {
               if (file.isRead()) {
                 /* File is read so increase read hits */
@@ -134,16 +136,41 @@ public class AccessSimulationThread implements Runnable {
             else {
               // ukladame jen soubory, ktere jsou ctene a zvysujeme statistiky
               if (file.isRead()){
-              cache.getFirst()[i].insertFile(new FileOnClient(this.server
-                  .getFileRead(file.getFname(),
-                      cache.getFirst()[i]),
-                  cache.getFirst()[i], file.getAccessTime()));
+                synchronized (cache.getFirst()[i]) {
+                  cache.getFirst()[i].insertFile(new FileOnClient(this.server.getFileRead(file.getFname(),
+                      cache.getFirst()[i]), cache.getFirst()[i], file.getAccessTime()));
+                }
               }
             }
-          }
+          });
+        }
       }
-    } while ( file != null && this.simulation.doSimulation() );
+
+    } while (filex != null && this.simulation.doSimulation());
+
+    this.await(executor);
     this.fileFactory.cleanUp();
   }
 
+  private final void await(final ExecutorService executor) {
+    try {
+      executor.shutdown();
+      final int progressStep = (((ForkJoinPool)executor).getQueuedSubmissionCount()) / 100;
+      while(!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+        LOG.info("Waiting to complete all tasks {}", executor);
+        this.setChanged();
+        this.notifyObservers(
+                (100 - (((ForkJoinPool)executor).getQueuedSubmissionCount()) / progressStep)
+            );
+
+        if (!this.simulation.doSimulation()) {
+          executor.shutdownNow();
+        }
+      }
+      LOG.info("Waiting COMPLETED ", executor);
+    } catch (final InterruptedException e) {
+      LOG.error("Interrupted", e);
+    }
+  }
 }
+

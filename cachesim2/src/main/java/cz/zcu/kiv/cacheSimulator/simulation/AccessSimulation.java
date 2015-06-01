@@ -62,8 +62,6 @@ public class AccessSimulation implements Runnable {
   @SuppressWarnings("unused")
   private long firstFileAccessTime = 0;
 
-  public int threads = 16;
-
   /**
    * konstruktor - inicializace promennych
    *
@@ -77,7 +75,7 @@ public class AccessSimulation implements Runnable {
     this.userTable = new Hashtable<>();
     this.consistency = consistency;
     this.gui = gui;
-    this.sync = new FileFactorySync(fileQueue, this.threads);
+    this.sync = new FileFactorySync(fileQueue, 1);
   }
 
 
@@ -95,11 +93,6 @@ public class AccessSimulation implements Runnable {
       this.userTable.put(userID, user);
     }
     return user;
-  }
-
-  protected synchronized void discardThread()
-  {
-    this.threads--;
   }
 
   public void stopSimulation()
@@ -129,25 +122,14 @@ public class AccessSimulation implements Runnable {
       this.loadFilesToServer();
     }
 
-    final Thread[] threads = new Thread[this.threads];
+    final Thread threads = new Thread(new AccessSimulationThread(this, this.sync, this.consistency, 0));
+    threads.start();
 
-
-    for (int tid = 0; tid < this.threads; tid++ )
-    {
-      threads[tid] = new Thread( new AccessSimulationThread(this, this.sync, this.consistency, tid) );
-      threads[tid].start();
+    try {
+      threads.join();
+    } catch (final InterruptedException e) {
+      e.printStackTrace();
     }
-
-    for (int tid = 0; tid < this.threads; tid++)
-    {
-      try {
-        threads[tid].join();
-      } catch (final InterruptedException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-      }
-    }
-
 
     this.gui.simulationProgressBar.setVisible(false);
     this.gui.cacheResults = this.getResults();
