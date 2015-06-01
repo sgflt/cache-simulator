@@ -50,7 +50,7 @@ public class QLFU_SS extends LFU_SS {
     }
 
     if (this.needSort) {
-      Collections.sort(this.list, new PairCompare());
+      Collections.sort(this.list, comparator);
     }
 
     this.needSort = false;

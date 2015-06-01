@@ -39,7 +39,7 @@ public class WLFU_SS10Y extends LFU_SS {
     }
 
     this.needSort = false;
-    Collections.sort(priorityQueue, new PairCompare());
+    Collections.sort(priorityQueue, comparator);
 
     if (this.list.size() > 0)
       this.list.remove(priorityQueue.remove(0));

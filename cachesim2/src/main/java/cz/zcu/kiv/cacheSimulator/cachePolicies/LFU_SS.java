@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
@@ -18,19 +19,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  */
 public class LFU_SS implements ICache {
 
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   */
-  protected static class PairCompare implements Comparator<Pair<Double, FileOnClient>> {
-
-    @Override
-    public int compare(final Pair<Double, FileOnClient> o1, final Pair<Double, FileOnClient> o2) {
-      return Double.compare(o1.getFirst(), o2.getFirst());
-    }
-  }
-
+  protected static final Comparator<Pair<Double, FileOnClient>> comparator =
+      (o1, o2) -> Double.compare(o1.getFirst(), o2.getFirst());
   /**
    * struktura pro uchovani souboru
    */
@@ -83,11 +73,7 @@ public class LFU_SS implements ICache {
 
   @Override
   public boolean contains(final String fName) {
-    for (final Pair<Double, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fName))
-        return true;
-    }
-    return false;
+    return this.list.stream().anyMatch(pair -> pair.getSecond().getFileName().equals(fName));
   }
 
 
@@ -98,13 +84,16 @@ public class LFU_SS implements ICache {
       this.setGlobalReadCountServer(this.server.getGlobalReadHits(this));
     }
 
-    for (final Pair<Double, FileOnClient> pair : this.list) {
-      if (pair.getSecond().getFileName().equalsIgnoreCase(fName)) {
-        pair.setFirst(pair.getFirst() + 1.0);
-        this.needSort = true;
-        return pair.getSecond();
-      }
+    final Optional<Pair<Double, FileOnClient>> opt =
+        this.list.stream().filter(pair -> pair.getSecond().getFileName().equalsIgnoreCase(fName)).findFirst();
+
+    if (opt.isPresent()) {
+      final Pair<Double, FileOnClient> pair = opt.get();
+      pair.setFirst(pair.getFirst() + 1.0);
+      this.needSort = true;
+      return pair.getSecond();
     }
+
     return null;
   }
 
@@ -122,18 +111,19 @@ public class LFU_SS implements ICache {
   @Override
   public void removeFile() {
     if (this.needSort) {
-      Collections.sort(this.list, new PairCompare());
+      Collections.sort(this.list, comparator);
+      this.needSort = false;
     }
-    this.needSort = false;
-    if (this.list.size() > 0)
+
+
+    if (!this.list.isEmpty())
       this.list.remove(0);
 
-    if (this.list.size() > 2)
+    if (this.list.size() > 2) {
       if ((this.list.get(this.list.size() - 1)).getFirst() > 15) {
-        for (final Pair<Double, FileOnClient> f : this.list) {
-          f.setFirst(f.getFirst() / 2);
-        }
+        this.list.forEach(occurence -> occurence.setFirst(occurence.getFirst() / 2));
       }
+    }
   }
 
 

@@ -25,7 +25,7 @@ public class WLFU_SS8Y extends LFU_SS {
 
     double cacheMaxSize = 0.0;
     final PriorityQueue<Pair<Double, FileOnClient>> priorityQueue = new PriorityQueue<>(
-        this.list.size(), new PairCompare());
+        this.list.size(),(o1, o2) -> Double.compare(o1.getFirst(), o2.getFirst()));
 
     for (final Pair<Double, FileOnClient> pair : this.list) {
       if (pair.getSecond().getFileSize() > cacheMaxSize)
