@@ -279,7 +279,7 @@ public class FileOnServer {
           + nejvetsi + "; fileName=;" + this.fileName + "]";
     }
 
-    return "FileOnServer [Version=;" + this.version + "; fileName=;" + this.fileName + ";]";
+    return "FileOnServer [Version=" + this.version + ", fileName=" + this.fileName + ", size=" + this.fileSize + "]";
   }
 
 
