@@ -1,7 +1,6 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.Collections;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 

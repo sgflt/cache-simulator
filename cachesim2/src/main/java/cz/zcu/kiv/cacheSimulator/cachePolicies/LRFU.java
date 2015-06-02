@@ -43,12 +43,12 @@ public class LRFU implements ICache {
   /**
    * atribut pro uchovani souboru v cache
    */
-  private final ArrayList<Triplet<FileOnClient, Long, Double>> fList;
+  private final List<Triplet<FileOnClient, Long, Double>> fList;
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity;
 
   /**
    * velikost cache v B

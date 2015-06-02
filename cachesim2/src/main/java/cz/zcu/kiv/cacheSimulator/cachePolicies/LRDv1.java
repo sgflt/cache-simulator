@@ -55,7 +55,7 @@ public class LRDv1 implements ICache {
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity;
 
   private long used;
 

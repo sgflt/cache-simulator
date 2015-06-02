@@ -8,12 +8,9 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
 import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
 
-
 /**
  * trida pro cache algoritmus clock - podobne jako fifo
- *
  * class for CLOCK algorithm
- *
  * SOURCE: Adapted from book "Modern Operating Systems (Second Edition)",
  * by Andrew S. Tanenbaum
  *
@@ -26,13 +23,12 @@ public class Clock implements ICache {
   /**
    * struktura pro uchovani souboru
    */
-  private final ArrayList<Pair<FileOnClient, Boolean>> Flist;
+  private final List<Pair<FileOnClient, Boolean>> Flist;
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
-
+  private final List<FileOnClient> fOverCapacity;
 
   /**
    * ukazuje tam, kam se ma vlozit novy prvek
@@ -50,6 +46,7 @@ public class Clock implements ICache {
   private long initialCapacity = 0;
 
   private long used;
+
 
   /**
    * konstruktor - inicializace cache

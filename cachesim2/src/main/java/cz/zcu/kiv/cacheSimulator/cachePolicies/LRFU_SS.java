@@ -72,7 +72,7 @@ public class LRFU_SS implements ICache {
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity;
 
   private long used;
 
