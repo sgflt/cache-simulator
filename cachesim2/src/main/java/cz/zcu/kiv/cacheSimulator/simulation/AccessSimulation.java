@@ -120,6 +120,7 @@ public class AccessSimulation implements Runnable {
    */
   @Override
   public void run() {
+    final Instant start = Instant.now();
     this.gui.disableComponentsForSimulation();
     this.gui.simulationProgressBar.setMaximum(100);
 
@@ -131,10 +132,9 @@ public class AccessSimulation implements Runnable {
     final Thread threads = new Thread(new AccessSimulationThread(this, this.sync, this.consistency, 0));
     threads.start();
 
-    final Instant start = Instant.now();
     try {
       threads.join();
-      LOG.info("Simulation done in {} seconds",  Duration.between(start, Instant.now()).toMillis() / 6000);
+      LOG.info("Simulation done in {} seconds",  Duration.between(start, Instant.now()).toMillis() / 1000);
     } catch (final InterruptedException e) {
       e.printStackTrace();
     }
