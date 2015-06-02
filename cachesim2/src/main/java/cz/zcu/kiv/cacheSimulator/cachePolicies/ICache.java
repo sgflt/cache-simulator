@@ -8,7 +8,9 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * rozhrani pro cache
  * interface for caching policies
  *
- * @author Pavel Bzoch
+ * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public interface ICache {
 

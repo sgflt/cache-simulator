@@ -17,6 +17,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * , by S. Jiang and X. Zhang
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class LIRS implements ICache {
 

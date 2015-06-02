@@ -15,6 +15,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * by R. P. Draves
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class FIFO_2ndChance implements ICache {
 

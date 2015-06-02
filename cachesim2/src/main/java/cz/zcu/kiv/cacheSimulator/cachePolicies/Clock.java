@@ -16,8 +16,9 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * SOURCE: Adapted from book "Modern Operating Systems (Second Edition)",
  * by Andrew S. Tanenbaum
  *
- * @author Pavel Bzoch
- *
+ * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class Clock implements ICache {
 

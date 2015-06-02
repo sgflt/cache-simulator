@@ -18,8 +18,9 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * SOURCE: Adapted from article "2Q: A Low Overhead High Performance Buffer Management Replacement Algorithm",
  * by Theodore Johnson, Dennis  Shasha
  *
- * @author Pavel Bzoch
- *
+ * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class _2Q implements ICache {
 

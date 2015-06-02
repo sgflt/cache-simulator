@@ -16,6 +16,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * class for LFU-SS algorithm
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class LFU_SS implements ICache {
 

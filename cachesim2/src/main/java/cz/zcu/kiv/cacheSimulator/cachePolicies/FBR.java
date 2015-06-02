@@ -14,6 +14,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * , by A. Boukerche and R. Al-Shaikh
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class FBR implements ICache {
 

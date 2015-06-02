@@ -16,6 +16,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * Zhou, J. F. Philbin and K. Li
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class MQ implements ICache {
 

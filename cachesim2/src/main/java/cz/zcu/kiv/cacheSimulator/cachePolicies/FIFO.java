@@ -15,6 +15,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * by L. A. Belady, R. A. Nelson and G. S. Shedler
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class FIFO implements ICache {
 

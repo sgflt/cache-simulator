@@ -14,7 +14,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * class for LRFU-SS algorithm
  *
  * @author Pavel Bžoch
- *
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class LRFU_SS implements ICache {
 

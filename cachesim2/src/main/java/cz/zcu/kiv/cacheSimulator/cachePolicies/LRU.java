@@ -13,6 +13,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * B. Reed and D. D. E. Long
  *
  * @author Pavel Bžoch
+ * @author Lukáš Kvídera
+ * @version 2.1
  */
 public class LRU implements ICache {
 
