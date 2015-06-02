@@ -246,6 +246,16 @@ public class FileOnClient {
 
   /*
    * (non-Javadoc)
+   * @see java.lang.Object#toString()
+   */
+  @Override
+  public String toString() {
+    return "FileOnClient [fileName=" + this.fileName + ", fileSize=" + this.fileSize + "]";
+  }
+
+
+  /*
+   * (non-Javadoc)
    * @see java.lang.Object#hashCode()
    */
   @Override
