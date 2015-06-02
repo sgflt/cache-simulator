@@ -201,7 +201,7 @@ public class AccessSimulation implements Runnable {
       }
 
 
-    } while (file != null);
+    } while (true);
 
     this.firstFileAccessTime = timeOfFirstFile;
     this.timeAccessPeriod = timeOfLastFile - timeOfFirstFile;

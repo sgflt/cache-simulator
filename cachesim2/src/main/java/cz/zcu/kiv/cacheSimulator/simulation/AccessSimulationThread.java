@@ -145,7 +145,7 @@ public class AccessSimulationThread  extends Observable implements Runnable {
         }
       }
 
-    } while (filex != null && this.simulation.doSimulation());
+    } while (this.simulation.doSimulation());
 
     this.await(executor);
     this.fileFactory.cleanUp();
