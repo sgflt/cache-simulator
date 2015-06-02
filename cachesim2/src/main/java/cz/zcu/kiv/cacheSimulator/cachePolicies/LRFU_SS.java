@@ -3,6 +3,7 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -81,7 +82,7 @@ public class LRFU_SS implements ICache {
    * konstruktor - inicializce cache
    */
   public LRFU_SS() {
-    this.list = new ArrayList<>();
+    this.list = new LinkedList<>();
     this.fOverCapacity = new ArrayList<>();
   }
 

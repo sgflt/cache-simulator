@@ -3,6 +3,7 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -65,7 +66,7 @@ public class LRDv1 implements ICache {
    */
   public LRDv1() {
     super();
-    this.fList = new ArrayList<>();
+    this.fList = new LinkedList<>();
     this.GC = 0;
     this.fOverCapacity = new ArrayList<>();
   }
