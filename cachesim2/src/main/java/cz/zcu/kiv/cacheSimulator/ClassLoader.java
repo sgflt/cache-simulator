@@ -48,6 +48,10 @@ public class ClassLoader {
     final File dir = new File(pathToPackage);
     final File[] files = dir.listFiles();
 
+    if (files == null) {
+      return classInfo;
+    }
+
     for (final File file : files) {
       if (file.isFile() && !file.getName().startsWith("I") && !file.getName().contains("$")
           && !file.getName().contains("Data") && !file.getName().contains("MainGUI")) {
