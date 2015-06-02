@@ -20,25 +20,8 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  */
 public class LRFU_SS implements ICache {
 
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   *
-   */
-  private static class QuartetCompare implements
-      Comparator<Quartet<FileOnClient, Long, Double, Integer>> {
-
-    @Override
-    public int compare(final Quartet<FileOnClient, Long, Double, Integer> o1,
-        final Quartet<FileOnClient, Long, Double, Integer> o2) {
-      if (o1.getFourth() > o2.getFourth())
-        return 1;
-      else if (o1.getFourth() < o2.getFourth())
-        return -1;
-      return 0;
-    }
-  }
+  private static final Comparator<Quartet<FileOnClient, Long, Double, Integer>> comparator =
+      (o1, o2) -> Double.compare(o1.getFourth(), o2.getFourth());
 
   /**
    * struktura pro uchovani souboru
@@ -138,16 +121,16 @@ public class LRFU_SS implements ICache {
   public void removeFile() {
     if (this.needRecalculate) {
       this.recalculatePriorities();
+      this.needRecalculate = false;
     }
 
     if (this.needSort) {
-      Collections.sort(this.list, new QuartetCompare());
+      Collections.sort(this.list, comparator);
+      this.needSort = false;
     }
 
-    this.needSort = false;
-    this.needRecalculate = false;
 
-    if (!this.list.isEmpty()){
+    if (!this.list.isEmpty()) {
       this.used -= this.list.remove(0).getFirst().getFileSize();
     }
 

@@ -21,6 +21,9 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  */
 public class LRDv1 implements ICache {
 
+  private static final Comparator<Quartet<FileOnClient, Long, Long, Double>> comparator =
+      (o1, o2) -> Double.compare(o1.getFourth(), o2.getFourth());
+
   /**
    * struktura pro uchovani souboru
    * druhy argument - Reference counter
@@ -28,20 +31,6 @@ public class LRDv1 implements ICache {
    * ctvrty argument - RD
    */
   private final List<Quartet<FileOnClient, Long, Long, Double>> fList;
-
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   */
-  private static class QuartetCompare implements Comparator<Quartet<FileOnClient, Long, Long, Double>> {
-
-    @Override
-    public int compare(final Quartet<FileOnClient, Long, Long, Double> arg0,
-        final Quartet<FileOnClient, Long, Long, Double> arg1) {
-      return Double.compare(arg0.getFourth(), arg1.getFourth());
-    }
-  }
 
   /**
    * kapacita cache
@@ -118,9 +107,9 @@ public class LRDv1 implements ICache {
       for (final Quartet<FileOnClient, Long, Long, Double> files : this.fList) {
         files.setFourth((double) files.getSecond() / ((double) this.GC - files.getThird()));
       }
-      Collections.sort(this.fList, new QuartetCompare());
+      Collections.sort(this.fList, comparator);
+      this.needRecalculate = false;
     }
-    this.needRecalculate = false;
 
     this.used -= this.fList.remove(0).getFirst().getFileSize();
   }

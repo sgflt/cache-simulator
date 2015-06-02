@@ -2,7 +2,6 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,19 +19,6 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  * @version 2.1
  */
 public class LFU_NO_REDUCTION implements ICache {
-
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   */
-  private static class PairCompare implements Comparator<Pair<Integer, FileOnClient>> {
-
-    @Override
-    public int compare(final Pair<Integer, FileOnClient> o1, final Pair<Integer, FileOnClient> o2) {
-      return Double.compare(o1.getFirst(), o2.getFirst());
-    }
-  }
 
   /**
    * struktura pro uchovani souboru
@@ -103,8 +89,9 @@ public class LFU_NO_REDUCTION implements ICache {
   @Override
   public void removeFile() {
     if (this.needSort) {
-      Collections.sort(this.list, new PairCompare());
+      Collections.sort(this.list, (o1, o2) -> Double.compare(o1.getFirst(), o2.getFirst()));
     }
+
     this.needSort = false;
     if (!this.list.isEmpty()) {
       this.used -= this.list.remove(0).getSecond().getFileSize();

@@ -23,6 +23,9 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  */
 public class LIRS implements ICache {
 
+  private static final Comparator<Triplet<FileOnClient, Long, Long>> comparator = (o1, o2) -> Double.compare(
+      o1.getThird(), o2.getThird());
+
   /**
    * zasobnik pro pamatovani pristupu k souborum
    */
@@ -59,20 +62,6 @@ public class LIRS implements ICache {
    * promenna pro urceni, kolik kapacity cache se ma dat na LIR soubory
    */
   private static double LIR_CAPACITY = 0.9;
-
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   */
-  private static class TripletCompare implements Comparator<Triplet<FileOnClient, Long, Long>> {
-
-    @Override
-    public int compare(final Triplet<FileOnClient, Long, Long> arg0,
-        final Triplet<FileOnClient, Long, Long> arg1) {
-      return Double.compare(arg0.getThird(), arg1.getThird());
-    }
-  }
 
 
   /**
@@ -154,7 +143,7 @@ public class LIRS implements ICache {
       // aktualniho souboru
       else {
         // setridime kolekci
-        Collections.sort(this.LIR, new TripletCompare());
+        Collections.sort(this.LIR, comparator);
         // vsechny soubory s IRR vetsim nez aktualni prehazeme do
         // HIR
         while (this.LIR.size() > 0 && this.LIR.get(this.LIR.size() - 1).getThird() > IRR) {
@@ -205,7 +194,7 @@ public class LIRS implements ICache {
     if (!this.HIR.isEmpty()) {
       this.used -= this.HIR.remove(0).getFirst().getFileSize();
     } else if (this.LIR.size() > 0) {
-      Collections.sort(this.LIR, new TripletCompare());
+      Collections.sort(this.LIR, comparator);
       this.used -= this.LIR.remove(this.LIR.size() - 1).getFirst().getFileSize();
     }
   }

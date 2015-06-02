@@ -24,6 +24,7 @@ public class LFU_SS implements ICache {
 
   protected static final Comparator<Pair<Double, FileOnClient>> comparator =
       (o1, o2) -> Double.compare(o1.getFirst(), o2.getFirst());
+
   /**
    * struktura pro uchovani souboru
    */

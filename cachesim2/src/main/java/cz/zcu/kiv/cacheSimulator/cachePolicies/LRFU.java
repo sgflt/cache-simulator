@@ -22,6 +22,9 @@ import cz.zcu.kiv.cacheSimulator.simulation.FileOnClient;
  */
 public class LRFU implements ICache {
 
+  private static final Comparator<Triplet<FileOnClient, Long, Double>> comparator =
+      (o1, o2) -> Double.compare(o1.getThird(), o2.getThird());
+
   /**
    * konstanta p
    */
@@ -63,19 +66,6 @@ public class LRFU implements ICache {
   private boolean needSort = true;
 
   private long used;
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   */
-  private static class TripletCompare implements Comparator<Triplet<FileOnClient, Long, Double>> {
-
-    @Override
-    public int compare(final Triplet<FileOnClient, Long, Double> arg0,
-        final Triplet<FileOnClient, Long, Double> arg1) {
-      return Double.compare(arg0.getThird(), arg1.getThird());
-    }
-  }
 
 
   /**
@@ -130,9 +120,10 @@ public class LRFU implements ICache {
 
   @Override
   public void removeFile() {
-    if (this.needSort)
-      Collections.sort(this.fList, new TripletCompare());
-    this.needSort = false;
+    if (this.needSort) {
+      Collections.sort(this.fList, comparator);
+      this.needSort = false;
+    }
 
     if (!this.fList.isEmpty()) {
       this.used -= this.fList.remove(0).getFirst().getFileSize();
