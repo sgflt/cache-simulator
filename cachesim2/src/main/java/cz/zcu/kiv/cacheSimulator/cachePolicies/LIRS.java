@@ -52,6 +52,8 @@ public class LIRS implements ICache {
    */
   private long timeCounter = 0;
 
+  private long used;
+
   /**
    * promenna pro urceni, kolik kapacity cache se ma dat na LIR soubory
    */
@@ -193,24 +195,17 @@ public class LIRS implements ICache {
 
   @Override
   public long freeCapacity() {
-    long sumOfFiles = 0;
-    for (final Triplet<FileOnClient, Long, Long> file : this.LIR) {
-      sumOfFiles += file.getFirst().getFileSize();
-    }
-    for (final Triplet<FileOnClient, Long, Long> file : this.HIR) {
-      sumOfFiles += file.getFirst().getFileSize();
-    }
-    return this.capacity - sumOfFiles;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
-    if (this.HIR.size() > 0) {
-      this.HIR.remove(0);
+    if (!this.HIR.isEmpty()) {
+      this.used -= this.HIR.remove(0).getFirst().getFileSize();
     } else if (this.LIR.size() > 0) {
       Collections.sort(this.LIR, new TripletCompare());
-      this.LIR.remove(this.LIR.size() - 1);
+      this.used -= this.LIR.remove(this.LIR.size() - 1).getFirst().getFileSize();
     }
   }
 
@@ -244,6 +239,7 @@ public class LIRS implements ICache {
     final Triplet<FileOnClient, Long, Long> file = new Triplet<>(f, time,
         Long.MAX_VALUE);
     this.HIR.add(file);
+    this.used += f.getFileSize();
     this.zasobnikSouboru.add(file);
   }
 
@@ -325,25 +321,20 @@ public class LIRS implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Triplet<FileOnClient, Long, Long> triplet = null;
     for (final Triplet<FileOnClient, Long, Long> file : this.HIR) {
       if (file.getFirst() == f) {
-        triplet = file;
-        break;
+        this.HIR.remove(file);
+        this.used -= file.getFirst().getFileSize();
+        return;
       }
     }
-    if (triplet != null) {
-      this.HIR.remove(triplet);
-      return;
-    }
+
     for (final Triplet<FileOnClient, Long, Long> file : this.LIR) {
       if (file.getFirst() == f) {
-        triplet = file;
+        this.HIR.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (triplet != null) {
-      this.HIR.remove(triplet);
     }
   }
 

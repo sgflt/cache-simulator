@@ -50,6 +50,8 @@ public class FBR implements ICache {
    */
   private long initialCapacity = 0;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace cache
@@ -105,11 +107,7 @@ public class FBR implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Pair<FileOnClient, Integer> pair : this.fQueue) {
-      obsazeno += pair.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
@@ -128,19 +126,22 @@ public class FBR implements ICache {
         break;
       }
     }
+
     // odebereme podle LRU
     if (oldIndex == -1) {
-      this.fQueue.remove(this.fQueue.size() - 1);
+      this.used -=  this.fQueue.remove(this.fQueue.size() - 1).getFirst().getFileSize();
       return;
     }
+
     // odebereme podle LFU z OLD section
     Pair<FileOnClient, Integer> file = this.fQueue.get(oldIndex);
     for (int i = oldIndex; i < this.fQueue.size(); i++) {
       if (this.fQueue.get(i).getSecond() < file.getSecond())
         file = this.fQueue.get(i);
     }
-    this.fQueue.remove(file);
 
+    this.fQueue.remove(file);
+    this.used -= file.getFirst().getFileSize();
   }
 
 
@@ -169,7 +170,9 @@ public class FBR implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.fQueue.add(new Pair<>(f, 1));
+    this.used += f.getFileSize();
   }
 
 
@@ -257,15 +260,12 @@ public class FBR implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Pair<FileOnClient, Integer> pair = null;
     for (final Pair<FileOnClient, Integer> file : this.fQueue) {
       if (file.getFirst() == f) {
-        pair = file;
+        this.fQueue.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (pair != null) {
-      this.fQueue.remove(pair);
     }
   }
 

@@ -63,6 +63,8 @@ public class LFU_SS implements ICache {
    */
   private final Server server = Server.getInstance();
 
+  protected long used = 0;
+
 
   /**
    * konstruktor - inicializace cache
@@ -102,11 +104,7 @@ public class LFU_SS implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Pair<Double, FileOnClient> f : this.list) {
-      obsazeno += f.getSecond().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
@@ -117,9 +115,9 @@ public class LFU_SS implements ICache {
       this.needSort = false;
     }
 
-
-    if (!this.list.isEmpty())
-      this.list.remove(0);
+    if (!this.list.isEmpty()) {
+      this.used -= this.list.remove(0).getSecond().getFileSize();
+    }
 
     if (this.list.size() > 2) {
       if ((this.list.get(this.list.size() - 1)).getFirst() > 15) {
@@ -166,6 +164,7 @@ public class LFU_SS implements ICache {
         / this.globalReadCount * localReadCount + 1.0;
 
     this.list.add(new Pair<>(readHits, f));
+    this.used += f.getFileSize();
     this.needSort = true;
   }
 
@@ -248,15 +247,12 @@ public class LFU_SS implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Pair<Double, FileOnClient> pair = null;
     for (final Pair<Double, FileOnClient> file : this.list) {
       if (file.getSecond() == f) {
-        pair = file;
+        this.list.remove(file);
+        this.used -= file.getSecond().getFileSize();
         break;
       }
-    }
-    if (pair != null) {
-      this.list.remove(pair);
     }
   }
 

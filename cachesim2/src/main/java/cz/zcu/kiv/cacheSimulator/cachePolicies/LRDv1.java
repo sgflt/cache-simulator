@@ -67,6 +67,8 @@ public class LRDv1 implements ICache {
    */
   private final ArrayList<FileOnClient> fOverCapacity;
 
+  private long used;
+
 
   /**
    * konstruktor - iniciace promennych
@@ -105,11 +107,7 @@ public class LRDv1 implements ICache {
 
   @Override
   public long freeCapacity() {
-    long sumCap = 0;
-    for (final Quartet<FileOnClient, Long, Long, Double> files : this.fList) {
-      sumCap += files.getFirst().getFileSize();
-    }
-    return this.capacity - sumCap;
+    return this.capacity - this.used;
   }
 
 
@@ -122,7 +120,8 @@ public class LRDv1 implements ICache {
       Collections.sort(this.fList, new QuartetCompare());
     }
     this.needRecalculate = false;
-    this.fList.remove(0);
+
+    this.used -= this.fList.remove(0).getFirst().getFileSize();
   }
 
 
@@ -151,7 +150,9 @@ public class LRDv1 implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.fList.add(new Quartet<>(f, (long) 1, this.GC++, 1.0));
+    this.used += f.getFileSize();
     this.needRecalculate = true;
   }
 
@@ -222,17 +223,13 @@ public class LRDv1 implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Quartet<FileOnClient, Long, Long, Double> quart = null;
     for (final Quartet<FileOnClient, Long, Long, Double> file : this.fList) {
       if (file.getFirst() == f) {
-        quart = file;
+        this.fList.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
     }
-    if (quart != null) {
-      this.fList.remove(quart);
-    }
-
   }
 
 

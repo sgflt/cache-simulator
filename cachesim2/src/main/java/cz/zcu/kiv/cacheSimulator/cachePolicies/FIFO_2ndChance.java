@@ -40,6 +40,8 @@ public class FIFO_2ndChance implements ICache {
    */
   private long initialCapacity = 0;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace cache
@@ -74,22 +76,21 @@ public class FIFO_2ndChance implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Pair<FileOnClient, Boolean> f : this.fQueue) {
-      obsazeno += f.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
     Pair<FileOnClient, Boolean> file = this.fQueue.remove();
+
     while (file.getSecond() == true) {
       file.setSecond(false);
       this.fQueue.add(file);
       file = this.fQueue.remove();
     }
+
+    this.used -= file.getFirst().getFileSize();
   }
 
 
@@ -118,7 +119,9 @@ public class FIFO_2ndChance implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.fQueue.add(new Pair<>(f, false));
+    this.used += f.getFileSize();
   }
 
 
@@ -186,15 +189,12 @@ public class FIFO_2ndChance implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Pair<FileOnClient, Boolean> pair = null;
     for (final Pair<FileOnClient, Boolean> file : this.fQueue) {
       if (file.getFirst() == f) {
-        pair = file;
+        this.fQueue.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (pair != null) {
-      this.fQueue.remove(pair);
     }
   }
 

@@ -38,6 +38,8 @@ public class LRU implements ICache {
    */
   private long initialCapacity = 0;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace cache
@@ -78,17 +80,13 @@ public class LRU implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.lruQueue) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
-    this.lruQueue.remove(0);
+    this.used -= this.lruQueue.remove(0).getFileSize();
   }
 
 
@@ -117,7 +115,9 @@ public class LRU implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.lruQueue.add(f);
+    this.used += f.getFileSize();
   }
 
 
@@ -185,7 +185,9 @@ public class LRU implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    this.lruQueue.remove(f);
+    if (this.lruQueue.remove(f)) {
+      this.used -= f.getFileSize();
+    }
   }
 
 

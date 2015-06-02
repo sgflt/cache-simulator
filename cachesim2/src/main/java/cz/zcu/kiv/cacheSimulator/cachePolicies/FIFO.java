@@ -40,6 +40,8 @@ public class FIFO implements ICache {
    */
   private long initialCapacity = 0;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace cache
@@ -72,17 +74,13 @@ public class FIFO implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.fQueue) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
-    this.fQueue.remove();
+    this.used -= this.fQueue.remove().getFileSize();
   }
 
 
@@ -111,7 +109,9 @@ public class FIFO implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.fQueue.add(f);
+    this.used += f.getFileSize();
   }
 
 
@@ -179,8 +179,9 @@ public class FIFO implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    if (this.fQueue.contains(f))
-      this.fQueue.remove(f);
+    if (this.fQueue.remove(f)) {
+      this.used -= f.getFileSize();
+    }
   }
 
 

@@ -90,6 +90,8 @@ public class LRFU_SS implements ICache {
    */
   private final ArrayList<FileOnClient> fOverCapacity;
 
+  private long used;
+
   /**
    * konstruktor - inicializce cache
    */
@@ -128,19 +130,7 @@ public class LRFU_SS implements ICache {
 
   @Override
   public long freeCapacity() {
-    if (this.needRecalculate) {
-      this.recalculatePriorities();
-    }
-    if (this.needSort) {
-      Collections.sort(this.list, new QuartetCompare());
-    }
-    this.needSort = false;
-    this.needRecalculate = false;
-    long obsazeno = 0;
-    for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
-      obsazeno += f.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
   @Override
@@ -148,13 +138,16 @@ public class LRFU_SS implements ICache {
     if (this.needRecalculate) {
       this.recalculatePriorities();
     }
+
     if (this.needSort) {
       Collections.sort(this.list, new QuartetCompare());
     }
+
     this.needSort = false;
     this.needRecalculate = false;
-    if (this.list.size() > 0){
-      this.list.remove(0);
+
+    if (!this.list.isEmpty()){
+      this.used -= this.list.remove(0).getFirst().getFileSize();
     }
 
   }
@@ -227,6 +220,7 @@ public class LRFU_SS implements ICache {
           / this.globalReadCount * localReadCount + 1;
 
     this.list.add(new Quartet<>(f, GlobalVariables.getActualTime(), readHits, 0));
+    this.used += f.getFileSize();
 
     this.needSort = true;
     this.needRecalculate = true;
@@ -322,15 +316,12 @@ public class LRFU_SS implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Quartet<FileOnClient, Long, Double, Integer> quart = null;
     for (final Quartet<FileOnClient, Long, Double, Integer> file : this.list){
       if (file.getFirst() == f){
-        quart = file;
+        this.list.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (quart != null){
-      this.list.remove(quart);
     }
   }
 

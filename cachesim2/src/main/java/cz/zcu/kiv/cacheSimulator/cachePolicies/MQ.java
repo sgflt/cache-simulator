@@ -68,6 +68,8 @@ public class MQ implements ICache {
    */
   private final Queue<Triplet<FileOnClient, Integer, Long>> fQueueOut;
 
+  private long used;
+
 
   @SuppressWarnings("unchecked")
   public MQ() {
@@ -145,28 +147,24 @@ public class MQ implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (int i = 0; i < this.fQueues.length; i++) {
-      for (final Triplet<FileOnClient, Integer, Long> f : this.fQueues[i]) {
-        obsazeno += f.getFirst().getFileSize();
-      }
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
     for (int i = 0; i < this.fQueues.length; i++) {
-      if (this.fQueues[i].size() == 0)
+      if (this.fQueues[i].isEmpty())
         continue;
 
       final Triplet<FileOnClient, Integer, Long> out = this.fQueues[i].remove();
       // v qout jsou uchovany metadata souboru
-      if (this.fQueueOut.size() > QOUT_CAPACITY)
-        this.fQueueOut.remove();
+      if (this.fQueueOut.size() > QOUT_CAPACITY) {
+       this.fQueueOut.remove();
+      }
 
       this.fQueueOut.add(out);
+      this.used -= out.getFirst().getFileSize();
 
       return;
     }
@@ -217,7 +215,9 @@ public class MQ implements ICache {
     int index = (int) (Math.log10(refCount) / Math.log10(2));
     if (index >= QUEUE_COUNT)
       index = QUEUE_COUNT - 1;
+
     this.fQueues[index].add(newFile);
+    this.used += newFile.getFirst().getFileSize();
     this.adjust();
   }
 
@@ -323,10 +323,12 @@ public class MQ implements ICache {
     for (int i = 0; i < this.fQueues.length; i++) {
       if (this.fQueues[i].size() == 0)
         continue;
+
       for (final Triplet<FileOnClient, Integer, Long> file : this.fQueues[i]) {
         if (file.getFirst() == f) {
           this.fQueues[i].remove(file);
-          if (this.fQueueOut.size() > QOUT_CAPACITY)
+          this.used -= file.getFirst().getFileSize();
+
             this.fQueueOut.remove();
           this.fQueueOut.add(file);
           return;

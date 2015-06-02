@@ -68,6 +68,8 @@ public class LFU_REDUCTION implements ICache {
    */
   private final double DIV = 2;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace cache
@@ -103,11 +105,7 @@ public class LFU_REDUCTION implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Pair<Integer, FileOnClient> f : this.list) {
-      obsazeno += f.getSecond().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
@@ -116,9 +114,11 @@ public class LFU_REDUCTION implements ICache {
     if (this.needSort) {
       Collections.sort(this.list, new PairCompare());
     }
+
     this.needSort = false;
-    if (this.list.size() > 0)
-      this.list.remove(0);
+    if (!this.list.isEmpty()) {
+      this.used -= this.list.remove(0).getSecond().getFileSize();
+    }
 
     // over threshold
     if (this.list.size() > 1)
@@ -155,7 +155,9 @@ public class LFU_REDUCTION implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.list.add(new Pair<>(1, f));
+    this.used += f.getFileSize();
     this.needSort = true;
   }
 
@@ -225,15 +227,12 @@ public class LFU_REDUCTION implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Pair<Integer, FileOnClient> pair = null;
     for (final Pair<Integer, FileOnClient> file : this.list) {
       if (file.getSecond() == f) {
-        pair = file;
+        this.list.remove(file);
+        this.used -= file.getSecond().getFileSize();
         break;
       }
-    }
-    if (pair != null) {
-      this.list.remove(pair);
     }
   }
 

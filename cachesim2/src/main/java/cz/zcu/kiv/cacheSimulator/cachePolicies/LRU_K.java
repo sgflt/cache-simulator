@@ -54,6 +54,8 @@ public class LRU_K implements ICache {
    */
   private final List<FileOnClient> fOverCapacity;
 
+  private long used;
+
 
   public LRU_K() {
     super();
@@ -101,11 +103,7 @@ public class LRU_K implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Triplet<FileOnClient, Long[], Long> files : this.fList) {
-      obsazeno += files.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
@@ -122,8 +120,10 @@ public class LRU_K implements ICache {
         }
     }
 
-    if (victim != null)
+    if (victim != null) {
       this.fList.remove(victim);
+      this.used -= victim.getFirst().getFileSize();
+    }
   }
 
 
@@ -152,14 +152,16 @@ public class LRU_K implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     final long actTime = ++this.timeCounter;
     final Long[] lastTimes = new Long[K];
     for (int i = 0; i < lastTimes.length; i++) {
       lastTimes[i] = 0L;
     }
+
     lastTimes[0] = actTime;
     this.fList.add(new Triplet<>(f, lastTimes, actTime));
-
+    this.used += f.getFileSize();
   }
 
 
@@ -248,15 +250,12 @@ public class LRU_K implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Triplet<FileOnClient, Long[], Long> triplet = null;
     for (final Triplet<FileOnClient, Long[], Long> file : this.fList) {
       if (file.getFirst() == f) {
-        triplet = file;
+        this.fList.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (triplet != null) {
-      this.fList.remove(triplet);
     }
   }
 

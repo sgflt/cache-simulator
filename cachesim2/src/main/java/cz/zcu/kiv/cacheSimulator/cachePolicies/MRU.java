@@ -38,6 +38,8 @@ public class MRU implements ICache {
    */
   private long initialCapacity = 0;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace cache
@@ -78,17 +80,13 @@ public class MRU implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.mruQueue) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
-    this.mruQueue.remove(this.mruQueue.size() - 1);
+    this.used -= this.mruQueue.remove(this.mruQueue.size() - 1).getFileSize();
   }
 
 
@@ -117,7 +115,9 @@ public class MRU implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.mruQueue.add(f);
+    this.used += f.getFileSize();
   }
 
 
@@ -185,7 +185,9 @@ public class MRU implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    this.mruQueue.remove(f);
+    if (this.mruQueue.remove(f)) {
+      this.used -= f.getFileSize();
+    }
   }
 
 

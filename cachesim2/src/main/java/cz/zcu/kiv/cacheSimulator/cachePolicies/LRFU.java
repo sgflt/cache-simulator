@@ -61,6 +61,7 @@ public class LRFU implements ICache {
    */
   private boolean needSort = true;
 
+  private long used;
   /**
    * trida pro porovnani prvku
    *
@@ -122,11 +123,7 @@ public class LRFU implements ICache {
 
   @Override
   public long freeCapacity() {
-    long sumCap = 0;
-    for (final Triplet<FileOnClient, Long, Double> triplet : this.fList) {
-      sumCap += triplet.getFirst().getFileSize();
-    }
-    return this.capacity - sumCap;
+    return this.capacity - this.used;
   }
 
 
@@ -135,8 +132,9 @@ public class LRFU implements ICache {
     if (this.needSort)
       Collections.sort(this.fList, new TripletCompare());
     this.needSort = false;
-    if (this.fList.size() > 0) {
-      this.fList.remove(0);
+
+    if (!this.fList.isEmpty()) {
+      this.used -= this.fList.remove(0).getFirst().getFileSize();
     }
   }
 
@@ -167,8 +165,9 @@ public class LRFU implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    this.fList.add(new Triplet<>(f, ++this.timeCounter, this
-        .calculateF(0)));
+
+    this.fList.add(new Triplet<>(f, ++this.timeCounter, this.calculateF(0)));
+    this.used += f.getFileSize();
   }
 
 
@@ -270,15 +269,12 @@ public class LRFU implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Triplet<FileOnClient, Long, Double> triplet = null;
     for (final Triplet<FileOnClient, Long, Double> file : this.fList) {
       if (file.getFirst() == f) {
-        triplet = file;
+        this.fList.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (triplet != null) {
-      this.fList.remove(triplet);
     }
   }
 

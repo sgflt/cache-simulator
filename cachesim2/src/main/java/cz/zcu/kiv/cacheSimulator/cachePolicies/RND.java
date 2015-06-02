@@ -48,6 +48,8 @@ public class RND implements ICache {
    */
   Random rnd = null;
 
+  private long used;
+
 
   /**
    * konstruktor - inicializace promennych
@@ -83,18 +85,13 @@ public class RND implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.list) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
 
   @Override
   public void removeFile() {
-    this.list.remove(this.rnd.nextInt(this.list.size()));
-
+    this.used -= this.list.remove(this.rnd.nextInt(this.list.size())).getFileSize();
   }
 
 
@@ -123,7 +120,9 @@ public class RND implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     this.list.add(f);
+    this.used += f.getFileSize();
   }
 
 
@@ -192,8 +191,9 @@ public class RND implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    if (this.list.contains(f))
-      this.list.remove(f);
+    if (this.list.remove(f)) {
+      this.used -= f.getFileSize();
+    }
   }
 
 

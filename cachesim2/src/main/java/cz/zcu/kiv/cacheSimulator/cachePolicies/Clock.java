@@ -48,6 +48,8 @@ public class Clock implements ICache {
    */
   private long initialCapacity = 0;
 
+  private long used;
+
   /**
    * konstruktor - inicializace cache
    */
@@ -78,23 +80,21 @@ public class Clock implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-      obsazeno += f.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.used;
   }
 
   @Override
   public void removeFile() {
     this.index = this.index % this.Flist.size();
     Pair<FileOnClient, Boolean> file = this.Flist.get(this.index);
+
     while(file.getSecond() == true){
       file.setSecond(false);
       this.index = (this.index + 1) % this.Flist.size();
       file = this.Flist.get(this.index);
     }
-    this.Flist.remove(file);
+
+    this.used -= this.Flist.remove(this.index).getFirst().getFileSize();
   }
 
   @Override
@@ -116,14 +116,13 @@ public class Clock implements ICache {
     if (!this.fOverCapacity.isEmpty())
       this.checkTimes();
 
-
     //pokud se soubor vejde, fungujeme spravne
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
 
-    this.Flist.add(this.index, new Pair<>(f, true));
-    this.index = (this.index + 1);
+    this.Flist.add(this.index++, new Pair<>(f, true));
+    this.used += f.getFileSize();
   }
 
   @Override
@@ -182,15 +181,12 @@ public class Clock implements ICache {
 
   @Override
   public void removeFile(final FileOnClient f) {
-    Pair<FileOnClient, Boolean> pair = null;
     for (final Pair<FileOnClient, Boolean> file : this.Flist){
       if (file.getFirst() == f){
-        pair = file;
+        this.Flist.remove(file);
+        this.used -= file.getFirst().getFileSize();
         break;
       }
-    }
-    if (pair != null){
-      this.Flist.remove(pair);
     }
   }
 
