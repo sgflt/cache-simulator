@@ -1,6 +1,7 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -199,9 +200,7 @@ public class RND implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.list.size());
-    list.addAll(this.list);
-    return list;
+    return Collections.unmodifiableList(this.list);
   }
 
 

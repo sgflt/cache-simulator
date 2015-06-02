@@ -1,6 +1,7 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -186,10 +187,9 @@ public class FIFO implements ICache {
 
 
   @Override
+  @SuppressWarnings("unchecked")
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.fQueue.size());
-    list.addAll(this.fQueue);
-    return list;
+    return Collections.unmodifiableList((List<FileOnClient>)this.fQueue);
   }
 
 

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
@@ -220,11 +221,7 @@ public class LFU_NO_REDUCTION implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.list.size());
-    for (final Pair<Integer, FileOnClient> file : this.list) {
-      list.add(file.getSecond());
-    }
-    return list;
+    return this.list.stream().map(pair -> pair.getSecond()).collect(Collectors.toList());
   }
 
 

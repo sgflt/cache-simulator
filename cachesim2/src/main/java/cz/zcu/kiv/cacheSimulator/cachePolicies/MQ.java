@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
@@ -341,13 +342,14 @@ public class MQ implements ICache {
   @Override
   public List<FileOnClient> getCachedFiles() {
     final List<FileOnClient> list = new ArrayList<>();
+
     for (int i = 0; i < this.fQueues.length; i++) {
-      if (this.fQueues[i].size() == 0)
+      if (this.fQueues[i].isEmpty())
         continue;
-      for (final Triplet<FileOnClient, Integer, Long> file : this.fQueues[i]) {
-        list.add(file.getFirst());
-      }
+
+      this.fQueues[i].stream().map(triplet -> triplet.getFirst()).collect(Collectors.toCollection(() -> list));
     }
+
     return list;
   }
 

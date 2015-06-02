@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
@@ -342,12 +343,8 @@ public class LIRS implements ICache {
   @Override
   public List<FileOnClient> getCachedFiles() {
     final List<FileOnClient> list = new ArrayList<>(this.HIR.size() + this.LIR.size());
-    for (final Triplet<FileOnClient, Long, Long> triplet : this.HIR) {
-      list.add(triplet.getFirst());
-    }
-    for (final Triplet<FileOnClient, Long, Long> triplet : this.LIR) {
-      list.add(triplet.getFirst());
-    }
+    this.HIR.stream().map(triplet -> triplet.getFirst()).collect(Collectors.toCollection(() -> list));
+    this.LIR.stream().map(triplet -> triplet.getFirst()).collect(Collectors.toCollection(() -> list));
     return list;
   }
 

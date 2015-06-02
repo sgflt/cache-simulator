@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
@@ -281,11 +282,7 @@ public class LRFU implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.fList.size());
-    for (final Triplet<FileOnClient, Long, Double> file : this.fList) {
-      list.add(file.getFirst());
-    }
-    return list;
+    return this.fList.stream().map(triplet -> triplet.getFirst()).collect(Collectors.toList());
   }
 
 

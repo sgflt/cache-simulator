@@ -1,6 +1,7 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
@@ -193,9 +194,7 @@ public class MRU implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.mruQueue.size());
-    this.mruQueue.addAll(this.mruQueue);
-    return list;
+    return Collections.unmodifiableList(this.mruQueue);
   }
 
 

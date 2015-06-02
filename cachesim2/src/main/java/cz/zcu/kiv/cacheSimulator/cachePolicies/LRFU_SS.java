@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
@@ -324,14 +325,12 @@ public class LRFU_SS implements ICache {
     }
   }
 
+
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> listRet = new ArrayList<>(this.list.size());
-    for (final Quartet<FileOnClient, Long, Double, Integer> file: this.list){
-      listRet.add(file.getFirst());
-    }
-    return listRet;
+    return this.list.stream().map(quartet -> quartet.getFirst()).collect(Collectors.toList());
   }
+
 
   @Override
   public long getCapacity() {

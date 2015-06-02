@@ -1,5 +1,6 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import java.util.Collections;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -193,9 +194,7 @@ public class LRU implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.lruQueue.size());
-    this.lruQueue.addAll(this.lruQueue);
-    return list;
+    return Collections.unmodifiableList(this.lruQueue);
   }
 
 

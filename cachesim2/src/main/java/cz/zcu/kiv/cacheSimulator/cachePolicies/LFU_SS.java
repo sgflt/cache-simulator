@@ -6,6 +6,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
@@ -259,11 +260,7 @@ public class LFU_SS implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.list.size());
-    for (final Pair<Double, FileOnClient> file : this.list) {
-      list.add(file.getSecond());
-    }
-    return list;
+    return this.list.stream().map(pair -> pair.getSecond()).collect(Collectors.toList());
   }
 
 

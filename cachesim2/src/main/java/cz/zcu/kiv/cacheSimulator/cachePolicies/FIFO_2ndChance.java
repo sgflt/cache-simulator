@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
@@ -201,11 +202,7 @@ public class FIFO_2ndChance implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.fQueue.size());
-    for (final Pair<FileOnClient, Boolean> file : this.fQueue) {
-      list.add(file.getFirst());
-    }
-    return list;
+    return this.fQueue.stream().map(pair -> pair.getFirst()).collect(Collectors.toList());
   }
 
 

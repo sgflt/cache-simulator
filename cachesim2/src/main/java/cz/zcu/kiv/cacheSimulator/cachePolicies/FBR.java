@@ -2,6 +2,7 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
@@ -272,11 +273,7 @@ public class FBR implements ICache {
 
   @Override
   public List<FileOnClient> getCachedFiles() {
-    final List<FileOnClient> list = new ArrayList<>(this.fQueue.size());
-    for (final Pair<FileOnClient, Integer> file : this.fQueue) {
-      list.add(file.getFirst());
-    }
-    return list;
+    return this.fQueue.stream().map(pair -> pair.getFirst()).collect(Collectors.toList());
   }
 
 
