@@ -31,6 +31,7 @@ public class CachePolicyTest {
 
   private static final int DEFAULT_CAPACITY = 8 * 1024 * 1024;
   private static final int DEFAULT_FILE_SIZE = 31337;
+  private static final String DEFAULT_FILENAME = "536893118.9948.10385";
 
   private List<ICache> caches;
 
@@ -61,7 +62,7 @@ public class CachePolicyTest {
 
   @Test
   public void testInsert_ShouldContainFile() {
-    final FileOnServer fileOnServer = new FileOnServer("testFile", DEFAULT_FILE_SIZE);
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
     for (final ICache cache : this.caches) {
       final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
       assertFalse(cache.toString(), cache.contains(file.getFileName()));
@@ -73,7 +74,7 @@ public class CachePolicyTest {
 
   @Test
   public void testInsert_ShouldReturnFile() {
-    final FileOnServer fileOnServer = new FileOnServer("testFile", DEFAULT_FILE_SIZE);
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
     for (final ICache cache : this.caches) {
       final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
       cache.insertFile(file);
@@ -84,7 +85,7 @@ public class CachePolicyTest {
 
   @Test
   public void testRemove_ShouldShrinkFreeCapacity() {
-    final FileOnServer fileOnServer = new FileOnServer("testFile", DEFAULT_FILE_SIZE);
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
     for (final ICache cache : this.caches) {
       final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
       cache.insertFile(file);
@@ -95,7 +96,79 @@ public class CachePolicyTest {
 
   @Test
   public void testRemove_ShouldNotContainFile() {
-    final FileOnServer fileOnServer = new FileOnServer("testFile", DEFAULT_FILE_SIZE);
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
+    for (final ICache cache : this.caches) {
+      final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
+      cache.insertFile(file);
+      cache.removeFile();
+
+      if (cache instanceof LRU_K) {
+        /* hack history of LRU-K */
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+      }
+
+      assertFalse(cache.toString(), cache.contains(file.getFileName()));
+    }
+  }
+
+
+  @Test
+  public void testRemove_ShouldNotReturnFile() {
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
+    for (final ICache cache : this.caches) {
+      final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
+      cache.insertFile(file);
+      cache.removeFile();
+
+      if (cache instanceof LRU_K) {
+        /* hack history of LRU-K */
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+      }
+
+      assertNull(cache.toString(), cache.getFile(file.getFileName()));
+    }
+  }
+
+
+  @Test
+  public void testRemove_ShouldExpandFreeCapacity() {
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
+    for (final ICache cache : this.caches) {
+      final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
+      cache.insertFile(file);
+      cache.removeFile();
+
+      if (cache instanceof LRU_K) {
+        /* hack history of LRU-K */
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+        cache.removeFile();
+      }
+
+      assertEquals(cache.toString(), cache.getCapacity(), cache.freeCapacity());
+    }
+  }
+
+
+  @Test
+  public void testRemoveParameter_ShouldNotContainFile() {
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
     for (final ICache cache : this.caches) {
       final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
       cache.insertFile(file);
@@ -106,8 +179,8 @@ public class CachePolicyTest {
 
 
   @Test
-  public void testRemove_ShouldNotReturnFile() {
-    final FileOnServer fileOnServer = new FileOnServer("testFile", DEFAULT_FILE_SIZE);
+  public void testRemoveParameter_ShouldNotReturnFile() {
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
     for (final ICache cache : this.caches) {
       final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
       cache.insertFile(file);
@@ -118,8 +191,8 @@ public class CachePolicyTest {
 
 
   @Test
-  public void testRemove_ShouldExpandFreeCapacity() {
-    final FileOnServer fileOnServer = new FileOnServer("testFile", DEFAULT_FILE_SIZE);
+  public void testRemoveParameter_ShouldExpandFreeCapacity() {
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
     for (final ICache cache : this.caches) {
       final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
       cache.insertFile(file);
@@ -128,4 +201,15 @@ public class CachePolicyTest {
     }
   }
 
+  @Test
+  public void testRemoveParameter_ShouldNotRemoveDifferentFile() {
+    final FileOnServer fileOnServer = new FileOnServer(DEFAULT_FILENAME, DEFAULT_FILE_SIZE);
+    final FileOnServer fileToRemove = new FileOnServer("536900778.9610.16929", 400);
+    for (final ICache cache : this.caches) {
+      final FileOnClient file = new FileOnClient(fileOnServer, cache, 0);
+      cache.insertFile(file);
+      cache.removeFile(new FileOnClient(fileToRemove, cache, 0));
+      assertEquals(cache.toString(), cache.getCapacity() - DEFAULT_FILE_SIZE, cache.freeCapacity());
+    }
+  }
 }
