@@ -74,7 +74,6 @@ public class LRFU implements ICache {
    * @param capacity
    */
   public LRFU() {
-    super();
     this.needSort = true;
     this.fList = new ArrayList<>();
     this.fOverCapacity = new ArrayList<>();

@@ -74,7 +74,6 @@ public class MQ implements ICache {
 
   @SuppressWarnings("unchecked")
   public MQ() {
-    super();
     this.fQueueOut = new LinkedList<>();
     this.fQueues = new Queue[QUEUE_COUNT];
     for (int i = 0; i < QUEUE_COUNT; i++) {

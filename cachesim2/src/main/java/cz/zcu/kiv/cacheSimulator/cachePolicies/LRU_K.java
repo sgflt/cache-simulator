@@ -59,7 +59,6 @@ public class LRU_K implements ICache {
 
 
   public LRU_K() {
-    super();
     this.fList = new ArrayList<>();
     this.fOverCapacity = new ArrayList<>();
   }
