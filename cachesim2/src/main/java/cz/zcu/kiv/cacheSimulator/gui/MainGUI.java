@@ -634,8 +634,6 @@ public class MainGUI extends JFrame implements Observer {
       this.simulationThread.stopSimulation();
     }
 
-    Server.getInstance().hardReset();
-
     this.enableComponentsAfterSimulaton(false);
   }
 
