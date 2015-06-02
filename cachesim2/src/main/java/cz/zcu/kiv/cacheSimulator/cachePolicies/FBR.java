@@ -116,7 +116,7 @@ public class FBR implements ICache {
     long sumCap = 0;
     int oldIndex = -1;
 
-    if (this.fQueue.size() == 0)
+    if (this.fQueue.isEmpty())
       return;
 
     for (int i = 0; i < this.fQueue.size(); i++) {

@@ -321,7 +321,7 @@ public class MQ implements ICache {
   @Override
   public void removeFile(final FileOnClient f) {
     for (int i = 0; i < this.fQueues.length; i++) {
-      if (this.fQueues[i].size() == 0)
+      if (this.fQueues[i].isEmpty())
         continue;
 
       for (final Triplet<FileOnClient, Integer, Long> file : this.fQueues[i]) {
