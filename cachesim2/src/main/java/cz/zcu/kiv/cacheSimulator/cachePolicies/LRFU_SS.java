@@ -76,6 +76,7 @@ public class LRFU_SS implements ICache {
 
   private long used;
 
+
   /**
    * konstruktor - inicializce cache
    */
@@ -83,6 +84,7 @@ public class LRFU_SS implements ICache {
     this.list = new ArrayList<>();
     this.fOverCapacity = new ArrayList<>();
   }
+
 
   @Override
   public boolean contains(final String fName) {
@@ -92,6 +94,7 @@ public class LRFU_SS implements ICache {
     }
     return false;
   }
+
 
   @Override
   public FileOnClient getFile(final String fName) {
@@ -112,10 +115,12 @@ public class LRFU_SS implements ICache {
     return null;
   }
 
+
   @Override
   public long freeCapacity() {
     return this.capacity - this.used;
   }
+
 
   @Override
   public void removeFile() {
@@ -136,16 +141,17 @@ public class LRFU_SS implements ICache {
 
   }
 
+
   /**
    * metoda pro rekalkulaci priorit
    */
   public void recalculatePriorities() {
     if (this.list.size() <= 1)
       return;
-    long oldestTime = this.list.get(0).getSecond(), newestTime = this.list.get(0)
-        .getSecond();
-    double maxReadHit = this.list.get(0).getThird(), minReadHit = this.list.get(0)
-        .getThird();
+
+    long oldestTime = this.list.get(0).getSecond(), newestTime = this.list.get(0).getSecond();
+    double maxReadHit = this.list.get(0).getThird(), minReadHit = this.list.get(0).getThird();
+
     // zjisteni lokalnich extremu
     for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
       if (f.getSecond() > newestTime)
@@ -157,14 +163,15 @@ public class LRFU_SS implements ICache {
       if (minReadHit > f.getThird())
         minReadHit = f.getThird();
     }
+
     // vypocet priorit
-    int PLRU, PLFU_SS;
     for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
-      PLFU_SS = (int) ((f.getThird() - minReadHit) * 65535.0 / (maxReadHit - minReadHit));
-      PLRU = (int) ((f.getSecond() - (double)oldestTime) * 65535.0 / ((double)newestTime - (double)oldestTime));
+      final int PLFU_SS = (int) ((f.getThird() - minReadHit) * 65535.0 / (maxReadHit - minReadHit));
+      final int PLRU = (int) ((f.getSecond() - (double) oldestTime) * 65535.0 / ((double) newestTime - (double) oldestTime));
       f.setFourth((int) (K1 * PLRU + K2 * PLFU_SS));
     }
   }
+
 
   @Override
   public void insertFile(final FileOnClient f) {
@@ -175,14 +182,13 @@ public class LRFU_SS implements ICache {
         this.fOverCapacity.add(f);
         return;
       }
-      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
-          .getCacheCapacityForDownloadWindow())) {
-        this.removeFile();
 
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
+        this.removeFile();
       }
+
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1 - GlobalVariables
-          .getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
 
@@ -194,14 +200,12 @@ public class LRFU_SS implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
-    double localReadCount = 0;
-    for (final Quartet<FileOnClient, Long, Double, Integer> files : this.list) {
-      localReadCount += files.getThird();
-    }
+
+    final double localReadCount = this.list.stream().mapToDouble(file -> file.getThird()).sum();
+
     double readHits = 0;
     if (this.globalReadCount > 0)
-      readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
-          / this.globalReadCount * localReadCount + 1;
+      readHits = ((double) f.getReadHit() - (double) f.getWriteHit()) / this.globalReadCount * localReadCount + 1;
 
     this.list.add(new Quartet<>(f, GlobalVariables.getActualTime(), readHits, 0));
     this.used += f.getFileSize();
@@ -209,6 +213,7 @@ public class LRFU_SS implements ICache {
     this.needSort = true;
     this.needRecalculate = true;
   }
+
 
   /**
    * metoda pro nastaveni poctu globalnich hitu
@@ -220,22 +225,26 @@ public class LRFU_SS implements ICache {
     this.globalReadCount = readCount;
   }
 
+
   @Override
   public String toString() {
     return "LRFU-SS";
     // return "LRFU-SS algorithm (K1="+K1+", K2=" + K2 +") ";
   }
 
+
   @Override
   public boolean needServerStatistics() {
     return true;
   }
+
 
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
     this.initialCapacity = capacity;
   }
+
 
   @Override
   public void reset() {
@@ -247,6 +256,7 @@ public class LRFU_SS implements ICache {
     this.fOverCapacity.clear();
   }
 
+
   /**
    * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache
    * stazene - pak odstranime okenko
@@ -255,9 +265,7 @@ public class LRFU_SS implements ICache {
     boolean hasBeenRemoved = true;
     while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty()
-          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
-              .getActualTime()) {
+      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }
@@ -267,40 +275,47 @@ public class LRFU_SS implements ICache {
     }
   }
 
+
   @Override
   public String cacheInfo() {
     return "LRFU_SS;LRFU-SS";
   }
 
+
   public static double getK1() {
     return K1;
   }
+
 
   public static void setK1(final double K1) {
     LRFU_SS.K1 = K1;
   }
 
+
   public static double getK2() {
     return K2;
   }
 
+
   public static void setK2(final double K2) {
     LRFU_SS.K2 = K2;
   }
+
 
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + (int) (this.initialCapacity ^ (this.initialCapacity >>> 32));
-    result = prime * result +  this.toString().hashCode();
+    result = prime * result + this.toString().hashCode();
     return result;
   }
 
+
   @Override
   public void removeFile(final FileOnClient f) {
-    for (final Quartet<FileOnClient, Long, Double, Integer> file : this.list){
-      if (file.getFirst() == f){
+    for (final Quartet<FileOnClient, Long, Double, Integer> file : this.list) {
+      if (file.getFirst() == f) {
         this.list.remove(file);
         this.used -= file.getFirst().getFileSize();
         break;

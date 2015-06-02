@@ -209,12 +209,13 @@ public class LIRS implements ICache {
         this.fOverCapacity.add(f);
         return;
       }
-      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
-          .getCacheCapacityForDownloadWindow()))
+
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
         this.removeFile();
+      }
+
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1 - GlobalVariables
-          .getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
 
@@ -225,9 +226,10 @@ public class LIRS implements ICache {
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
+
     final long time = ++this.timeCounter;
-    final Triplet<FileOnClient, Long, Long> file = new Triplet<>(f, time,
-        Long.MAX_VALUE);
+    final Triplet<FileOnClient, Long, Long> file = new Triplet<>(f, time, Long.MAX_VALUE);
+
     this.HIR.add(file);
     this.used += f.getFileSize();
     this.zasobnikSouboru.add(file);
@@ -271,8 +273,7 @@ public class LIRS implements ICache {
     boolean hasBeenRemoved = true;
     while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty()
-          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
+      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }

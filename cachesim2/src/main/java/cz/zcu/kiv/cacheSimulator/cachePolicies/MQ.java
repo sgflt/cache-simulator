@@ -161,7 +161,7 @@ public class MQ implements ICache {
       final Triplet<FileOnClient, Integer, Long> out = this.fQueues[i].remove();
       // v qout jsou uchovany metadata souboru
       if (this.fQueueOut.size() > QOUT_CAPACITY) {
-       this.fQueueOut.remove();
+        this.fQueueOut.remove();
       }
 
       this.fQueueOut.add(out);
@@ -181,12 +181,13 @@ public class MQ implements ICache {
         this.fOverCapacity.add(f);
         return;
       }
-      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
-          .getCacheCapacityForDownloadWindow()))
+
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
         this.removeFile();
+      }
+
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1 - GlobalVariables
-          .getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
 
@@ -195,8 +196,9 @@ public class MQ implements ICache {
 
     // pokud se soubor vejde, fungujeme spravne
     // uvolneni mista pro dalsi soubor
-    while (this.freeCapacity() < f.getFileSize())
+    while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
+    }
 
     // soubor je v qout - musi se nove stahnout, ale zustavaji mu parametry
     Triplet<FileOnClient, Integer, Long> newFile = null;
@@ -207,6 +209,7 @@ public class MQ implements ICache {
         break;
       }
     }
+
     // soubor je uplne novy, zakladame parametry
     if (newFile == null)
       newFile = new Triplet<>(f, 1, ++this.timeCounter + LIFE_TIME);
@@ -214,8 +217,9 @@ public class MQ implements ICache {
     // umistime soubor do spravne LRU fronty
     final int refCount = newFile.getSecond();
     int index = (int) (Math.log10(refCount) / Math.log10(2));
-    if (index >= QUEUE_COUNT)
+    if (index >= QUEUE_COUNT) {
       index = QUEUE_COUNT - 1;
+    }
 
     this.fQueues[index].add(newFile);
     this.used += newFile.getFirst().getFileSize();
@@ -261,8 +265,7 @@ public class MQ implements ICache {
     boolean hasBeenRemoved = true;
     while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty()
-          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
+      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }
@@ -330,7 +333,10 @@ public class MQ implements ICache {
           this.fQueues[i].remove(file);
           this.used -= file.getFirst().getFileSize();
 
+          if (this.fQueueOut.size() > QOUT_CAPACITY) {
             this.fQueueOut.remove();
+          }
+
           this.fQueueOut.add(file);
           return;
         }

@@ -56,6 +56,7 @@ public class Clock implements ICache {
     this.fOverCapacity = new ArrayList<>();
   }
 
+
   @Override
   public boolean contains(final String fName) {
     for (final Pair<FileOnClient, Boolean> f : this.Flist) {
@@ -65,10 +66,11 @@ public class Clock implements ICache {
     return false;
   }
 
+
   @Override
   public FileOnClient getFile(final String fName) {
     for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-      if (f.getFirst().getFileName().equalsIgnoreCase(fName)){
+      if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
         f.setSecond(true);
         return f.getFirst();
       }
@@ -76,17 +78,19 @@ public class Clock implements ICache {
     return null;
   }
 
+
   @Override
   public long freeCapacity() {
     return this.capacity - this.used;
   }
+
 
   @Override
   public void removeFile() {
     this.index = this.index % this.Flist.size();
     Pair<FileOnClient, Boolean> file = this.Flist.get(this.index);
 
-    while(file.getSecond() == true){
+    while (file.getSecond() == true) {
       file.setSecond(false);
       this.index = (this.index + 1) % this.Flist.size();
       file = this.Flist.get(this.index);
@@ -95,26 +99,30 @@ public class Clock implements ICache {
     this.used -= this.Flist.remove(this.index).getFirst().getFileSize();
   }
 
+
   @Override
   public void insertFile(final FileOnClient f) {
-    //napred zkontrolujeme, jestli se soubor vejde do cache
-    //pokud se nevejde, vztvorime pro nej okenko
-    if (f.getFileSize() > this.capacity){
-      if (!this.fOverCapacity.isEmpty()){
+    // napred zkontrolujeme, jestli se soubor vejde do cache
+    // pokud se nevejde, vztvorime pro nej okenko
+    if (f.getFileSize() > this.capacity) {
+      if (!this.fOverCapacity.isEmpty()) {
         this.fOverCapacity.add(f);
         return;
       }
-      while (this.freeCapacity() < (long)(this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow()))
+
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
         this.removeFile();
+      }
+
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1-GlobalVariables.getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
 
     if (!this.fOverCapacity.isEmpty())
       this.checkTimes();
 
-    //pokud se soubor vejde, fungujeme spravne
+    // pokud se soubor vejde, fungujeme spravne
     while (this.freeCapacity() < f.getFileSize()) {
       this.removeFile();
     }
@@ -123,21 +131,25 @@ public class Clock implements ICache {
     this.used += f.getFileSize();
   }
 
+
   @Override
-  public String toString(){
+  public String toString() {
     return "Clock";
   }
+
 
   @Override
   public boolean needServerStatistics() {
     return false;
   }
 
+
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
     this.initialCapacity = capacity;
   }
+
 
   @Override
   public void reset() {
@@ -146,27 +158,30 @@ public class Clock implements ICache {
     this.fOverCapacity.clear();
   }
 
+
   /**
    * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache stazene - pak odstranime okenko
    */
   private void checkTimes() {
     boolean hasBeenRemoved = true;
-    while (hasBeenRemoved){
+    while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()){
+      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }
     }
-    if (this.fOverCapacity.isEmpty()){
+    if (this.fOverCapacity.isEmpty()) {
       this.capacity = this.initialCapacity;
     }
   }
 
+
   @Override
-  public String cacheInfo(){
+  public String cacheInfo() {
     return "Clock;Clock";
   }
+
 
   @Override
   public int hashCode() {
@@ -177,10 +192,11 @@ public class Clock implements ICache {
     return result;
   }
 
+
   @Override
   public void removeFile(final FileOnClient f) {
-    for (final Pair<FileOnClient, Boolean> file : this.Flist){
-      if (file.getFirst() == f){
+    for (final Pair<FileOnClient, Boolean> file : this.Flist) {
+      if (file.getFirst() == f) {
         this.Flist.remove(file);
         this.used -= file.getFirst().getFileSize();
         break;
@@ -188,10 +204,12 @@ public class Clock implements ICache {
     }
   }
 
+
   @Override
   public List<FileOnClient> getCachedFiles() {
     return this.Flist.stream().map(pair -> pair.getFirst()).collect(Collectors.toList());
   }
+
 
   @Override
   public long getCapacity() {

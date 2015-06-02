@@ -138,13 +138,12 @@ public class LFU_SS implements ICache {
         return;
       }
 
-      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
-          .getCacheCapacityForDownloadWindow()))
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
         this.removeFile();
+      }
 
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1 - GlobalVariables
-          .getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
 
@@ -218,8 +217,7 @@ public class LFU_SS implements ICache {
     boolean hasBeenRemoved = true;
     while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty()
-          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
+      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }

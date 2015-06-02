@@ -56,11 +56,13 @@ public class _2Q implements ICache {
    */
   private static double FIFO_CAPACITY = 0.50f;
 
+
   public _2Q() {
     this.fQueueFIFO = new LinkedList<>();
     this.fQueueLRU = new LinkedList<>();
     this.fOverCapacity = new LinkedList<>();
   }
+
 
   @Override
   public boolean contains(final String fName) {
@@ -72,9 +74,10 @@ public class _2Q implements ICache {
     return this.fQueueLRU.stream().anyMatch(predicate);
   }
 
+
   @Override
   public FileOnClient getFile(final String fName) {
-    for (final Iterator<FileOnClient> it = this.fQueueFIFO.iterator(); it.hasNext(); ) {
+    for (final Iterator<FileOnClient> it = this.fQueueFIFO.iterator(); it.hasNext();) {
       final FileOnClient f = it.next();
       if (f.getFileName().equalsIgnoreCase(fName)) {
         it.remove();
@@ -83,7 +86,7 @@ public class _2Q implements ICache {
       }
     }
 
-    for (final Iterator<FileOnClient> it = this.fQueueLRU.iterator(); it.hasNext(); ) {
+    for (final Iterator<FileOnClient> it = this.fQueueLRU.iterator(); it.hasNext();) {
       final FileOnClient f = it.next();
       if (f.getFileName().equalsIgnoreCase(fName)) {
         it.remove();
@@ -95,10 +98,12 @@ public class _2Q implements ICache {
     return null;
   }
 
+
   @Override
   public long freeCapacity() {
     return this.capacity - this.used;
   }
+
 
   @Override
   public void removeFile() {
@@ -108,6 +113,7 @@ public class _2Q implements ICache {
       this.used -= this.fQueueLRU.remove().getFileSize();
     }
   }
+
 
   @Override
   public void insertFile(final FileOnClient f) {
@@ -120,14 +126,12 @@ public class _2Q implements ICache {
       }
 
       /* create window for download */
-      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables
-          .getCacheCapacityForDownloadWindow())) {
+      while (this.freeCapacity() < (long) (this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
         this.removeFile();
       }
 
       this.fOverCapacity.add(f);
-      this.capacity = (long) (this.capacity * (1 - GlobalVariables
-          .getCacheCapacityForDownloadWindow()));
+      this.capacity = (long) (this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
 
@@ -151,6 +155,7 @@ public class _2Q implements ICache {
     this.used += f.getFileSize();
   }
 
+
   /**
    * metoda pro kontrolu, zda jiz nejsou soubory s vetsi velikosti nez cache
    * stazene - pak odstranime okenko
@@ -159,9 +164,7 @@ public class _2Q implements ICache {
     boolean hasBeenRemoved = true;
     while (hasBeenRemoved) {
       hasBeenRemoved = false;
-      if (!this.fOverCapacity.isEmpty()
-          && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
-              .getActualTime()) {
+      if (!this.fOverCapacity.isEmpty() && this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables.getActualTime()) {
         this.fOverCapacity.remove(0);
         hasBeenRemoved = true;
       }
@@ -171,15 +174,18 @@ public class _2Q implements ICache {
     }
   }
 
+
   @Override
   public String toString() {
     return "2Q";
   }
 
+
   @Override
   public boolean needServerStatistics() {
     return false;
   }
+
 
   @Override
   public void setCapacity(final long capacity) {
@@ -188,6 +194,7 @@ public class _2Q implements ICache {
 
   }
 
+
   @Override
   public void reset() {
     this.fQueueFIFO.clear();
@@ -195,18 +202,22 @@ public class _2Q implements ICache {
     this.fOverCapacity.clear();
   }
 
+
   @Override
   public String cacheInfo() {
     return "_2Q;2 Queues";
   }
 
+
   public static double getFIFO_CAPACITY() {
     return FIFO_CAPACITY;
   }
 
+
   public static void setFIFO_CAPACITY(final double FIFO_CAPACITY) {
     _2Q.FIFO_CAPACITY = FIFO_CAPACITY;
   }
+
 
   @Override
   public int hashCode() {
@@ -216,6 +227,7 @@ public class _2Q implements ICache {
     result = prime * result + this.toString().hashCode();
     return result;
   }
+
 
   @Override
   public void removeFile(final FileOnClient f) {
@@ -230,6 +242,7 @@ public class _2Q implements ICache {
     }
   }
 
+
   @Override
   public List<FileOnClient> getCachedFiles() {
     final List<FileOnClient> list = new ArrayList<>(this.fQueueFIFO.size() + this.fQueueLRU.size());
@@ -237,6 +250,7 @@ public class _2Q implements ICache {
     list.addAll(this.fQueueLRU);
     return list;
   }
+
 
   @Override
   public long getCapacity() {
