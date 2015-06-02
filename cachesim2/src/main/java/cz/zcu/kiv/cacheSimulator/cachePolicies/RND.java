@@ -184,7 +184,7 @@ public class RND implements ICache {
     final int prime = 31;
     int result = 1;
     result = prime * result + (int) (this.initialCapacity ^ (this.initialCapacity >>> 32));
-    result = prime * result + ((this.toString() == null) ? 0 : this.toString().hashCode());
+    result = prime * result + this.toString().hashCode();
     return result;
   }
 
