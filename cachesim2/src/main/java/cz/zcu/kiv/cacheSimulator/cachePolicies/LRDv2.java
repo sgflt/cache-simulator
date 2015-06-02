@@ -78,11 +78,7 @@ public class LRDv2 implements ICache {
 
   @Override
   public boolean contains(final String fName) {
-    for (final Quartet<FileOnClient, Long, Long, Double> files : this.fList) {
-      if (files.getFirst().getFileName().equalsIgnoreCase(fName))
-        return true;
-    }
-    return false;
+    return this.fList.stream().anyMatch(file -> file.getFirst().getFileName().equalsIgnoreCase(fName));
   }
 
 
@@ -156,10 +152,9 @@ public class LRDv2 implements ICache {
    * metoda pro rekalkulkaci poctu referenci
    */
   private void recalculateReferences() {
-    if (this.GC % INTERVAL == 0)
-      for (final Quartet<FileOnClient, Long, Long, Double> files : this.fList) {
-        files.setSecond((long) (files.getSecond() / K1));
-      }
+    if (this.GC % INTERVAL == 0) {
+      this.fList.forEach(file -> file.setSecond((long) (file.getSecond() / K1)));
+    }
   }
 
 
