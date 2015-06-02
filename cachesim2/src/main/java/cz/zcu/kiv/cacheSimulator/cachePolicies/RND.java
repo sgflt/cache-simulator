@@ -42,7 +42,7 @@ public class RND implements ICache {
   /**
    * konstanta pro udani seed value pro nahodny generatoe
    */
-  private final int seedValue = 0;
+  private static final int seedValue = 0;
 
   /**
    * pro nahodne generovane indexy vyhazovanych souboru
@@ -59,7 +59,7 @@ public class RND implements ICache {
    */
   public RND() {
     this.list = new ArrayList<>();
-    this.rnd = new Random(this.seedValue);
+    this.rnd = new Random(seedValue);
     this.fOverCapacity = new ArrayList<>();
   }
 
@@ -150,7 +150,7 @@ public class RND implements ICache {
   @Override
   public void reset() {
     this.list.clear();
-    this.rnd = new Random(this.seedValue);
+    this.rnd = new Random(seedValue);
     this.fOverCapacity.clear();
   }
 
