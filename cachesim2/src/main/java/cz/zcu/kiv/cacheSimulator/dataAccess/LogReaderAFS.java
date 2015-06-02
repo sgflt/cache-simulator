@@ -89,11 +89,12 @@ public class LogReaderAFS extends Observable implements IFileQueue {
    */
   private static final String HOST_ID = "Id ";
 
-  private static final DateFormat fmt = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy",  Locale.ENGLISH);
 
   private static final int PRELOAD_COUNT = 100;
 
   private final List<RequestedFile> files = new LinkedList<>();
+
+  private final DateFormat fmt = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy",  Locale.ENGLISH);
 
   /**
    * promenna pro uchovani casti prave zpracovavaneho logu
@@ -310,7 +311,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
             // zjisteni casu pristupu, jmena souboru (identifikator)
             // a velikosti souboru
-            accessTime = fmt.parse(this.linesRead[1].substring(0, 24)).getTime();
+            accessTime = this.fmt.parse(this.linesRead[1].substring(0, 24)).getTime();
             fname = this.linesRead[0].substring(this.linesRead[0].lastIndexOf(FID)
                 + FID.length());
 
@@ -392,7 +393,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 
           // zjisteni casu pristupu, jmena souboru (identifikator)
           // a velikosti souboru
-          accessTime = fmt.parse(this.linesStore[1].substring(0, 24)).getTime();
+          accessTime = this.fmt.parse(this.linesStore[1].substring(0, 24)).getTime();
           fname = this.linesStore[0].substring(this.linesStore[0].lastIndexOf(STORE_FID)
               + STORE_FID.length());
 
