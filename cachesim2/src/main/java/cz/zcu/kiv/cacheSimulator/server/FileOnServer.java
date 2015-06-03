@@ -87,9 +87,8 @@ public class FileOnServer {
    * @return pocet hitu
    */
   public int getReadHit(final ICache cache) {
-    if (!this.readHit.containsKey(cache))
-      return 0;
-    return this.readHit.get(cache);
+    final Integer readHits = this.readHit.get(cache);
+    return readHits != null ? readHits : 0;
   }
 
 
@@ -99,11 +98,8 @@ public class FileOnServer {
    * @param cache cachovaci algoritmus
    */
   public void increaseReadHit(final ICache cache) {
-    if (!this.readHit.containsKey(cache)) {
-      this.readHit.put(cache, this.numberOfRead);
-    } else {
-      this.readHit.put(cache, this.readHit.get(cache) + 1);
-    }
+    final Integer readHits = this.readHit.get(cache);
+    this.readHit.put(cache, readHits != null ? readHits + 1 : this.numberOfRead);
     this.wasReadSinceLastWrite = true;
   }
 
@@ -115,9 +111,8 @@ public class FileOnServer {
    * @return pocet hitu
    */
   public int getWriteHit(final ICache cache) {
-    if (!this.writeHit.containsKey(cache))
-      return 0;
-    return this.writeHit.get(cache);
+    final Integer writeHits = this.writeHit.get(cache);
+    return writeHits != null ? writeHits : 0;
   }
 
 
@@ -127,11 +122,8 @@ public class FileOnServer {
    * @param cache cachovaci algoritmus, ktery zapisoval (identifikace klienta)
    */
   public void increaseWriteHit(final ICache cache) {
-    if (!this.writeHit.containsKey(cache)) {
-      this.writeHit.put(cache, 1);
-    } else {
-      this.writeHit.put(cache, this.writeHit.get(cache) + 1);
-    }
+    final Integer writeHits = this.writeHit.get(cache);
+    this.writeHit.put(cache, writeHits != null ? writeHits + 1 : 1);
   }
 
 
