@@ -3,22 +3,29 @@ package cz.zcu.kiv.cacheSimulator.simulation;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Iterator;
-
-import javax.swing.JOptionPane;
+import java.util.Map;
+import java.util.Observable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
+import cz.zcu.kiv.cacheSimulator.cachePolicies.LFU_SS;
+import cz.zcu.kiv.cacheSimulator.cachePolicies.LRFU_SS;
 import cz.zcu.kiv.cacheSimulator.consistency.IConsistencySimulation;
 import cz.zcu.kiv.cacheSimulator.dataAccess.IFileQueue;
 import cz.zcu.kiv.cacheSimulator.dataAccess.LogReaderAFS;
 import cz.zcu.kiv.cacheSimulator.dataAccess.RequestedFile;
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.server.FileOnServer;
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
 /**
  * trida pro simulaci pristupu k souborum a cachovacich algoritmu
@@ -26,7 +33,7 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
  * @author Pavel Bzoch
  *
  */
-public class AccessSimulation implements Runnable {
+public class AccessSimulation extends Observable implements Runnable {
 
   private static final Logger LOG = LoggerFactory.getLogger(AccessSimulation.class);
 
@@ -46,7 +53,7 @@ public class AccessSimulation implements Runnable {
   /**
    * promenna pro uchovani uzivatelu a jejich cachovacich algoritmu
    */
-  private final Hashtable<Long, SimulatedUser> userTable;
+  private final Map<Long, SimulatedUser> userTable;
 
   /**
    * promenna pro praci s konzistentnosti
@@ -57,10 +64,6 @@ public class AccessSimulation implements Runnable {
    * promenna pro uchovani odkazu na server
    */
   protected Server server = Server.getInstance();
-
-  private final MainGUI gui;
-
-  private final FileFactorySync sync;
 
   /**
    * promenna pro urceni, kdy byl pristupovan prvni soubor
@@ -76,12 +79,15 @@ public class AccessSimulation implements Runnable {
    * @param consistency
    *         trida pro praci s konzistentnosti
    */
-  public AccessSimulation(final IFileQueue fileQueue, final IConsistencySimulation consistency, final MainGUI gui) {
+  public AccessSimulation(final IFileQueue fileQueue, final IConsistencySimulation consistency) {
     this.fileQueue = fileQueue;
-    this.userTable = new Hashtable<>();
+    this.userTable = new HashMap<>();
     this.consistency = consistency;
-    this.gui = gui;
-    this.sync = new FileFactorySync(fileQueue, 1);
+
+    //metoda, ktera nahraje soubory na server
+    if (GlobalVariables.isLoadServerStatistic()){
+      this.loadFilesToServer();
+    }
   }
 
 
@@ -92,7 +98,7 @@ public class AccessSimulation implements Runnable {
    *            id uziavatele
    * @return uzivatel s cachovacimi algoritmy
    */
-  public synchronized SimulatedUser getUser(final long userID) {
+  SimulatedUser getUser(final long userID) {
     SimulatedUser user = this.userTable.get(userID);
     if (user == null) {
       user = new SimulatedUser(userID);
@@ -104,14 +110,107 @@ public class AccessSimulation implements Runnable {
   public void stopSimulation()
   {
     this.doSimulation = false;
-    synchronized (this.sync) {
-      this.sync.notifyAll(); /* wake up all sleeping threads */
-    }
   }
 
   public boolean doSimulation()
   {
     return this.doSimulation;
+  }
+
+
+  private FileOnServer updateFileInfo(final RequestedFile file, FileOnServer fOnServer) {
+    if (fOnServer == null){
+      if (file.getfSize() < 0){
+        fOnServer = this.server.generateRandomFileSize(file.getFname(),
+          GlobalVariables.getMinGeneratedFileSize(),
+          GlobalVariables.getMaxGeneratedFileSize());
+      }
+      else{
+        fOnServer = this.server.insertNewFile(file.getFname(), file.getfSize());
+      }
+    }
+    //soubor byl zapsan, je treba aktualizovat velikost a verzi souboru
+    else if (!file.isRead()){
+      fOnServer.updateFile(file.getfSize());
+    }
+    //nastaveni, ze byl soubor cten od posledniho zapisu
+    else{
+      fOnServer.setWasReadSinceLastWrite();
+    }
+
+    return fOnServer;
+  }
+
+  private void cacheHit( final Triplet<ICache[], Long[], Long[]> cache, final RequestedFile file,
+      final FileOnClient fOnClient, final FileOnServer fOnServer, final int i){
+    //soubor je cten, zvysime read hit ratio
+    if (file.isRead()){
+      ++cache.getSecond()[i];
+      cache.getThird()[i] += fOnClient.getFileSize();
+
+      //kontrola konzistentnosti
+      if (this.consistency != null){
+        this.consistency.updateActualReadFile(cache.getFirst()[i], file.getUserID(), fOnClient, fOnServer);
+      }
+      else{
+        //pokud neni kontrola konzistentnosti, tak alespon upravime velikost souboru
+        fOnClient.updateSize(fOnServer);
+      }
+
+      // statistiky na server u vsech souboru - i u tech, co
+      // se pristupuji z cache
+      if ((GlobalVariables.isSendStatisticsToServerLFUSS() && (cache
+          .getFirst()[i] instanceof LFU_SS))
+          || (GlobalVariables
+              .isSendStatisticsToServerLRFUSS() && (cache
+              .getFirst()[i] instanceof LRFU_SS)))
+        this.server.getFileRead(file.getFname(),
+            cache.getFirst()[i]);
+    }
+    //soubor byl zapisovan, je treba resit konzistenci
+    else{
+//              if (consistency != null){
+//                consistency.updateConsistencyWrite(cache.getFirst()[i], file.getUserID(),fOnClient, fOnServer);
+//              }
+//              //pokud neni kontrola konzistentnosti, tak alespon upravime velikost souboru
+//              else{
+//                fOnClient.updateSize(fOnServer);
+//              }
+      fOnServer.increaseWriteHit(cache.getFirst()[i]);
+
+    }
+  }
+
+  private void cacheMiss(final ICache cache, final RequestedFile file) {
+    // ukladame jen soubory, ktere jsou ctene a zvysujeme statistiky
+    if (file.isRead()){
+      synchronized (cache) {
+        cache.insertFile(new FileOnClient(
+            this.server.getFileRead(
+                file.getFname(),
+                cache
+                ),
+            cache, file.getAccessTime()
+            )
+        );
+      }
+    }
+  }
+
+  private void processFile(final Triplet<ICache[], Long[], Long[]> userCacheList,
+      final RequestedFile file, final FileOnServer fOnServer, final int i) {
+    final FileOnClient fOnClient;
+    final ICache cache = userCacheList.getFirst()[i];
+    synchronized(cache) {
+        fOnClient = cache.getFile(file.getFname());
+    }
+    if (fOnClient != null) {
+      this.cacheHit(userCacheList, file, fOnClient, fOnServer, i);
+    }
+    // soubor neni v cache, musi se pro nej vytvorit zaznam
+    else {
+      this.cacheMiss(cache, file);
+    }
   }
 
   /**
@@ -120,40 +219,43 @@ public class AccessSimulation implements Runnable {
    */
   @Override
   public void run() {
+
     final Instant start = Instant.now();
-    this.gui.disableComponentsForSimulation();
-    this.gui.simulationProgressBar.setMaximum(100);
+    // pruchod strukturou + pristupovani souboru
+    final ExecutorService executor = Executors.newWorkStealingPool(1);
 
-    //metoda, ktera nahraje soubory na server
-    if (GlobalVariables.isLoadServerStatistic()){
-      this.loadFilesToServer();
-    }
+    do {
+      // pristupujeme dalsi soubor
+      final RequestedFile filex = this.fileQueue.getNextServerFile();
+      if (filex == null)
+        break;
 
-    final Thread threads = new Thread(new AccessSimulationThread(this, this.sync, this.consistency, 0));
-    threads.start();
+      final SimulatedUser user = this.getUser(filex.getUserID());
+      // pokud na serveru soubor neexistuje, vytvorime jej s nahodnou
+      // velikosti souboru
+      final FileOnServer fOnServerx = this.updateFileInfo(filex, this.server.getFile(filex.getFname()));
 
-    try {
-      threads.join();
-      LOG.info("Simulation done in {} seconds",  Duration.between(start, Instant.now()).toMillis() / 1000);
-    } catch (final InterruptedException e) {
-      e.printStackTrace();
-    }
+      // zvysime pocet pristupovanych souboru
+      if (filex.isRead()){
+        user.incereaseFileAccess();
+        user.increaseTotalNetworkBandwidth(fOnServerx.getFileSize());
+      }
 
-    this.gui.simulationProgressBar.setVisible(false);
-    this.gui.cacheResults = this.getResults();
+      for (final Triplet<ICache[], Long[], Long[]> userCacheList : user.getCaches()) {
+        for (int ix = 0; ix < userCacheList.getFirst().length; ix++) {
+          // soubor je jiz v cache, aktualizujeme pouze statistiky
+          final RequestedFile file = filex;
+          final int i = ix;
+          final FileOnServer fOnServer = fOnServerx;
+          executor.execute(() -> { this.processFile(userCacheList, file, fOnServer, i); });
+        }
+      }
+    } while (this.doSimulation);
 
+    this.await(executor);
+    this.fileQueue.cleanUp();
 
-    if (this.gui.cacheResults != null && this.gui.cacheResults.size() > 0) {
-      this.gui.loadResultsToPanel();
-      this.gui.loadConResultsToPanel(this.consistency);
-      this.gui.enableComponentsAfterSimulaton(true);
-    } else {
-      JOptionPane.showMessageDialog(MainGUI.getInstance(),
-          "There are no results!", "Error",
-          JOptionPane.ERROR_MESSAGE);
-      this.gui.enableComponentsAfterSimulaton(false);
-    }
-
+    LOG.info("Simulation completed in {} seconds", Duration.between(start, Instant.now()).getSeconds());
   }
 
   /**
@@ -201,8 +303,7 @@ public class AccessSimulation implements Runnable {
       }
 
 
-    } while (true);
-
+    }while (file != null) ;
     this.firstFileAccessTime = timeOfFirstFile;
     this.timeAccessPeriod = timeOfLastFile - timeOfFirstFile;
     RequestedFile.setAddTime(this.timeAccessPeriod);
@@ -211,6 +312,27 @@ public class AccessSimulation implements Runnable {
 
     if (this.fileQueue instanceof LogReaderAFS){
       ((LogReaderAFS)this.fileQueue).setInfo("Simulation in progress... ");
+    }
+  }
+
+  private final void await(final ExecutorService executor) {
+    try {
+      executor.shutdown();
+      final int progressStep = (((ForkJoinPool)executor).getQueuedSubmissionCount()) / 100;
+      while(!executor.awaitTermination(5000, TimeUnit.MILLISECONDS)) {
+        LOG.info("Waiting to complete all tasks {}", executor);
+        this.setChanged();
+        this.notifyObservers(
+                (100 - (((ForkJoinPool)executor).getQueuedSubmissionCount()) / progressStep)
+            );
+
+        if (!this.doSimulation) {
+          executor.shutdownNow();
+        }
+      }
+      LOG.info("Waiting COMPLETED ", executor);
+    } catch (final InterruptedException e) {
+      LOG.error("Interrupted", e);
     }
   }
 
