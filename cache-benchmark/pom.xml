@@ -33,13 +33,20 @@
   <parent>
     <groupId>cz.zcu.kiv</groupId>
     <artifactId>cache-simulator</artifactId>
-    <version>2.1</version>
+    <version>3.0-alpha</version>
     <relativePath>..</relativePath>
   </parent>
 
   <prerequisites>
     <maven>3.0</maven>
   </prerequisites>
+
+  <properties>
+    <cache.core.version>3.0-alpha</cache.core.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <jmh.version>1.9.3</jmh.version>
+    <uberjar.name>benchmarks</uberjar.name>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -57,7 +64,7 @@
     <dependency>
       <groupId>cz.zcu.kiv</groupId>
       <artifactId>cache-core</artifactId>
-      <version>3.0-alpha</version>
+      <version>${cache.core.version}</version>
     </dependency>
 
 
@@ -74,12 +81,6 @@
       <artifactId>log4j</artifactId>
     </dependency>
   </dependencies>
-
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <jmh.version>1.9.3</jmh.version>
-    <uberjar.name>benchmarks</uberjar.name>
-  </properties>
 
   <build>
     <plugins>
