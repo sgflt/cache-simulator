@@ -30,9 +30,9 @@ public class LRFU_SS implements ICache {
 		@Override
 		public int compare(final Quartet<FileOnClient, Long, Double, Integer> o1,
                        final Quartet<FileOnClient, Long, Double, Integer> o2) {
-			if ((Integer) o1.getFourth() > (Integer) o2.getFourth()) {
+			if (o1.getFourth() > o2.getFourth()) {
         return 1;
-      } else if ((Integer) o1.getFourth() < (Integer) o2.getFourth()) {
+			} else if (o1.getFourth() < o2.getFourth()) {
         return -1;
       }
 			return 0;
@@ -47,7 +47,7 @@ public class LRFU_SS implements ICache {
 	/**
 	 * velikost cache v B
 	 */
-	private long capacity = 0;
+	private long capacity;
 
 	/**
 	 * promenne pro urceni, jestli je treba tridit
@@ -85,22 +85,10 @@ public class LRFU_SS implements ICache {
 	private final ArrayList<FileOnClient> fOverCapacity;
 	
 
-
-	/**
-	 * konstruktor - inicializace cache
-	 */
-	public LRFU_SS(final double K1, final double K2, final Server server) {
-    this.list = new ArrayList<Quartet<FileOnClient, Long, Double, Integer>>();
-		this.capacity = GlobalVariables.getCacheCapacity();
-		LRFU_SS.K1 = K1;
-		LRFU_SS.K2 = K2;
-		this.fOverCapacity = new ArrayList<FileOnClient>();
-	}
-	
 	public LRFU_SS() {
-    this.list = new ArrayList<Quartet<FileOnClient, Long, Double, Integer>>();
+		this.list = new ArrayList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -146,11 +134,11 @@ public class LRFU_SS implements ICache {
 			recalculatePriorities();
 		}
 		if (this.needSort) {
-			Collections.sort(this.list, new QuartetCompare());
+			this.list.sort(new QuartetCompare());
 		}
     this.needSort = false;
     this.needRecalculate = false;
-		if (this.list.size() > 0) {
+		if (!this.list.isEmpty()) {
       this.list.remove(0);
     }
 	}
@@ -162,10 +150,10 @@ public class LRFU_SS implements ICache {
 		if (this.list.size() <= 1) {
       return;
     }
-		long oldestTime = this.list.get(0).getSecond(), newestTime = this.list.get(0)
-				.getSecond();
-		double maxReadHit = this.list.get(0).getThird(), minReadHit = this.list.get(0)
-				.getThird();
+		long oldestTime = this.list.get(0).getSecond();
+		long newestTime = this.list.get(0).getSecond();
+		double maxReadHit = this.list.get(0).getThird();
+		double minReadHit = this.list.get(0).getThird();
 		// zjisteni lokalnich extremu
 		for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
 			if (f.getSecond() > newestTime) {
@@ -182,10 +170,11 @@ public class LRFU_SS implements ICache {
       }
 		}
 		// vypocet priorit
-		int PLRU, PLFU_SS;
-		for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
-			PLFU_SS = (int) (((double)f.getThird() - (double)minReadHit) * 65535.0 / ((double)maxReadHit - (double)minReadHit));
-			PLRU = (int) ((double)(f.getSecond() - (double)oldestTime) * 65535.0 / ((double)newestTime - (double)oldestTime));
+		int PLRU;
+		int PLFU_SS;
+		for (final var f : this.list) {
+			PLFU_SS = (int) ((f.getThird() - minReadHit) * 65535.0 / (maxReadHit - minReadHit));
+			PLRU = (int) ((f.getSecond() - (double) oldestTime) * 65535.0 / ((double) newestTime - (double) oldestTime));
 			f.setFourth((int) (K1 * PLRU + K2 * PLFU_SS));
 		}
 	}
@@ -222,10 +211,10 @@ public class LRFU_SS implements ICache {
 		double readHits = 0;
 		if (this.globalReadCount > 0) {
       readHits = ((double)f.getReadHit() - (double)f.getWriteHit()) / (double) this.globalReadCount
-          * (double)localReadCount + 1;
+				* localReadCount + 1;
     }
-    this.list.add(new Quartet<FileOnClient, Long, Double, Integer>(f, System.nanoTime(),
-				readHits, 0));
+		this.list.add(new Quartet<>(f, System.nanoTime(),
+			readHits, 0));
     this.needSort = true;
     this.needRecalculate = true;
 	}
@@ -243,7 +232,6 @@ public class LRFU_SS implements ICache {
 	@Override
 	public String toString(){
 		return "LRFU-SS";
-		//return "LRFU-SS algorithm (K1="+K1+", K2=" + K2 +") ";
 	}
 	
 	@Override
