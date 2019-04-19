@@ -23,22 +23,22 @@ public class _2Q implements ICache {
 	/**
 	 * prvni fronta pro jen jednou referencovane soubory
 	 */
-	private Queue<FileOnClient> fQueueFIFO;
+	private final Queue<FileOnClient> fQueueFIFO;
 	
 	/**
 	 * LRU fronta pro vicekrat referencovane soubory
 	 */
-	private Queue<FileOnClient> fQueueLRU;
+	private final Queue<FileOnClient> fQueueLRU;
 
 	/**
 	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
 	 */
-	private ArrayList<FileOnClient> fOverCapacity;
+	private final ArrayList<FileOnClient> fOverCapacity;
 
 	/**
 	 * velikost cache v B
 	 */
-	private long capacity = 0;
+	private long capacity;
 
 	/**
 	 * konstanta pro urceni, jak ma byt velka fifo pamet (v % velikosti cache)
@@ -48,47 +48,49 @@ public class _2Q implements ICache {
 	public _2Q() {
 		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		fQueueFIFO = new LinkedList<FileOnClient>();
-		fQueueLRU = new LinkedList<FileOnClient>();
-		fOverCapacity = new ArrayList<FileOnClient>();
+		this.fQueueFIFO = new LinkedList<>();
+		this.fQueueLRU = new LinkedList<>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
-	public boolean isInCache(String fName) {
-		for (FileOnClient f : fQueueFIFO) {
-			if (f.getFileName().equalsIgnoreCase(fName))
+	public boolean isInCache(final String fName) {
+		for (final FileOnClient f : this.fQueueFIFO) {
+			if (f.getFileName().equalsIgnoreCase(fName)) {
 				return true;
+			}
 		}
-		for (FileOnClient f : fQueueLRU) {
-			if (f.getFileName().equalsIgnoreCase(fName))
+		for (final FileOnClient f : this.fQueueLRU) {
+			if (f.getFileName().equalsIgnoreCase(fName)) {
 				return true;
+			}
 		}
 		return false;
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(String fName) {
+	public FileOnClient getFileFromCache(final String fName) {
 		FileOnClient fromCache = null;
-		for (FileOnClient f : fQueueFIFO) {
+		for (final FileOnClient f : this.fQueueFIFO) {
 			if (f.getFileName().equalsIgnoreCase(fName)) {
 				fromCache = f;
 				break;
 			}
 		}
 		if (fromCache != null) {
-			fQueueFIFO.remove(fromCache);
-			fQueueLRU.add(fromCache);
+			this.fQueueFIFO.remove(fromCache);
+			this.fQueueLRU.add(fromCache);
 			return fromCache;
 		} else {
-			for (FileOnClient f : fQueueLRU) {
+			for (final FileOnClient f : this.fQueueLRU) {
 				if (f.getFileName().equalsIgnoreCase(fName)) {
 					fromCache = f;
 					break;
 				}
 			}
 			if (fromCache != null) {
-				fQueueLRU.remove(fromCache);
-				fQueueLRU.add(fromCache);
+				this.fQueueLRU.remove(fromCache);
+				this.fQueueLRU.add(fromCache);
 				return fromCache;
 			}
 		}
@@ -98,59 +100,62 @@ public class _2Q implements ICache {
 	@Override
 	public long freeCapacity() {
 		long obsazeno = 0;
-		for (FileOnClient f : fQueueFIFO) {
+		for (final FileOnClient f : this.fQueueFIFO) {
 			obsazeno += f.getFileSize();
 		}
-		for (FileOnClient f : fQueueLRU) {
+		for (final FileOnClient f : this.fQueueLRU) {
 			obsazeno += f.getFileSize();
 		}
-		return capacity - obsazeno;
+		return this.capacity - obsazeno;
 	}
 
 	@Override
 	public void removeFile() {
-		if (!fQueueFIFO.isEmpty())
-			fQueueFIFO.remove();
-		else {
-			if (!fQueueLRU.isEmpty())
-				fQueueLRU.remove();
+		if (!this.fQueueFIFO.isEmpty()) {
+			this.fQueueFIFO.remove();
+		} else {
+			if (!this.fQueueLRU.isEmpty()) {
+				this.fQueueLRU.remove();
+			}
 		}
 
 	}
 
 	@Override
-	public void insertFile(FileOnClient f) {
+	public void insertFile(final FileOnClient f) {
 		// napred zkontrolujeme, jestli se soubor vejde do cache
 		// pokud se nevejde, vztvorime pro nej okenko
 		if (f.getFileSize() > this.capacity) {
-			if (!fOverCapacity.isEmpty()) {
-				fOverCapacity.add(f);
+			if (!this.fOverCapacity.isEmpty()) {
+				this.fOverCapacity.add(f);
 				return;
 			}
 			while (freeCapacity() < (long) ((double) this.capacity * GlobalVariables
-					.getCacheCapacityForDownloadWindow()))
+				.getCacheCapacityForDownloadWindow())) {
 				removeFile();
-			fOverCapacity.add(f);
+			}
+			this.fOverCapacity.add(f);
 			this.capacity = (long) ((double) this.capacity * (1 - GlobalVariables
 					.getCacheCapacityForDownloadWindow()));
 			return;
 		}
 
-		if (!fOverCapacity.isEmpty())
+		if (!this.fOverCapacity.isEmpty()) {
 			checkTimes();
+		}
 
 		// pokud se soubor vejde, fungujeme spravne
 		while (freeCapacity() < f.getFileSize()) {
 			removeFile();
 		}
 		long fifoSize = 0;
-		for (FileOnClient fifo : fQueueFIFO) {
+		for (final FileOnClient fifo : this.fQueueFIFO) {
 			fifoSize += fifo.getFileSize();
 		}
-		while (fifoSize > (int) ((double) FIFO_CAPACITY * (double) this.capacity)) {
-			fifoSize -= fQueueFIFO.remove().getFileSize();
+		while (fifoSize > (int) (FIFO_CAPACITY * (double) this.capacity)) {
+			fifoSize -= this.fQueueFIFO.remove().getFileSize();
 		}
-		fQueueFIFO.add(f);
+		this.fQueueFIFO.add(f);
 
 	}
 
@@ -162,14 +167,14 @@ public class _2Q implements ICache {
 		boolean hasBeenRemoved = true;
 		while (hasBeenRemoved) {
 			hasBeenRemoved = false;
-			if (!fOverCapacity.isEmpty()
-					&& fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
+			if (!this.fOverCapacity.isEmpty()
+				&& this.fOverCapacity.get(0).getFRemoveTime() < GlobalVariables
 							.getActualTime()) {
-				fOverCapacity.remove(0);
+				this.fOverCapacity.remove(0);
 				hasBeenRemoved = true;
 			}
 		}
-		if (fOverCapacity.isEmpty()) {
+		if (this.fOverCapacity.isEmpty()) {
 			this.capacity = GlobalVariables.getCacheCapacity();
 		}
 	}
@@ -185,16 +190,16 @@ public class _2Q implements ICache {
 	}
 
 	@Override
-	public void setCapacity(long capacity) {
+	public void setCapacity(final long capacity) {
 		this.capacity = capacity;
 
 	}
 
 	@Override
 	public void reset() {
-		fQueueFIFO.clear();
-		fQueueLRU.clear();
-		fOverCapacity.clear();
+		this.fQueueFIFO.clear();
+		this.fQueueLRU.clear();
+		this.fOverCapacity.clear();
 	}
 
 	@Override
@@ -206,7 +211,7 @@ public class _2Q implements ICache {
 		return FIFO_CAPACITY;
 	}
 
-	public static void setFIFO_CAPACITY(double FIFO_CAPACITY) {
+	public static void setFIFO_CAPACITY(final double FIFO_CAPACITY) {
 		_2Q.FIFO_CAPACITY = FIFO_CAPACITY;
 	}
 
@@ -214,7 +219,7 @@ public class _2Q implements ICache {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + (int) (capacity ^ (capacity >>> 32));
+		result = prime * result + (int) (this.capacity ^ (this.capacity >>> 32));
 		result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
 		return result;
 	}
