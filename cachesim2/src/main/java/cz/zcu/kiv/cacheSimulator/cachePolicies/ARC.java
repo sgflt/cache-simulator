@@ -43,11 +43,11 @@ public class ARC implements ICache {
 	public ARC() {
 		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.B1 = new ArrayList<FileOnClient>();
-		this.B2 = new ArrayList<FileOnClient>();
-		this.T1 = new ArrayList<FileOnClient>();
-		this.T2 = new ArrayList<FileOnClient>();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.B1 = new ArrayList<>();
+		this.B2 = new ArrayList<>();
+		this.T1 = new ArrayList<>();
+		this.T2 = new ArrayList<>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -191,11 +191,11 @@ public class ARC implements ICache {
 	 * @param p
 	 */
 	private void replace(final double p, final boolean inB2) {
-		if (this.T1.size() > 0
+		if (!this.T1.isEmpty()
 				&& (T1cap() > p || (inB2 && T1cap() > p))) {
 			this.B1.add(this.T1.get(0));
 			this.T1.remove(0);
-		} else if (this.T2.size() > 0) {
+		} else if (!this.T2.isEmpty()) {
 			this.B2.add(this.T2.get(0));
 			this.T2.remove(0);
 		} else {
