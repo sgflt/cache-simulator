@@ -49,7 +49,7 @@ public class LRFU implements ICache {
 	/**
 	 * velikost cache v B
 	 */
-	private long capacity = 0;
+	private long capacity;
 
 	/**
 	 * promenna pro urceni, zda je potreba setridit pole cachovanych souboru
@@ -69,9 +69,9 @@ public class LRFU implements ICache {
 		public int compare(final Triplet<FileOnClient, Long, Double> arg0,
                        final Triplet<FileOnClient, Long, Double> arg1) {
 
-			if ((Double) arg0.getThird() > (Double) arg1.getThird()) {
+			if (arg0.getThird() > arg1.getThird()) {
         return 1;
-      } else if ((Double) arg0.getThird() < (Double) arg1.getThird()) {
+			} else if (arg0.getThird() < arg1.getThird()) {
         return -1;
       }
 			return 0;
@@ -80,14 +80,11 @@ public class LRFU implements ICache {
 	
 	/**
 	 * konstruktor - iniciace parametru
-	 * @param capacity
 	 */
 	public LRFU() {
-		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.needSort = true;
-		this.fList = new ArrayList<Triplet<FileOnClient,Long,Double>>();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fList = new ArrayList<>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -133,10 +130,10 @@ public class LRFU implements ICache {
 	@Override
 	public void removeFile() {
 		if (this.needSort) {
-      Collections.sort(this.fList, new PairCompare());
+			this.fList.sort(new PairCompare());
     }
     this.needSort = false;
-		if (this.fList.size() > 0) {
+		if (!this.fList.isEmpty()) {
       this.fList.remove(0);
 		}
 	}
@@ -167,8 +164,8 @@ public class LRFU implements ICache {
 		while (freeCapacity() < f.getFileSize()) {
 			removeFile();
 		}
-    this.fList.add(new Triplet<FileOnClient, Long, Double>(f, ++this.timeCounter,
-				calculateF(0)));
+		this.fList.add(new Triplet<>(f, ++this.timeCounter,
+			calculateF(0)));
 	}
 
 	/**
