@@ -28,8 +28,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
-import org.jfree.ui.RefineryUtilities;
-
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.dataAccess.GaussianFileNameGenerator;
 import cz.zcu.kiv.cacheSimulator.dataAccess.IFileQueue;
@@ -2286,7 +2284,6 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 				.getSelectedItem().toString(), this.cacheResults.get(this.userList
 				.getSelectedIndex()), this.resultsChangeCombo.getSelectedIndex());
 		chart.pack();
-		RefineryUtilities.centerFrameOnScreen(chart);
 		chart.setVisible(true);
 	}// GEN-LAST:event_barChartButtonActionPerformed
 
@@ -2299,7 +2296,6 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 				.getSelectedItem().toString(), this.cacheResults.get(this.userList
 				.getSelectedIndex()), this.resultsChangeCombo.getSelectedIndex());
 		chart.pack();
-		RefineryUtilities.centerFrameOnScreen(chart);
 		chart.setVisible(true);
 	}// GEN-LAST:event_lineChartButtonActionPerformed
 

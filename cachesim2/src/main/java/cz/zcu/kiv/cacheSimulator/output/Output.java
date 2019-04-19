@@ -14,6 +14,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.HorizontalAlignment;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -34,16 +35,16 @@ public class Output {
      * @param userID id uzivatele
      * @param cachesResults vysledky cachovacich algoritmu
      */
-    public static void printAllStatConsole(ArrayList<UserStatistics> stat) {
+    public static void printAllStatConsole(final ArrayList<UserStatistics> stat) {
         if (stat == null || stat.isEmpty()) {
             return;
         }
-        for (UserStatistics user : stat) {
+        for (final UserStatistics user : stat) {
             if (user.getUserID() == 0) {
                 System.out.println("\n=================== Statistics for simulated user ===================\n");
             } else {
-                long id = user.getUserID() >> 32;
-                String ip = (GlobalMethods.intToIp(user.getUserID() - (id << 32)));
+                final long id = user.getUserID() >> 32;
+                final String ip = (GlobalMethods.intToIp(user.getUserID() - (id << 32)));
                 System.out.println("\n=================== Statistics for user id: " + id + ", ip: " + ip + " ===================\n");
             }
 
@@ -58,7 +59,7 @@ public class Output {
             }
             System.out.println();
 
-            for (String cacheName : user.getCacheNames()) {
+            for (final String cacheName : user.getCacheNames()) {
                 System.out.print(cacheName + ";");
                 for (int i = 0; i < user.getCacheHitRatios(cacheName).length; i++) {
                     System.out.print(user.getCacheHitRatios(cacheName)[i] + ";");
@@ -73,9 +74,9 @@ public class Output {
                 System.out.print(user.getCacheSizes()[i] + "MB;");
             }
             System.out.println();
-            for (String cacheName : user.getCacheNames()) {
+            for (final String cacheName : user.getCacheNames()) {
                 System.out.print(cacheName + ";");
-                for (long pom : user.getCacheHits(cacheName)) {
+                for (final long pom : user.getCacheHits(cacheName)) {
                     System.out.print(pom + ";");
                 }
                 System.out.print("\n");
@@ -88,9 +89,9 @@ public class Output {
                 System.out.print(user.getCacheSizes()[i] + "MB;");
             }
             System.out.println();
-            for (String cacheName : user.getCacheNames()) {
+            for (final String cacheName : user.getCacheNames()) {
                 System.out.print(cacheName + ";");
-                for (double pom : user.getCacheSavedBytesRatio(cacheName)) {
+                for (final double pom : user.getCacheSavedBytesRatio(cacheName)) {
                     System.out.print(pom + ";");
                 }
                 System.out.print("\n");
@@ -103,9 +104,9 @@ public class Output {
                 System.out.print(user.getCacheSizes()[i] + "MB;");
             }
             System.out.println();
-            for (String cacheName : user.getCacheNames()) {
+            for (final String cacheName : user.getCacheNames()) {
                 System.out.print(cacheName + ";");
-                for (long pom : user.getSavedBytes(cacheName)) {
+                for (final long pom : user.getSavedBytes(cacheName)) {
                     System.out.print(pom + ";");
                 }
                 System.out.print("\n");
@@ -118,9 +119,9 @@ public class Output {
                 System.out.print(user.getCacheSizes()[i] + "MB;");
             }
             System.out.println();
-            for (String cacheName : user.getCacheNames()) {
+            for (final String cacheName : user.getCacheNames()) {
                 System.out.print(cacheName + ";");
-                for (double pom : user.getDataTransferDegreaseRatio(cacheName)) {
+                for (final double pom : user.getDataTransferDegreaseRatio(cacheName)) {
                     System.out.print(pom + ";");
                 }
                 System.out.print("\n");
@@ -133,9 +134,9 @@ public class Output {
                 System.out.print(user.getCacheSizes()[i] + "MB;");
             }
             System.out.println();
-            for (String cacheName : user.getCacheNames()) {
+            for (final String cacheName : user.getCacheNames()) {
                 System.out.print(cacheName + ";");
-                for (long pom : user.getDataTransferDegrease(cacheName)) {
+                for (final long pom : user.getDataTransferDegrease(cacheName)) {
                     System.out.print(pom + ";");
                 }
                 System.out.print("\n");
@@ -148,22 +149,22 @@ public class Output {
      *
      * @param fName jmeno soubor, kam ulozit
      */
-    public static boolean saveStatToCSV(String fName, ArrayList<UserStatistics> stat) {
+    public static boolean saveStatToCSV(String fName, final ArrayList<UserStatistics> stat) {
         if (stat == null || stat.isEmpty()) {
             return false;
         }
         if (!fName.endsWith(".csv")) {
             fName = fName + ".csv";
         }
-        File file = new File(fName);
+        final File file = new File(fName);
         try {
             if (file.exists()) {
                 file.delete();
             }
             file.createNewFile();
-            BufferedWriter bf = new BufferedWriter(new FileWriter(file));
+            final BufferedWriter bf = new BufferedWriter(new FileWriter(file));
 
-            for (UserStatistics user : stat) {
+            for (final UserStatistics user : stat) {
                 //vytisteni hlavicky
                 if (user.getUserID() == 0) {
                     bf.newLine();
@@ -171,8 +172,8 @@ public class Output {
                     bf.newLine();
                 } else {
                     bf.newLine();
-                    long id = user.getUserID() >> 32;
-                    String ip = (GlobalMethods.intToIp(user.getUserID() - (id << 32)));
+                    final long id = user.getUserID() >> 32;
+                    final String ip = (GlobalMethods.intToIp(user.getUserID() - (id << 32)));
                     bf.write("User id:" + id + "; ip: " + ip);
                     bf.newLine();
                 }
@@ -193,7 +194,7 @@ public class Output {
             bf.close();
             return true;
 
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             return false;
         }
     }
@@ -205,7 +206,7 @@ public class Output {
      * @param sc statistiky
      * @throws IOException mozne vyjimky pri zapisu
      */
-    private static void writeReadHitsToCSV(BufferedWriter bf, UserStatistics sc) throws IOException {
+    private static void writeReadHitsToCSV(final BufferedWriter bf, final UserStatistics sc) throws IOException {
         //vytisteni read hits
         bf.write("\nRead hits;Cache size");
         bf.write("\nCaching policy;");
@@ -213,9 +214,9 @@ public class Output {
             bf.write(sc.getCacheSizes()[i] + "MB;");
         }
         bf.newLine();
-        for (String cacheName : sc.getCacheNames()) {
+        for (final String cacheName : sc.getCacheNames()) {
             bf.write(cacheName + ";");
-            for (long pom : sc.getCacheHits(cacheName)) {
+            for (final long pom : sc.getCacheHits(cacheName)) {
                 bf.write(pom + ";");
             }
             bf.write("\n");
@@ -229,7 +230,7 @@ public class Output {
      * @param sc statistiky
      * @throws IOException mozne vyjimky pri zapisu
      */
-    private static void writeReadHitRatioToCSV(BufferedWriter bf, UserStatistics sc) throws IOException {
+    private static void writeReadHitRatioToCSV(final BufferedWriter bf, final UserStatistics sc) throws IOException {
         //vytisteni read hit ratio
         bf.write("\n\nRead hit ratio;Cache size");
         bf.write("\nCaching policy;");
@@ -238,7 +239,7 @@ public class Output {
         }
         bf.newLine();
 
-        for (String cacheName : sc.getCacheNames()) {
+        for (final String cacheName : sc.getCacheNames()) {
             bf.write(cacheName + ";");
             for (int i = 0; i < sc.getCacheHitRatios(cacheName).length; i++) {
                 bf.write(sc.getCacheHitRatios(cacheName)[i] + ";");
@@ -254,7 +255,7 @@ public class Output {
      * @param sc statistiky
      * @throws IOException mozne vyjimky pri zapisu
      */
-    private static void writeSavedByteRatioToCSV(BufferedWriter bf, UserStatistics sc) throws IOException {
+    private static void writeSavedByteRatioToCSV(final BufferedWriter bf, final UserStatistics sc) throws IOException {
         //vytisteni saved bytes ratio
         bf.write("\nSaved bytes ratio;Cache size");
         bf.write("\nCaching policy;");
@@ -262,9 +263,9 @@ public class Output {
             bf.write(sc.getCacheSizes()[i] + "MB;");
         }
         bf.newLine();
-        for (String cacheName : sc.getCacheNames()) {
+        for (final String cacheName : sc.getCacheNames()) {
             bf.write(cacheName + ";");
-            for (double pom : sc.getCacheSavedBytesRatio(cacheName)) {
+            for (final double pom : sc.getCacheSavedBytesRatio(cacheName)) {
                 bf.write(pom + ";");
             }
             bf.write("\n");
@@ -278,7 +279,7 @@ public class Output {
      * @param sc statistiky
      * @throws IOException mozne vyjimky pri zapisu
      */
-    private static void writeSavedBytesToCSV(BufferedWriter bf, UserStatistics sc) throws IOException {
+    private static void writeSavedBytesToCSV(final BufferedWriter bf, final UserStatistics sc) throws IOException {
         //vytisteni saved bytes
         bf.write("\nSaved bytes;Cache size");
         bf.write("\nCaching policy;");
@@ -286,9 +287,9 @@ public class Output {
             bf.write(sc.getCacheSizes()[i] + "MB;");
         }
         bf.newLine();
-        for (String cacheName : sc.getCacheNames()) {
+        for (final String cacheName : sc.getCacheNames()) {
             bf.write(cacheName + ";");
-            for (long pom : sc.getSavedBytes(cacheName)) {
+            for (final long pom : sc.getSavedBytes(cacheName)) {
                 bf.write(pom + ";");
             }
             bf.write("\n");
@@ -301,7 +302,7 @@ public class Output {
      * @param sc statistiky
      * @throws IOException mozne vyjimky pri zapisu
      */
-    private static void writeTransferDecreaseRatioToCSV(BufferedWriter bf, UserStatistics sc) throws IOException {
+    private static void writeTransferDecreaseRatioToCSV(final BufferedWriter bf, final UserStatistics sc) throws IOException {
         //vytisteni data traffic decrease ratio
         bf.write("\nData transfer decrease ratio;Cache size");
         bf.write("\nCaching policy;");
@@ -309,9 +310,9 @@ public class Output {
             bf.write(sc.getCacheSizes()[i] + "MB;");
         }
         bf.newLine();
-        for (String cacheName : sc.getCacheNames()) {
+        for (final String cacheName : sc.getCacheNames()) {
             bf.write(cacheName + ";");
-            for (double pom : sc.getDataTransferDegreaseRatio(cacheName)) {
+            for (final double pom : sc.getDataTransferDegreaseRatio(cacheName)) {
                 bf.write(pom + ";");
             }
             bf.write("\n");
@@ -324,7 +325,7 @@ public class Output {
      * @param sc statistiky
      * @throws IOException mozne vyjimky pri zapisu
      */
-    private static void writeTransferDecreaseToCSV(BufferedWriter bf, UserStatistics sc) throws IOException {
+    private static void writeTransferDecreaseToCSV(final BufferedWriter bf, final UserStatistics sc) throws IOException {
         //vytisteni data traffic decrease
         bf.write("\nData transfer decrease;Cache size");
         bf.write("\nCaching policy;");
@@ -332,9 +333,9 @@ public class Output {
             bf.write(sc.getCacheSizes()[i] + "MB;");
         }
         bf.newLine();
-        for (String cacheName : sc.getCacheNames()) {
+        for (final String cacheName : sc.getCacheNames()) {
             bf.write(cacheName + ";");
-            for (long pom : sc.getDataTransferDegrease(cacheName)) {
+            for (final long pom : sc.getDataTransferDegrease(cacheName)) {
                 bf.write(pom + ";");
             }
             bf.write("\n");
@@ -348,12 +349,12 @@ public class Output {
      * @param stat ukladane statistiky
      * @return true, pokud vse probehlo v poradku
      */
-    public static boolean saveStatToXLS(String fName, ArrayList<UserStatistics> stat) {
+    public static boolean saveStatToXLS(final String fName, final ArrayList<UserStatistics> stat) {
         try {
-            Workbook wb = new HSSFWorkbook();
+            final Workbook wb = new HSSFWorkbook();
             //Workbook wb = new XSSFWorkbook();
 
-            for (UserStatistics user : stat) {
+            for (final UserStatistics user : stat) {
 
                 int lineCounter = 0;
                 
@@ -363,8 +364,8 @@ public class Output {
                 if (user.getUserID() == 0) {
                     sheet = wb.createSheet("Simulated user");
                 } else {
-                    long id = user.getUserID() >> 32;
-                    String ip = (GlobalMethods.intToIp(user.getUserID() - (id << 32)));
+                    final long id = user.getUserID() >> 32;
+                    final String ip = (GlobalMethods.intToIp(user.getUserID() - (id << 32)));
                     String sheetName = "ID " + id + "; ip " + ip;
                     sheet = wb.getSheet(sheetName);
                     
@@ -392,9 +393,9 @@ public class Output {
                 lineCounter++;
 
                 //vytvoreni tucneho fontu
-                Font font = wb.createFont();
-                font.setBoldweight(Font.BOLDWEIGHT_BOLD);
-                CellStyle style = wb.createCellStyle();
+                final Font font = wb.createFont();
+                font.setBold(true);
+                final CellStyle style = wb.createCellStyle();
                 style.setFont(font);
 
                 //zapis statistik o cache policies
@@ -407,11 +408,11 @@ public class Output {
             }
             
             // Write the output to a file
-            FileOutputStream fileOut = new FileOutputStream(fName);
+            final FileOutputStream fileOut = new FileOutputStream(fName);
             wb.write(fileOut);
             fileOut.close();
             return true;
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             return false;
         }
     }
@@ -424,7 +425,7 @@ public class Output {
      * @param boldStyle tucny stzl pro nadpisy
      * @return aktualni radka
      */
-    private static int writeReadHitRatioToXLS(int lineCounter, Sheet sheet, UserStatistics sc, CellStyle boldStyle) {
+    private static int writeReadHitRatioToXLS(int lineCounter, final Sheet sheet, final UserStatistics sc, final CellStyle boldStyle) {
         int columnCounter = 0;
         
         //zapis nadpisu tabulky
@@ -435,7 +436,7 @@ public class Output {
 
         //zapis velikosti cache retezce
         cell = row.createCell(columnCounter);
-        boldStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        boldStyle.setAlignment(HorizontalAlignment.CENTER);
         cell.setCellValue("Cache Size [MB]");
         cell.setCellStyle(boldStyle);
         //zapisujeme do sloucene bunky
@@ -458,7 +459,7 @@ public class Output {
         }
 
         //zapis statistik
-        for (String cache : sc.getCacheNames()) {
+        for (final String cache : sc.getCacheNames()) {
             lineCounter++;
             columnCounter = 0;
             row = sheet.createRow(lineCounter);
@@ -478,7 +479,7 @@ public class Output {
      * @param boldStyle tucny stzl pro nadpisy
      * @return aktualni radka
      */
-    private static int writeReadHitsXLS(int lineCounter, Sheet sheet, UserStatistics sc, CellStyle boldStyle) {
+    private static int writeReadHitsXLS(int lineCounter, final Sheet sheet, final UserStatistics sc, final CellStyle boldStyle) {
         int columnCounter = 0;
         Row row = sheet.createRow(lineCounter);
         Cell cell = row.createCell(columnCounter++);
@@ -486,7 +487,7 @@ public class Output {
         cell.setCellStyle(boldStyle);
 
         cell = row.createCell(columnCounter);
-        boldStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        boldStyle.setAlignment(HorizontalAlignment.CENTER);
         cell.setCellValue("Cache Size [MB]");
         cell.setCellStyle(boldStyle);
 
@@ -507,7 +508,7 @@ public class Output {
             cell.setCellStyle(boldStyle);
         }
 
-        for (String cache : sc.getCacheNames()) {
+        for (final String cache : sc.getCacheNames()) {
             lineCounter++;
             columnCounter = 0;
             row = sheet.createRow(lineCounter);
@@ -527,7 +528,7 @@ public class Output {
      * @param boldStyle tucny stzl pro nadpisy
      * @return aktualni radka
      */
-    private static int writeSavedBytesRatioXLS(int lineCounter, Sheet sheet, UserStatistics sc, CellStyle boldStyle) {
+    private static int writeSavedBytesRatioXLS(int lineCounter, final Sheet sheet, final UserStatistics sc, final CellStyle boldStyle) {
         int columnCounter = 0;
         Row row = sheet.createRow(lineCounter);
         Cell cell = row.createCell(columnCounter++);
@@ -535,7 +536,7 @@ public class Output {
         cell.setCellStyle(boldStyle);
 
         cell = row.createCell(columnCounter);
-        boldStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        boldStyle.setAlignment(HorizontalAlignment.CENTER);
         cell.setCellValue("Cache Size [MB]");
         cell.setCellStyle(boldStyle);
 
@@ -556,7 +557,7 @@ public class Output {
             cell.setCellStyle(boldStyle);
         }
 
-        for (String cache : sc.getCacheNames()) {
+        for (final String cache : sc.getCacheNames()) {
             lineCounter++;
             columnCounter = 0;
             row = sheet.createRow(lineCounter);
@@ -576,7 +577,7 @@ public class Output {
      * @param boldStyle tucny stzl pro nadpisy
      * @return aktualni radka
      */
-    private static int writeSavedBytesXLS(int lineCounter, Sheet sheet, UserStatistics sc, CellStyle boldStyle) {
+    private static int writeSavedBytesXLS(int lineCounter, final Sheet sheet, final UserStatistics sc, final CellStyle boldStyle) {
         int columnCounter = 0;
         Row row = sheet.createRow(lineCounter);
         Cell cell = row.createCell(columnCounter++);
@@ -584,7 +585,7 @@ public class Output {
         cell.setCellStyle(boldStyle);
 
         cell = row.createCell(columnCounter);
-        boldStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        boldStyle.setAlignment(HorizontalAlignment.CENTER);
         cell.setCellValue("Cache Size [MB]");
         cell.setCellStyle(boldStyle);
 
@@ -605,7 +606,7 @@ public class Output {
             cell.setCellStyle(boldStyle);
         }
 
-        for (String cache : sc.getCacheNames()) {
+        for (final String cache : sc.getCacheNames()) {
             lineCounter++;
             columnCounter = 0;
             row = sheet.createRow(lineCounter);
@@ -625,7 +626,7 @@ public class Output {
      * @param boldStyle tucny stzl pro nadpisy
      * @return aktualni radka
      */
-    private static int writeTransferDecreaseRatioToXLS(int lineCounter, Sheet sheet, UserStatistics sc, CellStyle boldStyle) {
+    private static int writeTransferDecreaseRatioToXLS(int lineCounter, final Sheet sheet, final UserStatistics sc, final CellStyle boldStyle) {
         int columnCounter = 0;
         Row row = sheet.createRow(lineCounter);
         Cell cell = row.createCell(columnCounter++);
@@ -633,7 +634,7 @@ public class Output {
         cell.setCellStyle(boldStyle);
 
         cell = row.createCell(columnCounter);
-        boldStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        boldStyle.setAlignment(HorizontalAlignment.CENTER);
         cell.setCellValue("Cache Size [MB]");
         cell.setCellStyle(boldStyle);
 
@@ -654,7 +655,7 @@ public class Output {
             cell.setCellStyle(boldStyle);
         }
 
-        for (String cache : sc.getCacheNames()) {
+        for (final String cache : sc.getCacheNames()) {
             lineCounter++;
             columnCounter = 0;
             row = sheet.createRow(lineCounter);
@@ -674,7 +675,7 @@ public class Output {
      * @param boldStyle tucny stzl pro nadpisy
      * @return aktualni radka
      */
-    private static int writeTransferDecreaseToXLS(int lineCounter, Sheet sheet, UserStatistics sc, CellStyle boldStyle) {
+    private static int writeTransferDecreaseToXLS(int lineCounter, final Sheet sheet, final UserStatistics sc, final CellStyle boldStyle) {
         int columnCounter = 0;
         Row row = sheet.createRow(lineCounter);
         Cell cell = row.createCell(columnCounter++);
@@ -682,7 +683,7 @@ public class Output {
         cell.setCellStyle(boldStyle);
 
         cell = row.createCell(columnCounter);
-        boldStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        boldStyle.setAlignment(HorizontalAlignment.CENTER);
         cell.setCellValue("Cache Size [MB]");
         cell.setCellStyle(boldStyle);
 
@@ -703,7 +704,7 @@ public class Output {
             cell.setCellStyle(boldStyle);
         }
 
-        for (String cache : sc.getCacheNames()) {
+        for (final String cache : sc.getCacheNames()) {
             lineCounter++;
             columnCounter = 0;
             row = sheet.createRow(lineCounter);

@@ -36,10 +36,10 @@ public class BarChart extends JFrame {
      * @param sc data
      * @param dataSelect co chceme vykreslit 
      */
-    public BarChart(final String title, UserStatistics sc, int dataSelect) {
+    public BarChart(final String title, final UserStatistics sc, final int dataSelect) {
         super("Cache " + title);
-               
-        setIconImage(new javax.swing.ImageIcon(getClass().getResource("/cz/zcu/kiv/cacheSimulator/ico/results.png")).getImage());
+
+        setIconImage(new javax.swing.ImageIcon(getClass().getResource("/ico/results.png")).getImage());
            
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setLayout(new BorderLayout(0, 5));
@@ -56,17 +56,17 @@ public class BarChart extends JFrame {
      * Metoda pro vytvoreni datasetu podle dat
      * @return dataset
      */
-    private CategoryDataset createDataset(UserStatistics sc, int dataSelect) {
+    private static CategoryDataset createDataset(final UserStatistics sc, final int dataSelect) {
         
         // create the dataset...
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
-        Integer[] cacheSizes = sc.getCacheSizes();
-        String[] cacheNames = sc.getCacheNames();
+        final Integer[] cacheSizes = sc.getCacheSizes();
+        final String[] cacheNames = sc.getCacheNames();
         
         switch (dataSelect){
             case 0:
                 Double[] vysledkyHitRatio;
-                for (String cacheName:cacheNames){
+                for (final String cacheName : cacheNames) {
                     vysledkyHitRatio = sc.getCacheHitRatios(cacheName);
                     for (int i = 0; i < vysledkyHitRatio.length; i++){
                         dataset.addValue(vysledkyHitRatio[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -75,7 +75,7 @@ public class BarChart extends JFrame {
                 break;
             case 1:
                 Long[] vysledkyHitCount;
-                for (String cacheName:cacheNames){
+                for (final String cacheName : cacheNames) {
                     vysledkyHitCount = sc.getCacheHits(cacheName);
                     for (int i = 0; i < vysledkyHitCount.length; i++){
                         dataset.addValue(vysledkyHitCount[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -84,7 +84,7 @@ public class BarChart extends JFrame {
                 break;
             case 2:          
                 Double[] vysledkySavedRatio;
-                for (String cacheName:cacheNames){
+                for (final String cacheName : cacheNames) {
                     vysledkySavedRatio = sc.getCacheSavedBytesRatio(cacheName);
                     for (int i = 0; i < vysledkySavedRatio.length; i++){
                         dataset.addValue(vysledkySavedRatio[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -93,7 +93,7 @@ public class BarChart extends JFrame {
                 break;
             case 3:
                 Long[] vysledkySavedBytes;
-                for (String cacheName:cacheNames){
+                for (final String cacheName : cacheNames) {
                     vysledkySavedBytes = sc.getCacheHits(cacheName);
                     for (int i = 0; i < vysledkySavedBytes.length; i++){
                         dataset.addValue(vysledkySavedBytes[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -102,7 +102,7 @@ public class BarChart extends JFrame {
                 break;
             case 4:          
                 Double[] vysledkyTransfDecreaseRat;
-                for (String cacheName:cacheNames){
+                for (final String cacheName : cacheNames) {
                     vysledkyTransfDecreaseRat = sc.getDataTransferDegreaseRatio(cacheName);
                     for (int i = 0; i < vysledkyTransfDecreaseRat.length; i++){
                         dataset.addValue(vysledkyTransfDecreaseRat[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -111,7 +111,7 @@ public class BarChart extends JFrame {
             break;
             default:
                 Long[] vysledkyTransfDecrease;
-                for (String cacheName:cacheNames){
+                for (final String cacheName : cacheNames) {
                     vysledkyTransfDecrease = sc.getDataTransferDegrease(cacheName);
                     for (int i = 0; i < vysledkyTransfDecrease.length; i++){
                         dataset.addValue(vysledkyTransfDecrease[i], cacheName, cacheSizes[i].toString() + "[MB]");
@@ -129,7 +129,7 @@ public class BarChart extends JFrame {
      * @param dataset  the dataset.
      * @return The chart.
      */
-    private JFreeChart createChart(final CategoryDataset dataset, String title, String value) {
+    private static JFreeChart createChart(final CategoryDataset dataset, final String title, final String value) {
         
         // create the chart...
         final JFreeChart chart = ChartFactory.createBarChart(

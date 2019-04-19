@@ -19,8 +19,8 @@ public class FBRPanel extends javax.swing.JPanel {
      */
     public FBRPanel() {
         initComponents();
-        OLDSpinner.setValue((int)((FBR.getOLD_SECTION() * 100)));
-        NEWSpinner.setValue((int) (FBR.getNEW_SECTION() * 100));
+        this.OLDSpinner.setValue((int)((FBR.getOLD_SECTION() * 100)));
+        this.NEWSpinner.setValue((int) (FBR.getNEW_SECTION() * 100));
     }
 
     /**
@@ -30,81 +30,72 @@ public class FBRPanel extends javax.swing.JPanel {
      */
     private void initComponents() {
 
-        FBRLabel = new javax.swing.JLabel();
-        oldLabel = new javax.swing.JLabel();
-        NewLabel = new javax.swing.JLabel();
-        OLDSpinner = new javax.swing.JSpinner();
-        NEWSpinner = new javax.swing.JSpinner();
+        this.FBRLabel = new javax.swing.JLabel();
+        this.oldLabel = new javax.swing.JLabel();
+        this.NewLabel = new javax.swing.JLabel();
+        this.OLDSpinner = new javax.swing.JSpinner();
+        this.NEWSpinner = new javax.swing.JSpinner();
 
-        FBRLabel.setText("FBR settings");
+        this.FBRLabel.setText("FBR settings");
 
-        oldLabel.setText("% of cache capacity for OLD section:");
+        this.oldLabel.setText("% of cache capacity for OLD section:");
 
-        NewLabel.setText("% of cache capacity for NEW section:");
+        this.NewLabel.setText("% of cache capacity for NEW section:");
 
-        OLDSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                OLDSpinnerStateChanged(evt);
-            }
-        });
+        this.OLDSpinner.addChangeListener(this::OLDSpinnerStateChanged);
+        this.NEWSpinner.addChangeListener(this::NEWSpinnerStateChanged);
 
-        NEWSpinner.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                NEWSpinnerStateChanged(evt);
-            }
-        });
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(23, 23, 23)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(NewLabel)
-                    .addComponent(oldLabel)
-                    .addComponent(FBRLabel))
+                    .addComponent(this.NewLabel)
+                    .addComponent(this.oldLabel)
+                    .addComponent(this.FBRLabel))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(NEWSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(OLDSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(this.NEWSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(this.OLDSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(74, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(48, 48, 48)
-                .addComponent(FBRLabel)
+                .addComponent(this.FBRLabel)
                 .addGap(17, 17, 17)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(oldLabel)
-                    .addComponent(OLDSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(this.oldLabel)
+                    .addComponent(this.OLDSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(17, 17, 17)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(NewLabel)
-                    .addComponent(NEWSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(this.NewLabel)
+                    .addComponent(this.NEWSpinner, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(151, Short.MAX_VALUE))
         );
     }// </editor-fold>                        
 
-    private void OLDSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_OLDSpinnerStateChanged
-        if ((Integer)OLDSpinner.getValue() <= 0){
-            OLDSpinner.setValue(1);
+    private void OLDSpinnerStateChanged(final javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_OLDSpinnerStateChanged
+        if ((Integer) this.OLDSpinner.getValue() <= 0){
+            this.OLDSpinner.setValue(1);
         }
-        if ((Integer)NEWSpinner.getValue() + (Integer)OLDSpinner.getValue() >=100){
-            OLDSpinner.setValue(100 - (Integer)NEWSpinner.getValue());
+        if ((Integer) this.NEWSpinner.getValue() + (Integer) this.OLDSpinner.getValue() >=100){
+            this.OLDSpinner.setValue(100 - (Integer) this.NEWSpinner.getValue());
         }
-        FBR.setOLD_SECTION(((Integer)OLDSpinner.getValue() / 100.0));
+        FBR.setOLD_SECTION(((Integer) this.OLDSpinner.getValue() / 100.0));
     }//GEN-LAST:event_OLDSpinnerStateChanged
 
-    private void NEWSpinnerStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_NEWSpinnerStateChanged
-        if ((Integer)NEWSpinner.getValue() <= 0){
-            NEWSpinner.setValue(1);
+    private void NEWSpinnerStateChanged(final javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_NEWSpinnerStateChanged
+        if ((Integer) this.NEWSpinner.getValue() <= 0){
+            this.NEWSpinner.setValue(1);
         }
-        if ((Integer)NEWSpinner.getValue() + (Integer)OLDSpinner.getValue() >=100){
-            NEWSpinner.setValue(100 - (Integer)OLDSpinner.getValue());
+        if ((Integer) this.NEWSpinner.getValue() + (Integer) this.OLDSpinner.getValue() >=100){
+            this.NEWSpinner.setValue(100 - (Integer) this.OLDSpinner.getValue());
         }
-        FBR.setNEW_SECTION(((Integer)NEWSpinner.getValue() / 100.0));
+        FBR.setNEW_SECTION(((Integer) this.NEWSpinner.getValue() / 100.0));
     }//GEN-LAST:event_NEWSpinnerStateChanged
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

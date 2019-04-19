@@ -19,7 +19,7 @@ public class LFU_SSPanel extends javax.swing.JPanel {
      */
     public LFU_SSPanel() {
         initComponents();
-        lfuSendStatCheckBox.setSelected(GlobalVariables.isSendStatisticsToServerLFUSS());
+        this.lfuSendStatCheckBox.setSelected(GlobalVariables.isSendStatisticsToServerLFUSS());
     }
 
     /**
@@ -29,42 +29,38 @@ public class LFU_SSPanel extends javax.swing.JPanel {
      */
     private void initComponents() {
 
-        lfussSettingsLabel = new javax.swing.JLabel();
-        lfuSendStatCheckBox = new javax.swing.JCheckBox();
+        this.lfussSettingsLabel = new javax.swing.JLabel();
+        this.lfuSendStatCheckBox = new javax.swing.JCheckBox();
 
-        lfussSettingsLabel.setText("Settings for LFU with Server Statistics");
+        this.lfussSettingsLabel.setText("Settings for LFU with Server Statistics");
 
-        lfuSendStatCheckBox.setText("Send statistics back to server");
-        lfuSendStatCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                lfuSendStatCheckBoxActionPerformed(evt);
-            }
-        });
+        this.lfuSendStatCheckBox.setText("Send statistics back to server");
+        this.lfuSendStatCheckBox.addActionListener(this::lfuSendStatCheckBoxActionPerformed);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        final javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(71, 71, 71)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(lfuSendStatCheckBox)
-                    .addComponent(lfussSettingsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(this.lfuSendStatCheckBox)
+                    .addComponent(this.lfussSettingsLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(54, 54, 54)
-                .addComponent(lfussSettingsLabel)
+                .addComponent(this.lfussSettingsLabel)
                 .addGap(18, 18, 18)
-                .addComponent(lfuSendStatCheckBox)
+                .addComponent(this.lfuSendStatCheckBox)
                 .addContainerGap(191, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
-    private void lfuSendStatCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lfuSendStatCheckBoxActionPerformed
-        GlobalVariables.setSendStatisticsToServerLFUSS(lfuSendStatCheckBox.isSelected());
+    private void lfuSendStatCheckBoxActionPerformed(final java.awt.event.ActionEvent evt) {//GEN-FIRST:event_lfuSendStatCheckBoxActionPerformed
+        GlobalVariables.setSendStatisticsToServerLFUSS(this.lfuSendStatCheckBox.isSelected());
     }//GEN-LAST:event_lfuSendStatCheckBoxActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
