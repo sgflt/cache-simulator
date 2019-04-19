@@ -1616,36 +1616,33 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       this.simulationProgressBar.setString("Simulation in progress... 0%");
 
       // vlakno pro spusteni simulace - kvuli updatu progressbaru
-      this.simulationThread = new Thread(new Runnable() {
-        @Override
-        public void run() {
-          disableComponentsForSimulation();
-          Server.getInstance().hardReset();
-          MainGUI.this.simulationProgressBar.setMaximum(100);
+      this.simulationThread = new Thread(() -> {
+        disableComponentsForSimulation();
+        Server.getInstance().hardReset();
+        MainGUI.this.simulationProgressBar.setMaximum(100);
 
-          // spusteni simulace
-          if (GlobalVariables.isLoadDataFromLog()
-            && GlobalVariables.isRandomFileSizesForLoggedData()) {
-            simulation.simulateRandomFileSizes();
-          } else if (GlobalVariables.isLoadDataFromLog()) {
-            simulation.simulateFromLogFile();
-          } else {
-            simulation.simulateRandomFileSizes();
-          }
-
-          MainGUI.this.simulationProgressBar.setVisible(false);
-          MainGUI.this.cacheResults = simulation.getResults();
-          if (MainGUI.this.cacheResults != null && !MainGUI.this.cacheResults.isEmpty()) {
-            loadResultsToPanel();
-            enableComponentsAfterSimulaton(true);
-          } else {
-            JOptionPane.showMessageDialog(MainGUI.getInstance(),
-              "There are no results!", "Error",
-              JOptionPane.ERROR_MESSAGE);
-            enableComponentsAfterSimulaton(false);
-          }
-
+        // spusteni simulace
+        if (GlobalVariables.isLoadDataFromLog()
+          && GlobalVariables.isRandomFileSizesForLoggedData()) {
+          simulation.simulateRandomFileSizes();
+        } else if (GlobalVariables.isLoadDataFromLog()) {
+          simulation.simulateFromLogFile();
+        } else {
+          simulation.simulateRandomFileSizes();
         }
+
+        MainGUI.this.simulationProgressBar.setVisible(false);
+        MainGUI.this.cacheResults = simulation.getResults();
+        if (MainGUI.this.cacheResults != null && !MainGUI.this.cacheResults.isEmpty()) {
+          loadResultsToPanel();
+          enableComponentsAfterSimulaton(true);
+        } else {
+          JOptionPane.showMessageDialog(MainGUI.getInstance(),
+            "There are no results!", "Error",
+            JOptionPane.ERROR_MESSAGE);
+          enableComponentsAfterSimulaton(false);
+        }
+
       });
 
       // spusteni vlakna simulace
