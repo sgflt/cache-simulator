@@ -1,12 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import java.util.Observable;
-import java.util.Random;
-
 import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.Observable;
+import java.util.Random;
 
 
 /**
@@ -19,22 +19,23 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	/**
 	 * atribut pro generovani jmen souboru
 	 */
-	private Random rnd;
+	private final Random rnd;
 
 	/**
 	 * promenna pro urceni poctu generovanych pozadavku
 	 */
-	private long limit;
+	private final long limit;
 	
 	/**
 	 * pocet vygenerovanych pozadavku
 	 */
-	private long generatedAccesses = 0;
+	private long generatedAccesses;
 	
 	/**
 	 * interval pro nahodny generator
 	 */
-	private static int minValue = 1, maxValue = 500;
+	private static int minValue = 1;
+	private static int maxValue = 500;
 	
 	/**
 	 * cislo pro nahodny generator
@@ -44,11 +45,10 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	/**
 	 * promenna pro uchovani, jak casto se ma generovat udalost pro GUI
 	 */
-	private int modulo = 1;
-	
-	
-	public RandomFileNameGenerator(long limit) {
-		super();
+	private final int modulo;
+
+
+	public RandomFileNameGenerator(final long limit) {
 		this.addObserver(MainGUI.getInstance());
 		this.rnd = new Random(seedValue);
 		this.limit = limit;
@@ -62,21 +62,22 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 		
 		//pocet pristupu - pri prekroceni limitu se ukoncuje generovani
 		// tento pristup je volen pro jednodussi cteni z logu
-		generatedAccesses++;
-		if (generatedAccesses > limit)
+		this.generatedAccesses++;
+		if (this.generatedAccesses > this.limit) {
 			return null;
-		
-		if (generatedAccesses % modulo == 0){
+		}
+
+		if (this.generatedAccesses % this.modulo == 0) {
 			setChanged();
-			notifyObservers(new Integer((int)(generatedAccesses * 100 / limit)));
+			notifyObservers((int) (this.generatedAccesses * 100 / this.limit));
 		}
 		
 		//generovani jmena souboru a casu pristupu k nemu
-		int rndNum = Math.abs(rnd.nextInt()) % (maxValue - minValue) + minValue;
+		final int rndNum = Math.abs(this.rnd.nextInt()) % (maxValue - minValue) + minValue;
 		
 		//jako cas pristupu vracime nulu - neresime mozne zpozdeni na siti
 		//zpozdeni se resi "jen" u pristupu z logu
-		return new Triplet<String, Long, Long>(Integer.toString(rndNum), 0L, 0L);
+		return new Triplet<>(Integer.toString(rndNum), 0L, 0L);
 	}
 
 	@Override
@@ -89,7 +90,7 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	 * staticke nastaveni gaussovskeho generatoru - minimalni generovana hodnota
 	 * @param minValue min hodnota
 	 */
-	public static void setMinValue(int minValue) {
+	public static void setMinValue(final int minValue) {
 		RandomFileNameGenerator.minValue = minValue;
 	}
 
@@ -97,7 +98,7 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	 * staticke nastaveni gaussovskeho generatoru - maximalni generovana hodnota
 	 * @param maxValue max hodnota
 	 */
-	public static void setMaxValue(int maxValue) {
+	public static void setMaxValue(final int maxValue) {
 		RandomFileNameGenerator.maxValue = maxValue;
 	}
 
@@ -105,7 +106,7 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	 * staticke nastaveni gaussovskeho generatoru - seed value pro nahodny generator
 	 * @param seedValue seed
 	 */
-	public static void setSeedValue(int seedValue) {
+	public static void setSeedValue(final int seedValue) {
 		RandomFileNameGenerator.seedValue = seedValue;
 	}
 
