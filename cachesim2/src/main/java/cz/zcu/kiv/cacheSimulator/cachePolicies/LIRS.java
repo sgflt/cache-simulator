@@ -64,9 +64,9 @@ public class LIRS implements ICache {
 		@Override
 		public int compare(final Triplet<FileOnClient, Long, Long> arg0,
                        final Triplet<FileOnClient, Long, Long> arg1) {
-			if ((Long) arg0.getThird() > (Long) arg1.getThird()) {
+			if (arg0.getThird() > arg1.getThird()) {
         return 1;
-      } else if ((Long) arg0.getThird() < (Long) arg1.getThird()) {
+			} else if (arg0.getThird() < arg1.getThird()) {
         return -1;
       }
 			return 0;
@@ -76,17 +76,15 @@ public class LIRS implements ICache {
 	/**
 	 * konstruktor
 	 * 
-	 * @param capacity
-	 *            kapacita cache
 	 */
 	public LIRS() {
 		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
 		this.timeCounter = 1;
-		this.zasobnikSouboru = new Stack<Triplet<FileOnClient, Long, Long>>();
-		this.LIR = new ArrayList<Triplet<FileOnClient, Long, Long>>();
-		this.HIR = new ArrayList<Triplet<FileOnClient, Long, Long>>();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.zasobnikSouboru = new Stack<>();
+		this.LIR = new ArrayList<>();
+		this.HIR = new ArrayList<>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -153,10 +151,10 @@ public class LIRS implements ICache {
 				// aktualniho souboru
 				else {
 					// setridime kolekci
-					Collections.sort(this.LIR, new TripletCompare());
+					this.LIR.sort(new TripletCompare());
 					// vsechny soubory s IRR vetsim nez aktualni prehazeme do
 					// HIR
-					while (this.LIR.size() > 0
+					while (!this.LIR.isEmpty()
 							&& this.LIR.get(this.LIR.size() - 1).getThird() > IRR) {
             this.HIR.add(this.LIR.get(this.LIR.size() - 1));
             this.LIR.remove(this.LIR.size() - 1);
@@ -207,10 +205,10 @@ public class LIRS implements ICache {
 
 	@Override
 	public void removeFile() {
-		if (this.HIR.size() > 0) {
+		if (!this.HIR.isEmpty()) {
       this.HIR.remove(0);
-		} else if (this.LIR.size() > 0) {
-			Collections.sort(this.LIR, new TripletCompare());
+		} else if (!this.LIR.isEmpty()) {
+			this.LIR.sort(new TripletCompare());
       this.LIR.remove(this.LIR.size() - 1);
 		}
 	}
@@ -241,8 +239,8 @@ public class LIRS implements ICache {
 			removeFile();
 		}
 		final long time = ++this.timeCounter;
-		final Triplet<FileOnClient, Long, Long> file = new Triplet<FileOnClient, Long, Long>(f, time,
-				Long.MAX_VALUE);
+		final Triplet<FileOnClient, Long, Long> file = new Triplet<>(f, time,
+			Long.MAX_VALUE);
     this.HIR.add(file);
     this.zasobnikSouboru.add(file);
 	}
