@@ -1,9 +1,5 @@
 package cz.zcu.kiv.cacheSimulator.simulation;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.Iterator;
-
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.cachePolicies.LFU_SS;
 import cz.zcu.kiv.cacheSimulator.cachePolicies.LRFU_SS;
@@ -13,6 +9,10 @@ import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
 
 
 /**
@@ -26,17 +26,17 @@ public class AccessSimulation {
 	/**
 	 * promenna pro uchovani seznamu pristupovanych souboru
 	 */
-	private IFileQueue fileQueue;
+	private final IFileQueue fileQueue;
 
 	/**
 	 * promenna pro uchovani odkazu na server
 	 */
-	private Server server = Server.getInstance();
+	private final Server server = Server.getInstance();
 
 	/**
 	 * promenna pro uchovani uzivatelu a jejich cachovacich algoritmu
 	 */
-	private Hashtable<Long, SimulatedUser> userTable;
+	private final Hashtable<Long, SimulatedUser> userTable;
 
 	/**
 	 * konstruktor - inicializace promennych
@@ -44,10 +44,9 @@ public class AccessSimulation {
 	 * @param fileQueue
 	 *            seznam prisupovanych souboru
 	 */
-	public AccessSimulation(IFileQueue fileQueue) {
-		super();
+	public AccessSimulation(final IFileQueue fileQueue) {
 		this.fileQueue = fileQueue;
-		this.userTable = new Hashtable<Long, SimulatedUser>();
+		this.userTable = new Hashtable<>();
 	}
 
 	/**
@@ -57,13 +56,8 @@ public class AccessSimulation {
 	 *            id uziavatele
 	 * @return uzivatel s cachovacimi algoritmy
 	 */
-	private SimulatedUser getUser(long userID) {
-		SimulatedUser user = userTable.get(userID);
-		if (user == null) {
-			user = new SimulatedUser(userID);
-			userTable.put(userID, user);
-		}
-		return user;
+	private SimulatedUser getUser(final long userID) {
+		return this.userTable.computeIfAbsent(userID, SimulatedUser::new);
 	}
 
 	/**
@@ -72,20 +66,21 @@ public class AccessSimulation {
 	 */
 	public void simulateRandomFileSizes() {
 		// pruchod strukturou + pristupovani souboru
-		Triplet<String, Long, Long> file = fileQueue.getNextFileName();
+		Triplet<String, Long, Long> file = this.fileQueue.getNextFileName();
 		SimulatedUser user;
 		while (file != null) {
 			user = getUser(file.getThird());
 			// pokud na serveru soubor neexistuje, vytvorime jej s nahodnou
 			// velikosti souboru
-			if (!server.existFileOnServer(file.getFirst()))
-				server.generateRandomFileSize(file.getFirst(), GlobalVariables
-						.getMinGeneratedFileSize(), GlobalVariables
-						.getMaxGeneratedFileSize());
+			if (!this.server.existFileOnServer(file.getFirst())) {
+				this.server.generateRandomFileSize(file.getFirst(), GlobalVariables
+					.getMinGeneratedFileSize(), GlobalVariables
+					.getMaxGeneratedFileSize());
+			}
 			// zvysime pocet pristupovanych souboru
 			user.incereaseFileAccess();
-			user.increaseTotalNetworkBandwidth(server.getFileSize(file.getFirst()));
-			for (Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
+			user.increaseTotalNetworkBandwidth(this.server.getFileSize(file.getFirst()));
+			for (final Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
 				for (int i = 0; i < cache.getFirst().length; i++) {
 					// soubor je jiz v cache, aktualizujeme pouze statistiky
 					if (cache.getFirst()[i].isInCache(file.getFirst())) {
@@ -100,13 +95,14 @@ public class AccessSimulation {
 								.getFirst()[i] instanceof LFU_SS))
 								|| (GlobalVariables
 										.isSendStatisticsToServerLRFUSS() && (cache
-										.getFirst()[i] instanceof LRFU_SS)))
-							server.getFileRead(file.getFirst(), cache
-									.getFirst()[i]);
+							.getFirst()[i] instanceof LRFU_SS))) {
+							this.server.getFileRead(file.getFirst(), cache
+								.getFirst()[i]);
+						}
 					}
 					// soubor neni v cache, musi se pro nej vytvorit zaznam
 					else {
-						cache.getFirst()[i].insertFile(new FileOnClient(server
+						cache.getFirst()[i].insertFile(new FileOnClient(this.server
 								.getFileRead(file.getFirst(),
 										cache.getFirst()[i]),
 								cache.getFirst()[i], file.getSecond()));
@@ -114,7 +110,7 @@ public class AccessSimulation {
 				}
 			}
 			// pristupujeme dalsi soubor
-			file = fileQueue.getNextFileName();
+			file = this.fileQueue.getNextFileName();
 		}
 	}
 
@@ -124,20 +120,21 @@ public class AccessSimulation {
 	 */
 	public void simulateFromLogFile() {
 		// pruchod strukturou + pristupovani souboru
-		Quartet<String, Long, Long, Long> file = fileQueue
+		Quartet<String, Long, Long, Long> file = this.fileQueue
 				.getNextFileNameWithFSize();
 		SimulatedUser user;
 		while (file != null) {
 			user = getUser(file.getFourth());
 			// pokud na serveru soubor neexistuje, vytvorime jej s nactenou
 			// velikosti souboru
-			if (!server.existFileOnServer(file.getFirst()))
-				server.insertNewFile(file.getFirst(), file.getSecond());
+			if (!this.server.existFileOnServer(file.getFirst())) {
+				this.server.insertNewFile(file.getFirst(), file.getSecond());
+			}
 			// zvysime pocet pristupovanych souboru
 			user.incereaseFileAccess();
-			user.increaseTotalNetworkBandwidth(server.getFileSize(file
+			user.increaseTotalNetworkBandwidth(this.server.getFileSize(file
 					.getFirst()));
-			for (Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
+			for (final Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
 				for (int i = 0; i < cache.getFirst().length; i++) {
 					// soubor je jiz v cache, aktualizujeme pouze statistiky
 					if (cache.getFirst()[i].isInCache(file.getFirst())) {
@@ -150,21 +147,21 @@ public class AccessSimulation {
 								.getFirst()[i] instanceof LFU_SS))
 								|| (GlobalVariables
 										.isSendStatisticsToServerLRFUSS() && (cache
-										.getFirst()[i] instanceof LRFU_SS)))
-							server.getFileRead(file.getFirst(), cache
-									.getFirst()[i]);
+							.getFirst()[i] instanceof LRFU_SS))) {
+							this.server.getFileRead(file.getFirst(), cache
+								.getFirst()[i]);
+						}
 					}
 					// soubor neni v cache, musi se pro nej vytvorit zaznam
 					else {
-						//System.out.println(file.getFirst());
 						cache.getFirst()[i].insertFile(
-								new FileOnClient(server.getFileRead(file
+							new FileOnClient(this.server.getFileRead(file
 										.getFirst(), cache.getFirst()[i]), cache
 										.getFirst()[i], file.getThird()));
 					}
 				}
 				// pristupujeme dalsi soubor
-				file = fileQueue.getNextFileNameWithFSize();
+				file = this.fileQueue.getNextFileNameWithFSize();
 			}
 		}
 	}
@@ -174,11 +171,9 @@ public class AccessSimulation {
 	 * 
 	 * @return vysledky vsech uzivatelu
 	 */
-	public ArrayList<UserStatistics> getResults() {
-		ArrayList<UserStatistics> ret = new ArrayList<UserStatistics>();
-		for (Iterator<SimulatedUser> it = userTable.values().iterator(); it
-				.hasNext();) {
-			SimulatedUser user = it.next();
+	public List<UserStatistics> getResults() {
+		final ArrayList<UserStatistics> ret = new ArrayList<>();
+		for (final var user : this.userTable.values()) {
 			if (user.getCachesResults() != null) {
 				ret.add(new UserStatistics(user));
 			}

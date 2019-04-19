@@ -4,12 +4,8 @@
  */
 package cz.zcu.kiv.cacheSimulator.output;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
+import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
+import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -19,8 +15,12 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
-import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.List;
 
 /**
  *
@@ -35,7 +35,7 @@ public class Output {
      * @param userID id uzivatele
      * @param cachesResults vysledky cachovacich algoritmu
      */
-    public static void printAllStatConsole(final ArrayList<UserStatistics> stat) {
+    public static void printAllStatConsole(final List<UserStatistics> stat) {
         if (stat == null || stat.isEmpty()) {
             return;
         }
@@ -149,7 +149,7 @@ public class Output {
      *
      * @param fName jmeno soubor, kam ulozit
      */
-    public static boolean saveStatToCSV(String fName, final ArrayList<UserStatistics> stat) {
+    public static boolean saveStatToCSV(String fName, final List<UserStatistics> stat) {
         if (stat == null || stat.isEmpty()) {
             return false;
         }
@@ -349,7 +349,7 @@ public class Output {
      * @param stat ukladane statistiky
      * @return true, pokud vse probehlo v poradku
      */
-    public static boolean saveStatToXLS(final String fName, final ArrayList<UserStatistics> stat) {
+    public static boolean saveStatToXLS(final String fName, final List<UserStatistics> stat) {
         try {
             final Workbook wb = new HSSFWorkbook();
             //Workbook wb = new XSSFWorkbook();

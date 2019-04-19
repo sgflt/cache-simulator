@@ -29,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -59,7 +60,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
   /**
    * promenna pro uchovani vysledku mereni cache
    */
-  private ArrayList<UserStatistics> cacheResults = null;
+  private List<UserStatistics> cacheResults = null;
 
   /**
    * promenna pro uchovani odkazu na simulacni vlakno pro pripadne preruseni
