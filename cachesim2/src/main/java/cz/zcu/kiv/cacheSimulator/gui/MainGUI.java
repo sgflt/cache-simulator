@@ -48,15 +48,13 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
   @Override
   public void update(final Observable arg0, final Object arg1) {
     this.simulationProgressBar.setValue((Integer) arg1);
-    this.simulationProgressBar.setString("Simulation in progress... "
-      + (Integer) arg1 + "%");
-
+    this.simulationProgressBar.setString(String.format("Simulation in progress... %s %%", String.valueOf(arg1)));
   }
 
   /**
    * promenna pro uchovani buttonu pro nastaveni cache
    */
-  private ArrayList<javax.swing.JCheckBox> cacheCheckBoxes = null;
+  private ArrayList<JCheckBox> cacheCheckBoxes = null;
 
   /**
    * promenna pro uchovani vysledku mereni cache
