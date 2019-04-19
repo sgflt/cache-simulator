@@ -30,9 +30,9 @@ public class LFU_NO_REDUCTION implements ICache {
 
 		@Override
 		public int compare(final Pair<Integer, FileOnClient> o1, final Pair<Integer, FileOnClient> o2) {
-			if ((Integer) o1.getFirst() > (Integer) o2.getFirst()) {
+			if (o1.getFirst() > o2.getFirst()) {
 				return 1;
-			} else if ((Integer) o1.getFirst() < (Integer) o2.getFirst()) {
+			} else if (o1.getFirst() < o2.getFirst()) {
 				return -1;
 			}
 			return 0;
@@ -53,7 +53,7 @@ public class LFU_NO_REDUCTION implements ICache {
 	/**
 	 * velikost cache v kB
 	 */
-	private long capacity = 0;
+	private long capacity;
 
 	/**
 	 * promenne pro urceni, jestli je treba tridit
@@ -64,9 +64,9 @@ public class LFU_NO_REDUCTION implements ICache {
 	 * konstruktor - inicializace cache
 	 */
 	public LFU_NO_REDUCTION() {
-		this.list = new ArrayList<Pair<Integer, FileOnClient>>();
+		this.list = new ArrayList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -103,10 +103,10 @@ public class LFU_NO_REDUCTION implements ICache {
 	@Override
 	public void removeFile() {
 		if (this.needSort) {
-			Collections.sort(this.list, new PairCompare());
+			this.list.sort(new PairCompare());
 		}
 		this.needSort = false;
-		if (this.list.size() > 0) {
+		if (!this.list.isEmpty()) {
 			this.list.remove(0);
 		}
 	}
@@ -136,7 +136,7 @@ public class LFU_NO_REDUCTION implements ICache {
 		while (freeCapacity() < f.getFileSize()) {
 			removeFile();
 		}
-		this.list.add(new Pair<Integer, FileOnClient>(new Integer(1), f));
+		this.list.add(new Pair<>(1, f));
 		this.needSort = true;
 	}
 	
