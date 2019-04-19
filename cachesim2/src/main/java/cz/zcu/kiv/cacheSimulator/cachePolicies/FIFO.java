@@ -39,9 +39,9 @@ public class FIFO implements ICache {
 	 * konstruktor - inicializace cache
 	 */
 	public FIFO() {
-    this.fQueue = new LinkedList<FileOnClient>();
+		this.fQueue = new LinkedList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
