@@ -52,12 +52,12 @@ public class LRDv1 implements ICache{
 	/**
 	 * kapacita cache
 	 */
-	private long capacity = 0;
+	private long capacity;
 	
 	/**
 	 * global counter
 	 */
-	private long GC = 0;
+	private long GC;
 	
 	/**
 	 * promenna pro nastaveni, zda se ma znovu pocitat RD
@@ -76,9 +76,8 @@ public class LRDv1 implements ICache{
 	public LRDv1() {
 		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.fList = new ArrayList<Quartet<FileOnClient,Long,Long,Double>>();
-		this.GC = 0;
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fList = new ArrayList<>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -119,7 +118,7 @@ public class LRDv1 implements ICache{
 			for(final Quartet<FileOnClient, Long,Long, Double> files : this.fList){
 				files.setFourth((double)files.getSecond() / ((double) this.GC - files.getThird()));
 			}
-			Collections.sort(this.fList, new QuartetCompare());
+			this.fList.sort(new QuartetCompare());
 		}
 		this.needRecalculate = false;
 		this.fList.remove(0);
@@ -150,7 +149,7 @@ public class LRDv1 implements ICache{
 		while(freeCapacity() < f.getFileSize()){
 			removeFile();
 		}
-		this.fList.add(new Quartet<FileOnClient, Long, Long, Double>(f, (long)1, this.GC++, 1.0));
+		this.fList.add(new Quartet<>(f, (long) 1, this.GC++, 1.0));
 		this.needRecalculate = true;
 	}
 	
