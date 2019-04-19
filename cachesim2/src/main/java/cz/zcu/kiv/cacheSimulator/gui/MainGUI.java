@@ -1,34 +1,6 @@
 package cz.zcu.kiv.cacheSimulator.gui;
 
 
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.ItemEvent;
-import java.awt.event.MouseEvent;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JCheckBox;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.RowSorter;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
-import javax.swing.table.TableRowSorter;
-
-import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.dataAccess.GaussianFileNameGenerator;
 import cz.zcu.kiv.cacheSimulator.dataAccess.IFileQueue;
 import cz.zcu.kiv.cacheSimulator.dataAccess.LogReaderAFS;
@@ -44,12 +16,30 @@ import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.simulation.AccessSimulation;
 import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
 
+import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Observable;
+import java.util.Observer;
+
 /**
  * @author Pavel Bzoch trida pro zobrazeni hlavniho gui aplikace
  */
 @SuppressWarnings("serial")
 public class MainGUI extends javax.swing.JFrame implements Observer {
 
+  public static final String ALERT = "Alert";
+  public static final String CHOOSE_ONE = "-- Choose one --";
   /**
    * singleton instance
    */
@@ -392,7 +382,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
         .showMessageDialog(
           this,
           "You have to choose input file before starting simulation!\nYou can choose input file by clicking Path text area",
-          "Alert", JOptionPane.OK_OPTION);
+          ALERT, JOptionPane.OK_OPTION);
     }
   }
 
@@ -433,9 +423,9 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
    */
   private boolean checkSettings() {
     // kontrola vyberu vstupni metody
-    if (this.requestsInputComboBox.getSelectedItem().equals("-- Choose one --")) {
+    if (this.requestsInputComboBox.getSelectedItem().equals(CHOOSE_ONE)) {
       JOptionPane.showMessageDialog(this,
-        "You have to select input request method!", "Alert",
+        "You have to select input request method!", ALERT,
         JOptionPane.ERROR_MESSAGE);
       this.panelsPane.setSelectedIndex(0);
       return false;
@@ -444,7 +434,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       final File f = new File(GlobalVariables.getLogAFSFIleName());
       if (!f.isFile()) {
         JOptionPane.showMessageDialog(this,
-          "You have to select AFS log file!", "Alert",
+          "You have to select AFS log file!", ALERT,
           JOptionPane.ERROR_MESSAGE);
         this.panelsPane.setSelectedIndex(0);
         return false;
@@ -454,7 +444,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     // kontrola zaskrtavatek u cache algoritmu
     if (getCachesNames() == null || getCachesNames().length == 0) {
       JOptionPane.showMessageDialog(this,
-        "You have to select simulated cache algorithms!", "Alert",
+        "You have to select simulated cache algorithms!", ALERT,
         JOptionPane.ERROR_MESSAGE);
       this.panelsPane.setSelectedIndex(1);
       return false;
@@ -516,7 +506,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     final TableModel tm = new DefaultTableModel(rowData, names);
     this.resultsTable.setModel(tm);
-    final RowSorter<TableModel> sorter = new TableRowSorter<TableModel>(tm);
+    final RowSorter<TableModel> sorter = new TableRowSorter<>(tm);
     this.resultsTable.setRowSorter(sorter);
   }
 
@@ -524,7 +514,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
    * trida pro prezentaci modelu pro pole velikosti
    */
   @SuppressWarnings("rawtypes")
-  private class myCapacityAbstractModel extends javax.swing.AbstractListModel {
+  private class CapacityAbstractModel extends javax.swing.AbstractListModel {
     Integer[] array;
 
     @Override
@@ -550,9 +540,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       for (int i = 0; i < this.array.length; i++) {
         if (i < index) {
           newAarray[i] = this.array[i];
-          continue;
         } else if (i == index) {
-          continue;
         } else {
           newAarray[i - 1] = this.array[i];
         }
@@ -560,11 +548,11 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       this.array = newAarray;
     }
 
-    public myCapacityAbstractModel() {
+    CapacityAbstractModel() {
       this.array = new Integer[]{8, 16, 32, 64, 128, 256, 512, 1024};
     }
 
-    public myCapacityAbstractModel(final Integer[] array) {
+    CapacityAbstractModel(final Integer[] array) {
       this.array = array;
     }
 
@@ -573,7 +561,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
      *
      * @return pole velikosti
      */
-    public Integer[] getArray() {
+    Integer[] getArray() {
       return this.array;
     }
   }
@@ -708,12 +696,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
     this.simulateButton
       .setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    this.simulateButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        simulateButtonActionPerformed(evt);
-      }
-    });
+    this.simulateButton.addActionListener(this::simulateButtonActionPerformed);
     this.simulatorToolbar.add(this.simulateButton);
 
     this.simCancelButton.setIcon(new javax.swing.ImageIcon(getClass()
@@ -725,12 +708,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
     this.simCancelButton
       .setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    this.simCancelButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        simCancelButtonActionPerformed(evt);
-      }
-    });
+    this.simCancelButton.addActionListener(this::simCancelButtonActionPerformed);
     this.simulatorToolbar.add(this.simCancelButton);
     this.simulatorToolbar.add(this.jSeparator1);
 
@@ -743,12 +721,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
     this.saveCSVButton
       .setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    this.saveCSVButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        saveCSVButtonActionPerformed(evt);
-      }
-    });
+    this.saveCSVButton.addActionListener(this::saveCSVButtonActionPerformed);
     this.simulatorToolbar.add(this.saveCSVButton);
 
     this.saveXLSButton.setIcon(new javax.swing.ImageIcon(getClass().getResource(
@@ -760,12 +733,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       .setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
     this.saveXLSButton
       .setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    this.saveXLSButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        saveXLSButtonActionPerformed(evt);
-      }
-    });
+    this.saveXLSButton.addActionListener(this::saveXLSButtonActionPerformed);
     this.simulatorToolbar.add(this.saveXLSButton);
 
     this.printConsoleButton.setIcon(new javax.swing.ImageIcon(getClass()
@@ -778,12 +746,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.printConsoleButton
       .setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
     this.printConsoleButton
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          printConsoleButtonActionPerformed(evt);
-        }
-      });
+      .addActionListener(this::printConsoleButtonActionPerformed);
     this.simulatorToolbar.add(this.printConsoleButton);
     this.simulatorToolbar.add(this.jSeparator2);
 
@@ -793,12 +756,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.exitButton.setFocusable(false);
     this.exitButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
     this.exitButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-    this.exitButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        exitButtonActionPerformed(evt);
-      }
-    });
+    this.exitButton.addActionListener(MainGUI::exitButtonActionPerformed);
     this.simulatorToolbar.add(this.exitButton);
 
     this.panelsPane.setName("Simulation"); // NOI18N
@@ -810,7 +768,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       .createTitledBorder("Cache capacities [MB]"));
 
     this.cacheCapacityList.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-    this.cacheCapacityList.setModel(new myCapacityAbstractModel());
+    this.cacheCapacityList.setModel(new CapacityAbstractModel());
     this.cacheCapacityList
       .setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
     this.jScrollPane1.setViewportView(this.cacheCapacityList);
@@ -818,20 +776,10 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.cacheCapSpinner.setValue(8);
 
     this.cachePlusButton.setText("+");
-    this.cachePlusButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        cachePlusButtonActionPerformed(evt);
-      }
-    });
+    this.cachePlusButton.addActionListener(this::cachePlusButtonActionPerformed);
 
     this.cacheMinusButton.setText("-");
-    this.cacheMinusButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        cacheMinusButtonActionPerformed(evt);
-      }
-    });
+    this.cacheMinusButton.addActionListener(this::cacheMinusButtonActionPerformed);
 
     final javax.swing.GroupLayout cacheCapacityPanelLayout = new javax.swing.GroupLayout(
       this.cacheCapacityPanel);
@@ -899,13 +847,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.statLimitSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.statLimitSpinner.setValue(30);
-    this.statLimitSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          statLimitSpinnerStateChanged(evt);
-        }
-      });
+    this.statLimitSpinner.addChangeListener(this::statLimitSpinnerStateChanged);
     this.othersSettingsPanel.add(this.statLimitSpinner);
     this.statLimitSpinner.setBounds(296, 33, 60, 18);
 
@@ -919,13 +861,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.networkSpeedSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.networkSpeedSpinner.setValue(80);
-    this.networkSpeedSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          networkSpeedSpinnerStateChanged(evt);
-        }
-      });
+    this.networkSpeedSpinner.addChangeListener(this::networkSpeedSpinnerStateChanged);
     this.othersSettingsPanel.add(this.networkSpeedSpinner);
     this.networkSpeedSpinner.setBounds(210, 90, 90, 18);
 
@@ -936,13 +872,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.slidingWindwowSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.slidingWindwowSpinner.setValue(25);
-    this.slidingWindwowSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          slidingWindwowSpinnerStateChanged(evt);
-        }
-      });
+    this.slidingWindwowSpinner.addChangeListener(this::slidingWindwowSpinnerStateChanged);
     this.othersSettingsPanel.add(this.slidingWindwowSpinner);
     this.slidingWindwowSpinner.setBounds(296, 135, 60, 18);
 
@@ -954,23 +884,11 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.requestsSettingsPanel.setLayout(null);
 
     this.requestsInputComboBox.setModel(new javax.swing.DefaultComboBoxModel(
-      new String[]{"-- Choose one --", "From AFS log file",
+      new String[]{CHOOSE_ONE, "From AFS log file",
         "Gaussian random", "Random", "Random with preference",
         "Zipf random"}));
-    this.requestsInputComboBox
-      .addItemListener(new java.awt.event.ItemListener() {
-        @Override
-        public void itemStateChanged(final java.awt.event.ItemEvent evt) {
-          requestsInputComboBoxItemStateChanged(evt);
-        }
-      });
-    this.requestsInputComboBox
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          requestsInputComboBoxActionPerformed(evt);
-        }
-      });
+    this.requestsInputComboBox.addItemListener(this::requestsInputComboBoxItemStateChanged);
+    this.requestsInputComboBox.addActionListener(this::requestsInputComboBoxActionPerformed);
     this.requestsSettingsPanel.add(this.requestsInputComboBox);
     this.requestsInputComboBox.setBounds(180, 30, 156, 22);
 
@@ -979,20 +897,8 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.inputRequestLabel.setBounds(30, 30, 173, 20);
 
     this.randomFileSizeCheckBox.setText("Generate random file sizes");
-    this.randomFileSizeCheckBox
-      .addItemListener(new java.awt.event.ItemListener() {
-        @Override
-        public void itemStateChanged(final java.awt.event.ItemEvent evt) {
-          randomFileSizeCheckBoxItemStateChanged(evt);
-        }
-      });
-    this.randomFileSizeCheckBox
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          randomFileSizeCheckBoxActionPerformed(evt);
-        }
-      });
+    this.randomFileSizeCheckBox.addItemListener(this::randomFileSizeCheckBoxItemStateChanged);
+    this.randomFileSizeCheckBox.addActionListener(this::randomFileSizeCheckBoxActionPerformed);
     this.requestsSettingsPanel.add(this.randomFileSizeCheckBox);
     this.randomFileSizeCheckBox.setBounds(80, 350, 190, 23);
 
@@ -1014,25 +920,13 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.minGenFileSizejSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.minGenFileSizejSpinner.setValue(500);
-    this.minGenFileSizejSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          minGenFileSizejSpinnerStateChanged(evt);
-        }
-      });
+    this.minGenFileSizejSpinner.addChangeListener(this::minGenFileSizejSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.minGenFileSizejSpinner);
     this.minGenFileSizejSpinner.setBounds(190, 381, 88, 18);
 
     this.maxGenFileSizejSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.maxGenFileSizejSpinner.setValue(32000);
-    this.maxGenFileSizejSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          maxGenFileSizejSpinnerStateChanged(evt);
-        }
-      });
+    this.maxGenFileSizejSpinner.addChangeListener(this::maxGenFileSizejSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.maxGenFileSizejSpinner);
     this.maxGenFileSizejSpinner.setBounds(190, 411, 88, 18);
 
@@ -1052,13 +946,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.generateFileSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.generateFileSpinner.setMinimumSize(new java.awt.Dimension(30, 20));
-    this.generateFileSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          generateFileSpinnerStateChanged(evt);
-        }
-      });
+    this.generateFileSpinner.addChangeListener(this::generateFileSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.generateFileSpinner);
     this.generateFileSpinner.setBounds(220, 120, 80, 20);
 
@@ -1072,13 +960,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.maenValueGaussSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.maenValueGaussSpinner.setMinimumSize(new java.awt.Dimension(30, 20));
-    this.maenValueGaussSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          maenValueGaussSpinnerStateChanged(evt);
-        }
-      });
+    this.maenValueGaussSpinner.addChangeListener(this::maenValueGaussSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.maenValueGaussSpinner);
     this.maenValueGaussSpinner.setBounds(220, 150, 80, 20);
 
@@ -1087,13 +969,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.preferenceDivisibleLabel.setBounds(20, 190, 180, 20);
 
     this.preferenceDivisibleSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.preferenceDivisibleSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          preferenceDivisibleSpinnerStateChanged(evt);
-        }
-      });
+    this.preferenceDivisibleSpinner.addChangeListener(this::preferenceDivisibleSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.preferenceDivisibleSpinner);
     this.preferenceDivisibleSpinner.setBounds(220, 190, 80, 20);
 
@@ -1102,13 +978,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.stepPrefLabel.setBounds(20, 240, 190, 10);
 
     this.stepPrefSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.stepPrefSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          stepPrefSpinnerStateChanged(evt);
-        }
-      });
+    this.stepPrefSpinner.addChangeListener(this::stepPrefSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.stepPrefSpinner);
     this.stepPrefSpinner.setBounds(220, 240, 80, 20);
 
@@ -1117,13 +987,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.nonPrefLabel.setBounds(20, 280, 190, 10);
 
     this.nonPrefLabelSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.nonPrefLabelSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          nonPrefLabelSpinnerStateChanged(evt);
-        }
-      });
+    this.nonPrefLabelSpinner.addChangeListener(this::nonPrefLabelSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.nonPrefLabelSpinner);
     this.nonPrefLabelSpinner.setBounds(219, 280, 80, 20);
 
@@ -1132,13 +996,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.dispersionLabel.setBounds(40, 190, 170, 14);
 
     this.dispersionSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.dispersionSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          dispersionSpinnerStateChanged(evt);
-        }
-      });
+    this.dispersionSpinner.addChangeListener(this::dispersionSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.dispersionSpinner);
     this.dispersionSpinner.setBounds(220, 190, 80, 18);
 
@@ -1148,13 +1006,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.requestCountSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
     this.requestCountSpinner.setMinimumSize(new java.awt.Dimension(30, 20));
-    this.requestCountSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          requestCountSpinnerStateChanged(evt);
-        }
-      });
+    this.requestCountSpinner.addChangeListener(this::requestCountSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.requestCountSpinner);
     this.requestCountSpinner.setBounds(220, 90, 80, 20);
 
@@ -1164,13 +1016,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.zipfLamdbaSpinner.setModel(zipfModel);
     this.zipfLamdbaSpinner.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.zipfLamdbaSpinner
-      .addChangeListener(new javax.swing.event.ChangeListener() {
-        @Override
-        public void stateChanged(final javax.swing.event.ChangeEvent evt) {
-          zipfLamdbaSpinnerStateChanged(evt);
-        }
-      });
+    this.zipfLamdbaSpinner.addChangeListener(this::zipfLamdbaSpinnerStateChanged);
     this.requestsSettingsPanel.add(this.zipfLamdbaSpinner);
     this.zipfLamdbaSpinner.setBounds(220, 190, 80, 18);
 
@@ -1205,12 +1051,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.resultsPane.setLayout(null);
 
     this.userList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-    this.userList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
-      @Override
-      public void valueChanged(final javax.swing.event.ListSelectionEvent evt) {
-        userListValueChanged(evt);
-      }
-    });
+    this.userList.addListSelectionListener(this::userListValueChanged);
     this.jScrollPane2.setViewportView(this.userList);
 
     this.resultsPane.add(this.jScrollPane2);
@@ -1227,13 +1068,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
         "Data Transfer Degrease Ratio [%]",
         "Data Transfer Degrease [MB]"}));
     this.resultsChangeCombo.setMaximumSize(new java.awt.Dimension(192, 22));
-    this.resultsChangeCombo
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          resultsChangeComboActionPerformed(evt);
-        }
-      });
+    this.resultsChangeCombo.addActionListener(this::resultsChangeComboActionPerformed);
     this.resultsPane.add(this.resultsChangeCombo);
     this.resultsChangeCombo.setBounds(11, 338, 140, 21);
 
@@ -1257,13 +1092,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.totalReqTextField.setEditable(false);
     this.totalReqTextField.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.totalReqTextField
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          totalReqTextFieldActionPerformed(evt);
-        }
-      });
+    this.totalReqTextField.addActionListener(this::totalReqTextFieldActionPerformed);
     this.resultsPane.add(this.totalReqTextField);
     this.totalReqTextField.setBounds(260, 13, 91, 19);
 
@@ -1273,13 +1102,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
     this.totalNetTextField.setEditable(false);
     this.totalNetTextField.setFont(new java.awt.Font("Tahoma", 0, 10)); // NOI18N
-    this.totalNetTextField
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          totalNetTextFieldActionPerformed(evt);
-        }
-      });
+    this.totalNetTextField.addActionListener(this::totalNetTextFieldActionPerformed);
     this.resultsPane.add(this.totalNetTextField);
     this.totalNetTextField.setBounds(597, 13, 80, 19);
 
@@ -1292,22 +1115,12 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.chooseResultsLabel.setBounds(29, 318, 120, 14);
 
     this.barChartButton.setText("Bar Chart");
-    this.barChartButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        barChartButtonActionPerformed(evt);
-      }
-    });
+    this.barChartButton.addActionListener(this::barChartButtonActionPerformed);
     this.resultsPane.add(this.barChartButton);
     this.barChartButton.setBounds(10, 390, 136, 23);
 
     this.lineChartButton.setText("Line Chart");
-    this.lineChartButton.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        lineChartButtonActionPerformed(evt);
-      }
-    });
+    this.lineChartButton.addActionListener(this::lineChartButtonActionPerformed);
     this.resultsPane.add(this.lineChartButton);
     this.lineChartButton.setBounds(10, 430, 136, 23);
 
@@ -1348,12 +1161,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.saveCSVMenuItem.setText("Save Results to CSV");
     this.saveCSVMenuItem.setToolTipText("Saves tables with results to CSV file");
     this.saveCSVMenuItem.setEnabled(false);
-    this.saveCSVMenuItem.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        saveCSVMenuItemActionPerformed(evt);
-      }
-    });
+    this.saveCSVMenuItem.addActionListener(this::saveCSVMenuItemActionPerformed);
     this.fileMenu.add(this.saveCSVMenuItem);
 
     this.saveXLSMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
@@ -1362,12 +1170,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.saveXLSMenuItem.setText("Save Results to XLS");
     this.saveXLSMenuItem.setToolTipText("Saves tables with results to XLS file");
     this.saveXLSMenuItem.setEnabled(false);
-    this.saveXLSMenuItem.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        saveXLSMenuItemActionPerformed(evt);
-      }
-    });
+    this.saveXLSMenuItem.addActionListener(this::saveXLSMenuItemActionPerformed);
     this.fileMenu.add(this.saveXLSMenuItem);
 
     this.saveConsoleMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(
@@ -1376,12 +1179,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.saveConsoleMenuItem.setText("Print results to console");
     this.saveConsoleMenuItem.setEnabled(false);
     this.saveConsoleMenuItem
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          saveConsoleMenuItemActionPerformed(evt);
-        }
-      });
+      .addActionListener(this::saveConsoleMenuItemActionPerformed);
     this.fileMenu.add(this.saveConsoleMenuItem);
     this.fileMenu.add(this.fileMenuSeparator);
 
@@ -1390,12 +1188,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.exitMenuItem.setMnemonic('X');
     this.exitMenuItem.setText("Exit");
     this.exitMenuItem.setToolTipText("Terminate simulator");
-    this.exitMenuItem.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        exitMenuItemActionPerformed(evt);
-      }
-    });
+    this.exitMenuItem.addActionListener(MainGUI::exitMenuItemActionPerformed);
     this.fileMenu.add(this.exitMenuItem);
 
     this.menuBar.add(this.fileMenu);
@@ -1413,12 +1206,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.inputAFSMenuItem.setText("From AFS log file");
     this.inputAFSMenuItem
       .setToolTipText("Requests to the files are from AFS log file");
-    this.inputAFSMenuItem.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        inputAFSMenuItemActionPerformed(evt);
-      }
-    });
+    this.inputAFSMenuItem.addActionListener(this::inputAFSMenuItemActionPerformed);
     this.requestMenu.add(this.inputAFSMenuItem);
 
     this.inputGaussianMenuItem.setAccelerator(javax.swing.KeyStroke
@@ -1428,12 +1216,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.inputGaussianMenuItem
       .setToolTipText("Requests to the files are from Gaussian distribution");
     this.inputGaussianMenuItem
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          inputGaussianMenuItemActionPerformed(evt);
-        }
-      });
+      .addActionListener(this::inputGaussianMenuItemActionPerformed);
     this.requestMenu.add(this.inputGaussianMenuItem);
 
     this.inputUniformlyMenuItem.setAccelerator(javax.swing.KeyStroke
@@ -1442,13 +1225,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.inputUniformlyMenuItem.setText("Uniformly random");
     this.inputUniformlyMenuItem
       .setToolTipText("Requests to the files are from uniformly random distribution");
-    this.inputUniformlyMenuItem
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          inputUniformlyMenuItemActionPerformed(evt);
-        }
-      });
+    this.inputUniformlyMenuItem.addActionListener(this::inputUniformlyMenuItemActionPerformed);
     this.requestMenu.add(this.inputUniformlyMenuItem);
 
     this.inputRandomPrefMenuItem.setAccelerator(javax.swing.KeyStroke
@@ -1457,13 +1234,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.inputRandomPrefMenuItem.setText("Random with preferences");
     this.inputRandomPrefMenuItem
       .setToolTipText("Requests to the files are from random distribution with preferention of files");
-    this.inputRandomPrefMenuItem
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          inputRandomPrefMenuItemActionPerformed(evt);
-        }
-      });
+    this.inputRandomPrefMenuItem.addActionListener(this::inputRandomPrefMenuItemActionPerformed);
     this.requestMenu.add(this.inputRandomPrefMenuItem);
 
     this.inputZipfMenuItem.setAccelerator(javax.swing.KeyStroke
@@ -1472,13 +1243,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.inputZipfMenuItem.setText("Zipf random");
     this.inputZipfMenuItem
       .setToolTipText("Requests to the files are from Zipf distribution");
-    this.inputZipfMenuItem
-      .addActionListener(new java.awt.event.ActionListener() {
-        @Override
-        public void actionPerformed(final java.awt.event.ActionEvent evt) {
-          inputZipfMenuItemActionPerformed(evt);
-        }
-      });
+    this.inputZipfMenuItem.addActionListener(this::inputZipfMenuItemActionPerformed);
     this.requestMenu.add(this.inputZipfMenuItem);
 
     this.simulationMenu.add(this.requestMenu);
@@ -1488,12 +1253,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     this.simulateMenuItem.setMnemonic('I');
     this.simulateMenuItem.setText("Simulate");
     this.simulateMenuItem.setToolTipText("Run simulation");
-    this.simulateMenuItem.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        simulateMenuItemActionPerformed(evt);
-      }
-    });
+    this.simulateMenuItem.addActionListener(this::simulateMenuItemActionPerformed);
     this.simulationMenu.add(this.simulateMenuItem);
 
     this.menuBar.add(this.simulationMenu);
@@ -1505,12 +1265,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       java.awt.event.KeyEvent.VK_A, 0));
     this.aboutMenuItem.setMnemonic('A');
     this.aboutMenuItem.setText("About");
-    this.aboutMenuItem.addActionListener(new java.awt.event.ActionListener() {
-      @Override
-      public void actionPerformed(final java.awt.event.ActionEvent evt) {
-        aboutMenuItemActionPerformed(evt);
-      }
-    });
+    this.aboutMenuItem.addActionListener(this::aboutMenuItemActionPerformed);
     this.helpMenu.add(this.aboutMenuItem);
 
     this.menuBar.add(this.helpMenu);
@@ -1604,7 +1359,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     }
     final String ret = (String) evt.getItem();
 
-    if (ret.equalsIgnoreCase("-- Choose one --")) {
+    if (ret.equalsIgnoreCase(CHOOSE_ONE)) {
       hideAllInput();
       GlobalVariables.setLoadDataFromLog(false);
     } else if (ret.equalsIgnoreCase("From afs log file")) {
@@ -1635,27 +1390,27 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     final Integer newCacheCap = (Integer) this.cacheCapSpinner.getValue();
     if (newCacheCap <= 0) {
       JOptionPane.showMessageDialog(this,
-        "You have to insert positive integer!", "Alert",
+        "You have to insert positive integer!", ALERT,
         JOptionPane.OK_OPTION);
       return;
     }
-    final myCapacityAbstractModel model = (myCapacityAbstractModel) this.cacheCapacityList
+    final CapacityAbstractModel model = (CapacityAbstractModel) this.cacheCapacityList
       .getModel();
     final Integer[] array = model.getArray();
     for (int i = 0; i < array.length; i++) {
       if (newCacheCap.compareTo(array[i]) == 0) {
         JOptionPane.showMessageDialog(this,
-          "You have to insert different value!", "Alert",
+          "You have to insert different value!", ALERT,
           JOptionPane.OK_OPTION);
         return;
       }
     }
     final Integer[] newArray = new Integer[array.length + 1];
     System.arraycopy(array, 0, newArray, 0, array.length);
-    newArray[newArray.length - 1] = new Integer(newCacheCap);
+    newArray[newArray.length - 1] = Integer.valueOf(newCacheCap);
     Arrays.sort(newArray);
 
-    this.cacheCapacityList.setModel(new myCapacityAbstractModel(newArray));
+    this.cacheCapacityList.setModel(new CapacityAbstractModel(newArray));
     this.cacheCapacityList.invalidate();
     this.cacheCapacityList.repaint();
 
@@ -1669,11 +1424,11 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
   private void cacheMinusButtonActionPerformed(final java.awt.event.ActionEvent evt) {// GEN-FIRST:event_cacheMinusButtonActionPerformed
     if (this.cacheCapacityList.getSelectedIndex() == -1) {
       JOptionPane.showMessageDialog(this,
-        "You have to select cache capacity to dismiss!", "Alert",
+        "You have to select cache capacity to dismiss!", ALERT,
         JOptionPane.OK_OPTION);
       return;
     }
-    final myCapacityAbstractModel model = (myCapacityAbstractModel) this.cacheCapacityList
+    final CapacityAbstractModel model = (CapacityAbstractModel) this.cacheCapacityList
       .getModel();
     model.remove(this.cacheCapacityList.getSelectedIndex());
     this.cacheCapacityList.invalidate();
@@ -1849,7 +1604,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       final AccessSimulation simulation = new AccessSimulation(fileQueue);
 
       // velikosti cache
-      final Integer[] sizes = ((myCapacityAbstractModel) this.cacheCapacityList
+      final Integer[] sizes = ((CapacityAbstractModel) this.cacheCapacityList
         .getModel()).getArray();
 
       // nastaveni progress baru
@@ -1880,7 +1635,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
 
           MainGUI.this.simulationProgressBar.setVisible(false);
           MainGUI.this.cacheResults = simulation.getResults();
-          if (MainGUI.this.cacheResults != null && MainGUI.this.cacheResults.size() > 0) {
+          if (MainGUI.this.cacheResults != null && !MainGUI.this.cacheResults.isEmpty()) {
             loadResultsToPanel();
             enableComponentsAfterSimulaton(true);
           } else {
@@ -2335,9 +2090,9 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
    */
   public String[] getCachesNames() {
     if (this.cacheCheckBoxes == null) {
-      return null;
+      return new String[0];
     }
-    final ArrayList<String> names = new ArrayList<String>();
+    final ArrayList<String> names = new ArrayList<>();
     for (final javax.swing.JCheckBox box : this.cacheCheckBoxes) {
       if (box.isSelected()) {
         names.add(box.getName());
@@ -2356,7 +2111,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
    * @return velikosti cache
    */
   public Integer[] getCacheSizes() {
-    return ((myCapacityAbstractModel) this.cacheCapacityList.getModel())
+    return ((CapacityAbstractModel) this.cacheCapacityList.getModel())
       .getArray();
   }
 
