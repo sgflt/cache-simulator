@@ -56,9 +56,9 @@ public class LRDv2 implements ICache{
 		@Override
 		public int compare(final Quartet<FileOnClient, Long,Long, Double> arg0,
 											 final Quartet<FileOnClient, Long,Long, Double> arg1) {
-			if ((Double) arg0.getFourth() > (Double) arg1.getFourth()) {
+			if (arg0.getFourth() > arg1.getFourth()) {
 				return 1;
-			} else if ((Double) arg0.getFourth() < (Double) arg1.getFourth()) {
+			} else if (arg0.getFourth() < arg1.getFourth()) {
 				return -1;
 			}
 			return 0;
@@ -68,12 +68,12 @@ public class LRDv2 implements ICache{
 	/**
 	 * kapacita cache
 	 */
-	private long capacity = 0;
+	private long capacity;
 	
 	/**
 	 * global counter
 	 */
-	private long GC = 0;
+	private long GC;
 	
 	/**
 	 * promenna pro nastaveni, zda se ma znovu pocitat RD
@@ -82,11 +82,10 @@ public class LRDv2 implements ICache{
 	
 		
 	public LRDv2() {
-		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.fList = new ArrayList<Quartet<FileOnClient,Long,Long,Double>>();
+		this.fList = new ArrayList<>();
 		this.GC = 0;
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
@@ -128,7 +127,7 @@ public class LRDv2 implements ICache{
 			for(final Quartet<FileOnClient, Long,Long, Double> files : this.fList){
 				files.setFourth((double)files.getSecond() / ((double) this.GC - files.getThird()));
 			}
-			Collections.sort(this.fList, new QuartetCompare());
+			this.fList.sort(new QuartetCompare());
 		}
 		this.needRecalculate = false;
 		this.fList.remove(0);
@@ -159,7 +158,7 @@ public class LRDv2 implements ICache{
 		while(freeCapacity() < f.getFileSize()){
 			removeFile();
 		}
-		this.fList.add(new Quartet<FileOnClient, Long, Long, Double>(f, (long)1, this.GC++, 1.0));
+		this.fList.add(new Quartet<>(f, (long) 1, this.GC++, 1.0));
 		this.needRecalculate = true;
 		recalculateReferences();
 	}
