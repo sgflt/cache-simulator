@@ -34,15 +34,15 @@ public class FIFO_2ndChance implements ICache{
 	/**
 	 * velikost cache v B
 	 */
-	private long capacity = 0;
+	private long capacity;
 	
 	/**
 	 * konstruktor - inicializace cache
 	 */
 	public FIFO_2ndChance() {
-		this.fQueue = new LinkedList<Pair<FileOnClient, Boolean>>();
+		this.fQueue = new LinkedList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
-		this.fOverCapacity = new ArrayList<FileOnClient>();
+		this.fOverCapacity = new ArrayList<>();
 	}
 	
 	@Override
@@ -78,7 +78,7 @@ public class FIFO_2ndChance implements ICache{
 	@Override
 	public void removeFile() {
 		Pair<FileOnClient, Boolean> file = this.fQueue.remove();
-		while(file.getSecond() == true){
+		while (file.getSecond()) {
 			file.setSecond(false);
 			this.fQueue.add(file);
 			file = this.fQueue.remove();
@@ -110,7 +110,7 @@ public class FIFO_2ndChance implements ICache{
 		while (freeCapacity() < f.getFileSize()) {
 			removeFile();
 		}
-		this.fQueue.add(new Pair<FileOnClient, Boolean>(f, false));
+		this.fQueue.add(new Pair<>(f, false));
 	}
 	
 	@Override
