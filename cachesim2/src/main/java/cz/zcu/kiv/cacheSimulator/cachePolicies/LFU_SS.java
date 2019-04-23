@@ -1,13 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 
 /**
@@ -84,7 +83,7 @@ public class LFU_SS implements ICache {
   public boolean contains(final String fileName) {
     this.accessCount++;
     if (this.accessCount % 20 == 0) {
-      setGlobalReadCountServer(this.server.getGlobalReadHits(this));
+      setGlobalReadCountServer(this.server.getGlobalReadRequests(this));
     }
     for (final Pair<Double, FileOnClient> f : this.list) {
       if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {

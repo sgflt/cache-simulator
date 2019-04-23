@@ -7,6 +7,7 @@ import cz.zcu.kiv.cacheSimulator.dataAccess.IFileQueue;
 import cz.zcu.kiv.cacheSimulator.server.Server;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+import cz.zcu.kiv.cacheSimulator.shared.OpenMode;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
@@ -96,11 +97,11 @@ public class AccessSimulation {
           if ((GlobalVariables.isSendStatisticsToServerLFUSS() && cache instanceof LFU_SS)
 								|| (GlobalVariables
             .isSendStatisticsToServerLRFUSS() && cache instanceof LRFU_SS)) {
-            this.server.getFileRead(file.getFirst(), cache);
+						this.server.getFile(file.getFirst(), cache, OpenMode.READ);
           }
         } else {
           // soubor neni v cache, musi se pro nej vytvorit zaznam
-          cache.insertFile(new FileOnClient(this.server.getFileRead(file.getFirst(), cache), cache, file.getSecond()));
+					cache.insertFile(new FileOnClient(this.server.getFile(file.getFirst(), cache, OpenMode.READ), cache, file.getSecond()));
         }
       }
 			// pristupujeme dalsi soubor
@@ -143,11 +144,11 @@ public class AccessSimulation {
           if ((GlobalVariables.isSendStatisticsToServerLFUSS() && cache instanceof LFU_SS)
 								|| (GlobalVariables
             .isSendStatisticsToServerLRFUSS() && cache instanceof LRFU_SS)) {
-            this.server.getFileRead(file.getFirst(), cache);
+						this.server.getFile(file.getFirst(), cache, OpenMode.READ);
 						}
         } else {
 					// soubor neni v cache, musi se pro nej vytvorit zaznam
-          cache.insertFile(new FileOnClient(this.server.getFileRead(file.getFirst(), cache), cache, file.getThird()));
+					cache.insertFile(new FileOnClient(this.server.getFile(file.getFirst(), cache, OpenMode.READ), cache, file.getThird()));
 				}
 				// pristupujeme dalsi soubor
 				file = this.fileQueue.getNextFileNameWithFSize();

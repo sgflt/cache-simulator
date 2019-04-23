@@ -1,6 +1,7 @@
 package cz.zcu.kiv.cacheSimulator.server;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * trida pro prezentaci souboru na strane serveru
@@ -24,8 +25,8 @@ public class FileOnServer {
   /**
    * promenne pro pocitani hitu (statistiky na serveru) podle cachovaciho algoritmu
    */
-  private final Hashtable<Integer, Integer> readHit;
-  private final Hashtable<Integer, Integer> writeHit;
+  private final Map<Integer, RequestCounter> readRequests = new HashMap<>();
+  private final Map<Integer, RequestCounter> writeRequests = new HashMap<>();
 
   /**
    * konstruktor - inicializace promennych
@@ -36,8 +37,6 @@ public class FileOnServer {
   public FileOnServer(final String fileName, final long fileSize) {
     this.fileName = fileName;
     this.fileSize = fileSize;
-    this.readHit = new Hashtable<>();
-    this.writeHit = new Hashtable<>();
   }
 
   /**
@@ -46,11 +45,8 @@ public class FileOnServer {
    * @param cache cachovaci algoritmus
    * @return pocet hitu
    */
-  public int getReadHit(final int cacheHash) {
-    if (!this.readHit.containsKey(cacheHash)) {
-      return 0;
-    }
-    return this.readHit.get(cacheHash);
+  public int getCountOfReadRequests(final int cacheHash) {
+    return getCountOfRequests(cacheHash, this.readRequests);
   }
 
   /**
@@ -58,12 +54,8 @@ public class FileOnServer {
    *
    * @param cache cachovaci algoritmus
    */
-  public void increaseReadHit(final int cacheHash) {
-    if (!this.readHit.containsKey(cacheHash)) {
-      this.readHit.put(cacheHash, 1);
-    } else {
-      this.readHit.put(cacheHash, this.readHit.get(cacheHash).intValue() + 1);
-    }
+  public void increaseReadRequestCounter(final int cacheHash) {
+    increaseRequestCounter(cacheHash, this.readRequests);
   }
 
   /**
@@ -72,11 +64,12 @@ public class FileOnServer {
    * @param cache cachovaci algoritmus
    * @return pocet hitu
    */
-  public int getWriteHit(final int cacheHash) {
-    if (!this.writeHit.containsKey(cacheHash)) {
-      return 0;
-    }
-    return this.writeHit.get(cacheHash);
+  public int getCountOfWriteRequests(final int cacheHash) {
+    return getCountOfRequests(cacheHash, this.writeRequests);
+  }
+
+  private static int getCountOfRequests(final int cacheHash, final Map<Integer, RequestCounter> hitMap) {
+    return hitMap.computeIfAbsent(cacheHash, k -> new RequestCounter()).getHit();
   }
 
   /**
@@ -84,12 +77,19 @@ public class FileOnServer {
    *
    * @param cache cachovaci algoritmus, ktery zapisoval (identifikace klienta)
    */
-  public void increaseWriteHit(final int cacheHash) {
-    if (!this.writeHit.containsKey(cacheHash)) {
-      this.writeHit.put(cacheHash, 1);
-    } else {
-      this.writeHit.put(cacheHash, this.writeHit.get(cacheHash) + 1);
-    }
+  public void increaseWriteRequestCounter(final int cacheHash) {
+    increaseRequestCounter(cacheHash, this.writeRequests);
+  }
+
+  private static void increaseRequestCounter(final int cacheHash, final Map<Integer, RequestCounter> cacheRequestMap) {
+    cacheRequestMap.compute(cacheHash, (k, v) -> {
+      if (v == null) {
+        return new RequestCounter();
+      }
+
+      v.increaseHit();
+      return v;
+    });
   }
 
   /**
@@ -114,7 +114,7 @@ public class FileOnServer {
    * metoda pro vyresetovani citaci pristupu
    */
   public void resetCounters() {
-    this.readHit.clear();
-    this.writeHit.clear();
+    this.readRequests.clear();
+    this.writeRequests.clear();
   }
 }

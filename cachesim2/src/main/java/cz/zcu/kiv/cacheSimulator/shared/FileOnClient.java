@@ -55,8 +55,8 @@ public class FileOnClient {
   public FileOnClient(final FileOnServer file, final ICache cache, final long accessTime) {
     this.fileName = file.getFileName();
     this.fileSize = file.getFileSize();
-    this.readHit = file.getReadHit(cache.hashCode());
-    this.writeHit = file.getWriteHit(cache.hashCode());
+    this.readHit = file.getCountOfReadRequests(cache.hashCode());
+    this.writeHit = file.getCountOfWriteRequests(cache.hashCode());
     this.accessTime = accessTime;
   }
 

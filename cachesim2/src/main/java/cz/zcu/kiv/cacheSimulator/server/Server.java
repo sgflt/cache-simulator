@@ -1,9 +1,10 @@
 package cz.zcu.kiv.cacheSimulator.server;
 
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
+import cz.zcu.kiv.cacheSimulator.shared.OpenMode;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -17,12 +18,13 @@ public class Server {
   /**
    * struktura pro uchovavni souboru pro bezne cachovaci algoritmy
    */
-  private final Hashtable<String, FileOnServer> fileTable;
+  private final Map<String, FileOnServer> fileTable;
 
   /**
-   * struktura pro ulozeni nazvu souboru
+   * promenne pro pocitani hitu (statistiky na serveru) podle cachovaciho algoritmu
    */
-  private final ArrayList<String> fileNames;
+  private final Map<Integer, RequestCounter> readRequests = new HashMap<>();
+  private final Map<Integer, RequestCounter> writeRequests = new HashMap<>();
 
   /**
    * promenna pro generovani nahodne velikosti souboru
@@ -44,8 +46,7 @@ public class Server {
    * konstruktor - zaplneni struktury soubory
    */
   private Server() {
-    this.fileTable = new Hashtable<>(200000, 0.8f);
-    this.fileNames = new ArrayList<>();
+    this.fileTable = new HashMap<>(200000, 0.8f);
     this.rnd = new Random(0);
   }
 
@@ -97,9 +98,6 @@ public class Server {
    * @return true, pokud existuje soubor
    */
   public boolean existFileOnServer(final String name) {
-    if (this.fileTable == null) {
-      return false;
-    }
     if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(name)) {
       return true;
     }
@@ -109,83 +107,45 @@ public class Server {
   /**
    * metoda pro ziskani souboru na cteni
    *
-   * @param fname jmeno souboru, ktery pozadujeme
+   * @param fileName jmeno souboru, ktery pozadujeme
    * @return objekt souboru
    */
-  public synchronized FileOnServer getFileRead(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty()) {
+  public synchronized FileOnServer getFile(final String fileName, final ICache cache, final OpenMode openMode) {
+    if (this.fileTable.isEmpty()) {
       return null;
     }
-    final FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)) {
-      ret = this.lastFile;
+    final FileOnServer fileOnServer;
+    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fileName)) {
+      fileOnServer = this.lastFile;
     } else {
-      ret = this.fileTable.get(fname);
+      fileOnServer = this.fileTable.get(fileName);
     }
-    if (ret == null) {
+    if (fileOnServer == null) {
       return null;
     }
     //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
     if (cache.needServerStatistics()) {
-      ret.increaseReadHit(cache.hashCode());
+      switch (openMode) {
+        case READ:
+          increaseGlobalReadRequestCounter(cache.hashCode());
+          fileOnServer.increaseReadRequestCounter(cache.hashCode());
+          break;
+        case WRITE:
+          increaseGlobalWriteRequestCounter(cache.hashCode());
+          fileOnServer.increaseWriteRequestCounter(cache.hashCode());
+          break;
+        case READ_WRITE:
+          increaseGlobalReadRequestCounter(cache.hashCode());
+          increaseGlobalWriteRequestCounter(cache.hashCode());
+          fileOnServer.increaseReadRequestCounter(cache.hashCode());
+          fileOnServer.increaseWriteRequestCounter(cache.hashCode());
+          break;
+        default:
+          throw new UnsupportedOperationException("Unknown open mode " + openMode);
+      }
     }
-    this.lastFile = ret;
-    return ret;
-  }
-
-  /**
-   * metoda pro ziskani souboru na zapis
-   *
-   * @param fname jmeno souboru, ktery pozadujeme
-   * @return objekt souboru
-   */
-  public synchronized FileOnServer getFileWrite(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty()) {
-      return null;
-    }
-    final FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)) {
-      ret = this.lastFile;
-    } else {
-      ret = this.fileTable.get(fname);
-    }
-    if (ret == null) {
-      return null;
-    }
-    //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
-    if (cache.needServerStatistics()) {
-      ret.increaseWriteHit(cache.hashCode());
-    }
-    this.lastFile = ret;
-    return ret;
-  }
-
-  /**
-   * metoda pro ziskani souboru na zapis i cteni
-   *
-   * @param fname jmeno souboru, ktery pozadujeme
-   * @return objekt souboru
-   */
-  public synchronized FileOnServer getFileReadWrite(final String fname, final ICache cache) {
-    if (this.fileTable == null || this.fileTable.isEmpty()) {
-      return null;
-    }
-    final FileOnServer ret;
-    if (this.lastFile != null && this.lastFile.getFileName().equalsIgnoreCase(fname)) {
-      ret = this.lastFile;
-    } else {
-      ret = this.fileTable.get(fname);
-    }
-    if (ret == null) {
-      return null;
-    }
-    //pokud cachovaci algoritmus vyzaduje statistiky ze serveru, jsou tyto pro nej aktualizovany
-    if (cache.needServerStatistics()) {
-      ret.increaseWriteHit(cache.hashCode());
-      ret.increaseReadHit(cache.hashCode());
-    }
-    this.lastFile = ret;
-    return ret;
+    this.lastFile = fileOnServer;
+    return fileOnServer;
   }
 
   /**
@@ -193,12 +153,8 @@ public class Server {
    *
    * @return pocet hitu
    */
-  public synchronized long getGlobalReadHits(final ICache cache) {
-    long ret = 0;
-    for (final FileOnServer f : this.fileTable.values()) {
-      ret += f.getReadHit(cache.hashCode());
-    }
-    return ret;
+  public synchronized long getGlobalReadRequests(final ICache cache) {
+    return this.readRequests.computeIfAbsent(cache.hashCode(), k -> new RequestCounter()).getHit();
   }
 
   /**
@@ -223,34 +179,9 @@ public class Server {
   }
 
   /**
-   * metoda pro ziskani nazvu souboru
-   *
-   * @return nazvu souboru
-   */
-  public ArrayList<String> getFileNames() {
-    //preklopeni nazvu souboru do listu pro pozdejsi praci s nimi
-    this.fileNames.clear();
-    for (final FileOnServer files : this.fileTable.values()) {
-      this.fileNames.add(files.getFileName());
-    }
-    return this.fileNames;
-  }
-
-  /**
-   * metoda pro vytisteni statistik o pristupu k jednotlivym souborum
-   */
-  public void printStatistics(final ICache cache) {
-    System.out.println("\nFile accesses:");
-    for (final FileOnServer fos : this.fileTable.values()) {
-      System.out.println(fos.getFileName() + ";" + fos.getReadHit(cache.hashCode()) + ";" + fos.getFileSize());
-    }
-  }
-
-  /**
    * metoda, ktera odstrani ze serveru vsechny souboru (je nasledne nutne soubory opet vytvorit pred dalsi simulaci)
    */
   public void hardReset() {
-    this.fileNames.clear();
     this.fileTable.clear();
   }
 
@@ -258,8 +189,61 @@ public class Server {
    * metoda, ktera odtrani ze serveru statistiky u vsechn souboru
    */
   public void softReset() {
-    for (final FileOnServer file : this.fileTable.values()) {
-      file.resetCounters();
-    }
+    this.readRequests.clear();
+    this.writeRequests.clear();
+  }
+
+
+  /**
+   * metoda vrati pocet hitu na cteni souboru podle cachovaciho algoritmu
+   *
+   * @param cache cachovaci algoritmus
+   * @return pocet hitu
+   */
+  public int getCountOfReadRequests(final int cacheHash) {
+    return getCountOfRequests(cacheHash, this.readRequests);
+  }
+
+  /**
+   * metoda navysi pocet read hitu pro dany soubor podle cachovaciho algoritmu
+   *
+   * @param cache cachovaci algoritmus
+   */
+  public void increaseGlobalReadRequestCounter(final int cacheHash) {
+    increaseRequestCounter(cacheHash, this.readRequests);
+  }
+
+  /**
+   * Metoda vrati pocet hitu na zapis u souboru podle cachovaciho algoritmu
+   *
+   * @param cache cachovaci algoritmus
+   * @return pocet hitu
+   */
+  public int getCountOfWriteRequests(final int cacheHash) {
+    return getCountOfRequests(cacheHash, this.writeRequests);
+  }
+
+  private static int getCountOfRequests(final int cacheHash, final Map<Integer, RequestCounter> hitMap) {
+    return hitMap.computeIfAbsent(cacheHash, k -> new RequestCounter()).getHit();
+  }
+
+  /**
+   * metoda pro zvyseni poctu hitu u zapisu pro soubor
+   *
+   * @param cache cachovaci algoritmus, ktery zapisoval (identifikace klienta)
+   */
+  public void increaseGlobalWriteRequestCounter(final int cacheHash) {
+    increaseRequestCounter(cacheHash, this.writeRequests);
+  }
+
+  private static void increaseRequestCounter(final int cacheHash, final Map<Integer, RequestCounter> cacheRequestMap) {
+    cacheRequestMap.compute(cacheHash, (k, v) -> {
+      if (v == null) {
+        return new RequestCounter();
+      }
+
+      v.increaseHit();
+      return v;
+    });
   }
 }
