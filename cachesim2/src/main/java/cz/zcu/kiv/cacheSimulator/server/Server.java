@@ -1,10 +1,10 @@
 package cz.zcu.kiv.cacheSimulator.server;
 
+import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
+
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Random;
-
-import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 
 
 /**

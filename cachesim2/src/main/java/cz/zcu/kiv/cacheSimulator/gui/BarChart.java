@@ -4,10 +4,7 @@
  */
 package cz.zcu.kiv.cacheSimulator.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import javax.swing.JFrame;
+import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -20,7 +17,8 @@ import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 
-import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
+import javax.swing.*;
+import java.awt.*;
 
 /**
  *
@@ -61,7 +59,7 @@ public class BarChart extends JFrame {
         // create the dataset...
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         final Integer[] cacheSizes = sc.getCacheSizes();
-        final String[] cacheNames = sc.getCacheNames();
+        final java.util.List<String> cacheNames = sc.getCacheNames();
         
         switch (dataSelect){
             case 0:
@@ -74,9 +72,8 @@ public class BarChart extends JFrame {
                 }
                 break;
             case 1:
-                Long[] vysledkyHitCount;
                 for (final String cacheName : cacheNames) {
-                    vysledkyHitCount = sc.getCacheHits(cacheName);
+                    final Long[] vysledkyHitCount = sc.getCacheHits(cacheName);
                     for (int i = 0; i < vysledkyHitCount.length; i++){
                         dataset.addValue(vysledkyHitCount[i], cacheName, cacheSizes[i].toString() + "[MB]");
                     }

@@ -17,9 +17,9 @@ import java.util.List;
 
 /**
  * trida pro simulaci pristupu k souborum a cachovacich algoritmu
- * 
+ *
  * @author Pavel Bzoch
- * 
+ *
  */
 public class AccessSimulation {
 
@@ -40,7 +40,7 @@ public class AccessSimulation {
 
 	/**
 	 * konstruktor - inicializace promennych
-	 * 
+   *
 	 * @param fileQueue
 	 *            seznam prisupovanych souboru
 	 */
@@ -51,7 +51,7 @@ public class AccessSimulation {
 
 	/**
 	 * metoda pro ziskani ci vytvoreni noveho uzivatele
-	 * 
+   *
 	 * @param userID
 	 *            id uziavatele
 	 * @return uzivatel s cachovacimi algoritmy
@@ -80,35 +80,29 @@ public class AccessSimulation {
 			// zvysime pocet pristupovanych souboru
 			user.incereaseFileAccess();
 			user.increaseTotalNetworkBandwidth(this.server.getFileSize(file.getFirst()));
-			for (final Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
-				for (int i = 0; i < cache.getFirst().length; i++) {
+      for (final var measurement : user.getMeasurements()) {
 					// soubor je jiz v cache, aktualizujeme pouze statistiky
-					if (cache.getFirst()[i].isInCache(file.getFirst())) {
-						cache.getSecond()[i] += 1;
-						cache.getThird()[i] += cache.getFirst()[i]
-								.getFileFromCache(file.getFirst())
-								.getFileSize();
+        final ICache cache = measurement.getCache();
+        if (cache.isInCache(file.getFirst())) {
+          final Metrics metrics = measurement.getMetrics();
+          metrics.incrementCacheHits();
+          metrics.incrementSavedBandthwidth(
+            cache.getFileFromCache(file.getFirst())
+              .getFileSize()
+          );
 
 						// statistiky na server u vsech souboru - i u tech, co
 						// se pristupuji z cache
-						if ((GlobalVariables.isSendStatisticsToServerLFUSS() && (cache
-								.getFirst()[i] instanceof LFU_SS))
+          if ((GlobalVariables.isSendStatisticsToServerLFUSS() && cache instanceof LFU_SS)
 								|| (GlobalVariables
-										.isSendStatisticsToServerLRFUSS() && (cache
-							.getFirst()[i] instanceof LRFU_SS))) {
-							this.server.getFileRead(file.getFirst(), cache
-								.getFirst()[i]);
-						}
-					}
-					// soubor neni v cache, musi se pro nej vytvorit zaznam
-					else {
-						cache.getFirst()[i].insertFile(new FileOnClient(this.server
-								.getFileRead(file.getFirst(),
-										cache.getFirst()[i]),
-								cache.getFirst()[i], file.getSecond()));
-					}
-				}
-			}
+            .isSendStatisticsToServerLRFUSS() && cache instanceof LRFU_SS)) {
+            this.server.getFileRead(file.getFirst(), cache);
+          }
+        } else {
+          // soubor neni v cache, musi se pro nej vytvorit zaznam
+          cache.insertFile(new FileOnClient(this.server.getFileRead(file.getFirst(), cache), cache, file.getSecond()));
+        }
+      }
 			// pristupujeme dalsi soubor
 			file = this.fileQueue.getNextFileName();
 		}
@@ -134,31 +128,26 @@ public class AccessSimulation {
 			user.incereaseFileAccess();
 			user.increaseTotalNetworkBandwidth(this.server.getFileSize(file
 					.getFirst()));
-			for (final Triplet<ICache[], Long[], Long[]> cache : user.getCaches()) {
-				for (int i = 0; i < cache.getFirst().length; i++) {
+      for (final var measurement : user.getMeasurements()) {
 					// soubor je jiz v cache, aktualizujeme pouze statistiky
-					if (cache.getFirst()[i].isInCache(file.getFirst())) {
-						cache.getSecond()[i] += 1;
-						cache.getThird()[i] += cache.getFirst()[i].getFileFromCache(
-										file.getFirst()).getFileSize();
+        final ICache cache = measurement.getCache();
+        if (cache.isInCache(file.getFirst())) {
+          final Metrics metrics = measurement.getMetrics();
+          metrics.incrementCacheHits();
+          metrics.incrementSavedBandthwidth(
+            cache.getFileFromCache(
+              file.getFirst()).getFileSize()
+          );
 						// statistiky na server u vsech souboru - i u tech, co
 						// se pristupuji z cache
-						if ((GlobalVariables.isSendStatisticsToServerLFUSS() && (cache
-								.getFirst()[i] instanceof LFU_SS))
+          if ((GlobalVariables.isSendStatisticsToServerLFUSS() && cache instanceof LFU_SS)
 								|| (GlobalVariables
-										.isSendStatisticsToServerLRFUSS() && (cache
-							.getFirst()[i] instanceof LRFU_SS))) {
-							this.server.getFileRead(file.getFirst(), cache
-								.getFirst()[i]);
+            .isSendStatisticsToServerLRFUSS() && cache instanceof LRFU_SS)) {
+            this.server.getFileRead(file.getFirst(), cache);
 						}
-					}
+        } else {
 					// soubor neni v cache, musi se pro nej vytvorit zaznam
-					else {
-						cache.getFirst()[i].insertFile(
-							new FileOnClient(this.server.getFileRead(file
-										.getFirst(), cache.getFirst()[i]), cache
-										.getFirst()[i], file.getThird()));
-					}
+          cache.insertFile(new FileOnClient(this.server.getFileRead(file.getFirst(), cache), cache, file.getThird()));
 				}
 				// pristupujeme dalsi soubor
 				file = this.fileQueue.getNextFileNameWithFSize();
@@ -168,7 +157,7 @@ public class AccessSimulation {
 
 	/**
 	 * metoda vraci vysledky vsech uzivatelu
-	 * 
+   *
 	 * @return vysledky vsech uzivatelu
 	 */
 	public List<UserStatistics> getResults() {

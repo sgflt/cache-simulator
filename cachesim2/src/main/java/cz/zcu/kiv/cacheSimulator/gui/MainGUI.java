@@ -468,7 +468,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
       this.userList.getSelectedIndex()).getFileAccessed()));
     final UserStatistics stat = this.cacheResults.get(this.userList.getSelectedIndex());
 
-    final String[] cacheNames = stat.getCacheNames();
+    final List<String> cacheNames = stat.getCacheNames();
 
     final String[] names = new String[getCacheSizes().length + 1];
     names[0] = "Cache Policy";
@@ -478,29 +478,27 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     }
 
     Object[] row;
-    final int length = cacheNames.length;
+    final int length = cacheNames.size();
     final Object[][] rowData = new Object[length][stat.getCacheSizes().length + 1];
 
-    for (int i = 0; i < length; i++) {
+    for (int i = 0; i < cacheNames.size(); i++) {
       if (this.resultsChangeCombo.getSelectedIndex() == 0) {
 
-        row = stat.getCacheHitRatios(cacheNames[i]);
+        row = stat.getCacheHitRatios(cacheNames.get(i));
       } else if (this.resultsChangeCombo.getSelectedIndex() == 1) {
-        row = stat.getCacheHits(cacheNames[i]);
+        row = stat.getCacheHits(cacheNames.get(i));
       } else if (this.resultsChangeCombo.getSelectedIndex() == 2) {
-        row = stat.getCacheSavedBytesRatio(cacheNames[i]);
+        row = stat.getCacheSavedBytesRatio(cacheNames.get(i));
       } else if ((this.resultsChangeCombo.getSelectedIndex() == 3)) {
-        row = stat.getSavedBytes(cacheNames[i]);
+        row = stat.getSavedBytes(cacheNames.get(i));
       } else if ((this.resultsChangeCombo.getSelectedIndex() == 5)) {
-        row = stat.getDataTransferDegrease(cacheNames[i]);
+        row = stat.getDataTransferDegrease(cacheNames.get(i));
       } else {
-        row = stat.getDataTransferDegreaseRatio(cacheNames[i]);
+        row = stat.getDataTransferDegreaseRatio(cacheNames.get(i));
       }
-      rowData[i][0] = cacheNames[i];
+      rowData[i][0] = cacheNames.get(i);
 
-      for (int j = 1; j < names.length; j++) {
-        rowData[i][j] = row[j - 1];
-      }
+      System.arraycopy(row, 0, rowData[i], 1, names.length - 1);
     }
 
     final TableModel tm = new DefaultTableModel(rowData, names);

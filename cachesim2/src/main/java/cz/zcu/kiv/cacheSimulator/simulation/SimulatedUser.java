@@ -1,16 +1,15 @@
 package cz.zcu.kiv.cacheSimulator.simulation;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
 import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
-import cz.zcu.kiv.cacheSimulator.shared.Quartet;
-import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * trida pro reprezentaci simulovaneho uzivatele kazdy uzivatel ma svou sadu
@@ -24,18 +23,18 @@ public class SimulatedUser {
 	/**
 	 * identifikator uzivatele
 	 */
-	private long ID;
+	private final long ID;
 
 	/**
 	 * promenna pro uchovani cachovacich algoritmu prvni je pro uchovani odkazu
 	 * na cache, druha je pro urceni cacheHit, treti je pro urceni saved traffic
 	 */
-	private ArrayList<Triplet<ICache[], Long[], Long[]>> caches;
+	private List<Measurement> measurements;
 
 	/**
 	 * promenna pro uchovani archivu
 	 */
-	private Hashtable<String, Quartet<Long[], Long[], Double[], Double[]>> cachesResults;
+	private final List<Statistics> cachesResults = new ArrayList<>();
 
 	/**
 	 * promenna pro ulozeni celkoveho poctu pristupu k souborum
@@ -55,45 +54,35 @@ public class SimulatedUser {
 	 * @param iD
 	 *            user ID
 	 */
-	public SimulatedUser(long iD) {
-		super();
-		ID = iD;
-		fileAccessed = 0;
-		totalNetworkBandwidth = 0;
+	public SimulatedUser(final long iD) {
+		this.ID = iD;
 		loadCaches(MainGUI.getInstance().getCacheSizes());
-		cachesResults = new Hashtable<String, Quartet<Long[], Long[], Double[], Double[]>>();
 	}
 
 	/**
 	 * metoda, ktera podle nasatveni v global variables nacte cachovaci
 	 * algoritmy
 	 */
-	private void loadCaches(Integer[] cacheSizes) {
-		if (caches != null)
-			caches.clear();
-		caches = new ArrayList<Triplet<ICache[], Long[], Long[]>>();
+	private void loadCaches(final Integer[] cacheSizes) {
+		if (this.measurements != null) {
+			this.measurements.clear();
+		}
+		this.measurements = new ArrayList<>();
 
-		ICache cache = null;
-		for (String cacheName : MainGUI.getInstance().getCachesNames()) {
-			ICache[] cachePolicies = new ICache[cacheSizes.length];
-			Long cacheHit[] = new Long[cacheSizes.length];
-			Long savedTraffic[] = new Long[cacheSizes.length];
-			Triplet<ICache[], Long[], Long[]> cacheStat = new Triplet<ICache[], Long[], Long[]>(cachePolicies, cacheHit, savedTraffic);
+		ICache cache;
+		for (final String cacheName : MainGUI.getInstance().getCachesNames()) {
 			for (int i = 0; i < cacheSizes.length; i++) {
 				try {
 					cache = (ICache) Class.forName(
 							"cz.zcu.kiv.cacheSimulator.cachePolicies." + cacheName)
 							.newInstance();
 					cache.setCapacity(cacheSizes[i]*1024*1024);
-					cacheStat.getFirst()[i] = cache;
-					cacheStat.getSecond()[i] = 0L;
-					cacheStat.getThird()[i] = 0L;
-				} catch (Exception ex) {
+					this.measurements.add(new Measurement(cache));
+				} catch (final Exception ex) {
 					Logger.getLogger(SimulatedUser.class.getName()).log(
 							Level.SEVERE, null, ex);
 				}
 			}
-			caches.add(cacheStat);
 		}
 	}
 
@@ -103,15 +92,15 @@ public class SimulatedUser {
 	 * @return id uzivatele
 	 */
 	public long getID() {
-		return ID;
+		return this.ID;
 	}
 
 	public long getFileAccessed() {
-		return fileAccessed;
+		return this.fileAccessed;
 	}
 
 	public long getTotalNetworkBandwidth() {
-		return totalNetworkBandwidth;
+		return this.totalNetworkBandwidth;
 	}
 
 	/**
@@ -120,8 +109,8 @@ public class SimulatedUser {
 	 * 
 	 * @return seznam algoritmu
 	 */
-	public ArrayList<Triplet<ICache[], Long[], Long[]>> getCaches() {
-		return caches;
+	public List<Measurement> getMeasurements() {
+		return this.measurements;
 	}
 
 	/**
@@ -138,7 +127,7 @@ public class SimulatedUser {
 	 * @param fileSize
 	 *            velikost pridavaneho souboru
 	 */
-	public void increaseTotalNetworkBandwidth(long fileSize) {
+	public void increaseTotalNetworkBandwidth(final long fileSize) {
 		this.totalNetworkBandwidth += fileSize;
 	}
 
@@ -146,45 +135,36 @@ public class SimulatedUser {
 	 * metoda pro vytisteni statistik
 	 */
 	public void printStatistics() {
-		if (this.fileAccessed < GlobalVariables.getLimitForStatistics())
+		if (this.fileAccessed < GlobalVariables.getLimitForStatistics()) {
 			return;
-		long id = this.ID >> 32;
-		String ip = (GlobalMethods.intToIp(this.ID - (id << 32)));
+		}
+		final long id = this.ID >> 32;
+		final String ip = (GlobalMethods.intToIp(this.ID - (id << 32)));
 		System.out.println("=================== Statistics for user id: " + id
 				+ ", ip: " + ip + " ===================\n");
-		for (Triplet<ICache[], Long[], Long[]> cache : caches) {
+		for (final var measurement : this.measurements) {
 			System.out
-					.println(cache.getFirst().toString()
+				.println(measurement.getCache()
 							+ " read hits: "
-							+ cache.getSecond()
+					+ measurement.getMetrics().getCacheHits()
 							+ ", saved capacity: "
-							+ cache.getThird()
+					+ measurement.getMetrics().getSavedBandthwidth()
 							+ ", cache hit ratio: "
 						//	+ (double) (((int) (cache.getSecond() * 10000 / fileAccessed)) / 100.0)
 							+ "%");
 		}
-		System.out.println("\nFiles requested: " + fileAccessed
-				+ ", total file sizes: " + totalNetworkBandwidth + "\n");
+		System.out.println("\nFiles requested: " + this.fileAccessed
+			+ ", total file sizes: " + this.totalNetworkBandwidth + "\n");
 	}
 
-	/**
-	 * metoda pro uloyei statistik do arraylistu
-	 */
 	private void saveStatistics() {
-		Quartet<Long[], Long[], Double[], Double[]> quart;
-		for (Triplet<ICache[], Long[], Long[]> cache : caches) {
-			String cacheName = cache.getFirst()[0].toString();
-			Long[] cacheHit = cache.getSecond();
-			Long[] savedTraffic = cache.getThird();
-			Double[] hitRatio = new Double[cacheHit.length];
-			Double[] savedTrafRatio = new Double[cacheHit.length];
-			for (int i = 0; i < cacheHit.length; i++){
-				hitRatio[i] = (double) (((int) (cacheHit[i] * 100000 / fileAccessed)) / 1000.0);
-				savedTrafRatio[i] = (double) ((int) (savedTraffic[i] * 100000 / totalNetworkBandwidth) / 1000.0);
-			}			
-			quart = new Quartet<Long[], Long[], Double[], Double[]>(cacheHit, savedTraffic, hitRatio, savedTrafRatio);
-			cachesResults.put(cacheName, quart);
-
+		for (final var measurement : this.measurements) {
+			final ICache cache = measurement.getCache();
+			final long cacheHit = measurement.getMetrics().getCacheHits();
+			final long savedTraffic = measurement.getMetrics().getSavedBandthwidth();
+			final double hitRatio = ((int) (cacheHit * 100000 / this.fileAccessed)) / 1000.0;
+			final double savedTrafRatio = (int) (savedTraffic * 100000 / this.totalNetworkBandwidth) / 1000.0;
+			this.cachesResults.add(new Statistics(cache, cacheHit, savedTraffic, hitRatio, savedTrafRatio));
 		}
 	}
 
@@ -193,30 +173,13 @@ public class SimulatedUser {
 	 * 
 	 * @return hashtable s vysledky
 	 */
-	public Hashtable<String, Quartet<Long[], Long[], Double[], Double[]>> getCachesResults() {
-		if (cachesResults == null || cachesResults.isEmpty())
+	public List<Statistics> getCachesResults() {
+		if (this.cachesResults.isEmpty()) {
 			saveStatistics();
-		if (fileAccessed < GlobalVariables.getLimitForStatistics()) {
-			return null;
 		}
-		return cachesResults;
+		if (this.fileAccessed < GlobalVariables.getLimitForStatistics()) {
+			return Collections.emptyList();
+		}
+		return this.cachesResults;
 	}
-
-	/**
-	 * metoda pro vyresetovani cachovacoch algoritmu a statistik
-	 */
-	/*public void reset() {
-		this.fileAccessedHist = this.fileAccessed;
-		this.fileAccessed = 0;
-		this.totalNetworkBandwidthHist = totalNetworkBandwidth;
-		this.totalNetworkBandwidth = 0;
-
-		for (Triplet<ICache[], Long[], Long[]> cache : caches) {
-			for (int i = 0; i < cache.getFirst().length; i++){
-				cache.getFirst()[i].reset();
-				cache.getSecond()[i] = (0L);
-				cache.getThird()[i] = (0L);
-			}
-		}
-	}*/
 }
