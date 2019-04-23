@@ -87,10 +87,8 @@ public class AccessSimulation {
 				if (cache.contains(file.getFirst())) {
           final Metrics metrics = measurement.getMetrics();
           metrics.incrementCacheHits();
-          metrics.incrementSavedBandthwidth(
-						cache.get(file.getFirst())
-              .getFileSize()
-          );
+					final FileOnClient fileOnClient = cache.get(file.getFirst());
+					metrics.incrementSavedBandthwidth(fileOnClient.getFileSize());
 
 						// statistiky na server u vsech souboru - i u tech, co
 						// se pristupuji z cache

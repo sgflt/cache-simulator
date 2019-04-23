@@ -162,7 +162,7 @@ public class LFU_SS implements ICache {
     for (final Pair<Double, FileOnClient> files : this.list) {
       localReadCount += files.getFirst();
     }
-    final double readHits = ((double) f.getReadHit() - (double) f.getWriteHit())
+    final double readHits = ((double) f.getCountOfReadRequests() - (double) f.getCountOfWriteRequests())
       / (double) this.globalReadCount * localReadCount + 1.0;
     this.list.add(new Pair<>(readHits, f));
     this.needSort = true;

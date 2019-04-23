@@ -24,8 +24,8 @@ public class FileOnClient {
   /**
    * promenne pro pocitani hitu (statistiky na serveru)
    */
-  private int readHit;
-  private int writeHit;
+  private int countOfReqdRequests;
+  private int countOfWriteRequests;
 
   /**
    * cas, kdy soubor prisel do cache
@@ -55,8 +55,8 @@ public class FileOnClient {
   public FileOnClient(final FileOnServer file, final ICache cache, final long accessTime) {
     this.fileName = file.getFileName();
     this.fileSize = file.getFileSize();
-    this.readHit = file.getCountOfReadRequests(cache.hashCode());
-    this.writeHit = file.getCountOfWriteRequests(cache.hashCode());
+    this.countOfReqdRequests = file.getCountOfReadRequests(cache.hashCode());
+    this.countOfWriteRequests = file.getCountOfWriteRequests(cache.hashCode());
     this.accessTime = accessTime;
   }
 
@@ -87,15 +87,8 @@ public class FileOnClient {
    *
    * @return pocet cteni souboru
    */
-  public int getReadHit() {
-    return this.readHit;
-  }
-
-  /**
-   * metoda pro zvyseni poctu pristupu na cteni
-   */
-  public void increaseReadHit() {
-    this.readHit++;
+  public int getCountOfReadRequests() {
+    return this.countOfReqdRequests;
   }
 
   /**
@@ -103,15 +96,8 @@ public class FileOnClient {
    *
    * @return pocet zapisu do souboru
    */
-  public int getWriteHit() {
-    return this.writeHit;
-  }
-
-  /**
-   * metoda pro zvyseni poctu pristupu na zapis
-   */
-  public void increaseWriteHit() {
-    this.writeHit++;
+  public int getCountOfWriteRequests() {
+    return this.countOfWriteRequests;
   }
 
   /**
@@ -130,13 +116,5 @@ public class FileOnClient {
    */
   public long getFileSize() {
     return this.fileSize;
-  }
-
-  /**
-   * metoda por vyresetovani citacu
-   */
-  public void resetCounters() {
-    this.readHit = 0;
-    this.writeHit = 0;
   }
 }
