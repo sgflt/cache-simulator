@@ -56,9 +56,9 @@ public class LRDv1 implements ICache {
   }
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fileName) {
     for (final LRDMetaData file : this.files) {
-      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fName)) {
+      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
     }
@@ -66,9 +66,9 @@ public class LRDv1 implements ICache {
   }
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient get(final String fileName) {
     for (final LRDMetaData file : this.files) {
-      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fName)) {
+      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
         file.incrementHit();
         this.needRecalculate = true;
         this.GC++;

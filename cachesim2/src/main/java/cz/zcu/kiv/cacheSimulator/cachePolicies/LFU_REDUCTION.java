@@ -1,12 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 
 /**
@@ -81,9 +80,9 @@ public class LFU_REDUCTION implements ICache {
   }
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fileName) {
     for (final Pair<Integer, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+      if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
     }
@@ -91,9 +90,9 @@ public class LFU_REDUCTION implements ICache {
   }
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient get(final String fileName) {
     for (final Pair<Integer, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+      if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
         f.setFirst(f.getFirst() + 1);
         this.needSort = true;
         return f.getSecond();

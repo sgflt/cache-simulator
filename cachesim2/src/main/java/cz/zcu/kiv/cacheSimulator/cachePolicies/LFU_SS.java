@@ -81,13 +81,13 @@ public class LFU_SS implements ICache {
   }
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fileName) {
     this.accessCount++;
     if (this.accessCount % 20 == 0) {
       setGlobalReadCountServer(this.server.getGlobalReadHits(this));
     }
     for (final Pair<Double, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+      if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
     }
@@ -95,10 +95,10 @@ public class LFU_SS implements ICache {
   }
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient get(final String fileName) {
     final Pair<Double, FileOnClient> pair;
     for (final Pair<Double, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+      if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
         pair = f;
         pair.setFirst(pair.getFirst() + 1.0);
         this.needSort = true;

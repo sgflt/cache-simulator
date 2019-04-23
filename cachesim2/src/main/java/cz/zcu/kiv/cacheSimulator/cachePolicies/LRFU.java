@@ -88,9 +88,9 @@ public class LRFU implements ICache {
 	}
 
 	@Override
-	public boolean isInCache(final String fName) {
+	public boolean contains(final String fileName) {
 		for (final Triplet<FileOnClient, Long, Double> triplet : this.fList) {
-			if (triplet.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (triplet.getFirst().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
 		}
@@ -98,10 +98,10 @@ public class LRFU implements ICache {
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(final String fName) {
+	public FileOnClient get(final String fileName) {
 		Triplet<FileOnClient, Long, Double> file = null;
 		for (final Triplet<FileOnClient, Long, Double> triplet : this.fList) {
-			if (triplet.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (triplet.getFirst().getFileName().equalsIgnoreCase(fileName)) {
 				file = triplet;
 				break;
 			}

@@ -88,14 +88,14 @@ public class LIRS implements ICache {
 	}
 
 	@Override
-	public boolean isInCache(final String fName) {
+	public boolean contains(final String fileName) {
 		for (final Triplet<FileOnClient, Long, Long> file : this.LIR) {
-			if (file.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (file.getFirst().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
 		}
 		for (final Triplet<FileOnClient, Long, Long> file : this.HIR) {
-			if (file.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (file.getFirst().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
 		}
@@ -103,12 +103,12 @@ public class LIRS implements ICache {
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(final String fName) {
+	public FileOnClient get(final String fileName) {
 		Triplet<FileOnClient, Long, Long> file = null;
 		final long actTime = ++this.timeCounter;
 		// soubor je v LIR - aktualizujeme IRR (treti parametr)
 		for (final Triplet<FileOnClient, Long, Long> files : this.LIR) {
-			if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (files.getFirst().getFileName().equalsIgnoreCase(fileName)) {
 				file = files;
 				break;
 			}
@@ -127,7 +127,7 @@ public class LIRS implements ICache {
 		// LIR
 		else {
 			for (final Triplet<FileOnClient, Long, Long> files : this.HIR) {
-				if (files.getFirst().getFileName().equalsIgnoreCase(fName)) {
+				if (files.getFirst().getFileName().equalsIgnoreCase(fileName)) {
 					file = files;
 					break;
 				}

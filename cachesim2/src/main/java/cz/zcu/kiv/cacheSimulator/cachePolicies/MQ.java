@@ -77,10 +77,10 @@ public class MQ implements ICache {
 
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fileName) {
     for (final var fQueue : this.fQueues) {
       for (final var f : fQueue) {
-        if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
+        if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
           return true;
         }
       }
@@ -89,14 +89,14 @@ public class MQ implements ICache {
   }
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient get(final String fileName) {
     Triplet<FileOnClient, Integer, Long> file = null;
     for (final var fQueue : this.fQueues) {
       if (file != null) {
         break;
       }
       for (final Triplet<FileOnClient, Integer, Long> f : fQueue) {
-        if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
+        if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
           file = f;
           fQueue.remove(file);
           break;

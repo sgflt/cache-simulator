@@ -42,9 +42,9 @@ public class MRU implements ICache {
   }
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fileName) {
     for (final FileOnClient f : this.fQueue) {
-      if (f.getFileName().equalsIgnoreCase(fName)) {
+      if (f.getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
     }
@@ -52,10 +52,10 @@ public class MRU implements ICache {
   }
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient get(final String fileName) {
     FileOnClient fileForGetting = null;
     for (final FileOnClient f : this.fQueue) {
-      if (f.getFileName().equalsIgnoreCase(fName)) {
+      if (f.getFileName().equalsIgnoreCase(fileName)) {
         fileForGetting = f;
         break;
       }

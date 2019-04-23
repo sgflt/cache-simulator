@@ -13,34 +13,32 @@ import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 public interface ICache {
 
 	/**
-	 * metoda pro zjisteni, jestli je soubor v cache
-	 * 
-	 * @param fName
-	 *            jmeno souboru vcetne cesty / file name with path
-	 * @return true, pokud je
+	 * This method determines whether a file is contained within cache.
+	 *
+	 * @param fileName to check it's presence
+	 * @return true if file is already cached
 	 */
-	public boolean isInCache(String fName);
+	boolean contains(String fileName);
 
 	/**
-	 * Metoda pro ziskani souboru z cache
-	 * 
-	 * @param fName
-	 *            jmeno souboru vcetne cesty
-	 * @return objekt souboru
+	 * This method performs lookup into cache and possibly returns a contained file.
+	 *
+	 * @param fileName to retrieve a file
+	 * @return file from cache
 	 */
-	public FileOnClient getFileFromCache(String fName);
+	FileOnClient get(String fileName);
 
 	/**
 	 * metoda pro ziskani velikosti volne kapacity cache
 	 * 
 	 * @return volna kapacita
 	 */
-	public long freeCapacity();
+	long freeCapacity();
 
 	/**
 	 * metoda pro vyhozeni souboru z cache pri nedostecne kapacite
 	 */
-	public void removeFile();
+	void removeFile();
 
 	/**
 	 * metoda pro vlozeni souboru do cache
@@ -48,29 +46,29 @@ public interface ICache {
 	 * @param f
 	 *            soubor pro vlozeni
 	 */
-	public void insertFile(FileOnClient f);
+	void insertFile(FileOnClient f);
 	
 	/**
 	 * metoda pro zjisteni, zda dany algoritmus pozaduje statistiky ze serveru
 	 * @return true, pokud pozaduje
 	 */
-	public boolean needServerStatistics();
+	boolean needServerStatistics();
 	
 	/**
 	 * metoda pro nastaveni nove kapacity cache
 	 * @param capacity nova kapacita
 	 */
-	public void setCapacity(long capacity);
+	void setCapacity(long capacity);
 	
 	/**
 	 * metoda pro vymazani cache 
 	 */
-	public void reset();
+	void reset();
 	
 	/**
 	 * metoda vraci jmeno tridy a kratky popis cache algoritmu oddeleny strednikem
 	 * @return viz popis
 	 */
-	public String cacheInfo();
+	String cacheInfo();
 
 }

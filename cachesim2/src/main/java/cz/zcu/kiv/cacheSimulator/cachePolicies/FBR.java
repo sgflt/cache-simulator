@@ -53,9 +53,9 @@ public class FBR implements ICache {
   }
 
   @Override
-  public boolean isInCache(final String fName) {
+  public boolean contains(final String fileName) {
     for (final Pair<FileOnClient, Integer> pair : this.fQueue) {
-      if (pair.getFirst().getFileName().equalsIgnoreCase(fName)) {
+      if (pair.getFirst().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
     }
@@ -63,11 +63,11 @@ public class FBR implements ICache {
   }
 
   @Override
-  public FileOnClient getFileFromCache(final String fName) {
+  public FileOnClient get(final String fileName) {
     Pair<FileOnClient, Integer> foundFile = null;
     int pairIndex = 0;
     for (int i = 0; i < this.fQueue.size(); i++) {
-      if (this.fQueue.get(i).getFirst().getFileName().equalsIgnoreCase(fName)) {
+      if (this.fQueue.get(i).getFirst().getFileName().equalsIgnoreCase(fileName)) {
         foundFile = this.fQueue.get(i);
         pairIndex = i;
       }

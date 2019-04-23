@@ -51,14 +51,14 @@ public class ARC implements ICache {
 	}
 
 	@Override
-	public boolean isInCache(final String fName) {
+	public boolean contains(final String fileName) {
 		for (final FileOnClient file : this.T1) {
-			if (file.getFileName().equalsIgnoreCase(fName)) {
+			if (file.getFileName().equalsIgnoreCase(fileName)) {
 				return true;
 			}
 		}
 		for (final FileOnClient file : this.T2) {
-			if (file.getFileName().equalsIgnoreCase(fName)) {
+			if (file.getFileName().equalsIgnoreCase(fileName)) {
 				return true;
 			}
 		}
@@ -66,10 +66,10 @@ public class ARC implements ICache {
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(final String fName) {
+	public FileOnClient get(final String fileName) {
 		FileOnClient file = null;
 		for (final FileOnClient actFile : this.T1) {
-			if (actFile.getFileName().equalsIgnoreCase(fName)) {
+			if (actFile.getFileName().equalsIgnoreCase(fileName)) {
 				file = actFile;
 				break;
 			}
@@ -79,7 +79,7 @@ public class ARC implements ICache {
 			this.T2.add(file);
 		}
 		for (final FileOnClient actFile : this.T2) {
-			if (actFile.getFileName().equalsIgnoreCase(fName)) {
+			if (actFile.getFileName().equalsIgnoreCase(fileName)) {
 				file = actFile;
 				break;
 			}

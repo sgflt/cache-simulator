@@ -70,9 +70,9 @@ public class LFU_NO_REDUCTION implements ICache {
 	}
 
 	@Override
-	public boolean isInCache(final String fName) {
+	public boolean contains(final String fileName) {
 		for (final Pair<Integer, FileOnClient> f : this.list) {
-			if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+			if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
 				return true;
 			}
 		}
@@ -80,9 +80,9 @@ public class LFU_NO_REDUCTION implements ICache {
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(final String fName) {
+	public FileOnClient get(final String fileName) {
 		for (final Pair<Integer, FileOnClient> f : this.list) {
-			if (f.getSecond().getFileName().equalsIgnoreCase(fName)) {
+			if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
 				f.setFirst(f.getFirst() + 1);
 				this.needSort = true;
 				return f.getSecond();

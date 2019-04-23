@@ -92,13 +92,13 @@ public class LRFU_SS implements ICache {
 	}
 
 	@Override
-	public boolean isInCache(final String fName) {
+	public boolean contains(final String fileName) {
     this.accessCount++;
 		if (this.accessCount % 20 == 0){
 			setGlobalReadCountServer(this.server.getGlobalReadHits(this));
 		}
 		for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
 		}
@@ -106,9 +106,9 @@ public class LRFU_SS implements ICache {
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(final String fName) {
+	public FileOnClient get(final String fileName) {
 		for (final Quartet<FileOnClient, Long, Double, Integer> f : this.list) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
 				f.setSecond(System.nanoTime());
 				f.setThird(f.getThird() + 1);
         this.needSort = true;

@@ -51,9 +51,9 @@ public class Clock implements ICache {
 	}
 	
 	@Override
-	public boolean isInCache(final String fName) {
+	public boolean contains(final String fileName) {
 		for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fName)) {
+			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
 				return true;
 			}
 		}
@@ -61,9 +61,9 @@ public class Clock implements ICache {
 	}
 
 	@Override
-	public FileOnClient getFileFromCache(final String fName) {
+	public FileOnClient get(final String fileName) {
 		for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fName)){
+			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
 				f.setSecond(true);
 				return f.getFirst();
 			}
