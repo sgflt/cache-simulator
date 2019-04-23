@@ -6,6 +6,7 @@ import cz.zcu.kiv.cacheSimulator.shared.LRDMetaData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 
 /**
@@ -24,12 +25,12 @@ public class LRDv2 implements ICache {
    * treti argument - AT
    * ctvrty argument - RD
    */
-  private final ArrayList<LRDMetaData> files;
+  private final List<LRDMetaData> files;
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity;
 
 
   /**

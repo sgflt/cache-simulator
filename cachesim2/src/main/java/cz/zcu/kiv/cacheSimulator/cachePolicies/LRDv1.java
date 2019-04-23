@@ -25,6 +25,11 @@ public class LRDv1 implements ICache {
   private final List<LRDMetaData> files;
 
   /**
+   * struktura pro ukladani souboru, ktere jsou vetsi nez cache
+   */
+  private final List<FileOnClient> fOverCapacity;
+
+  /**
    * kapacita cache
    */
   private long capacity;
@@ -39,10 +44,6 @@ public class LRDv1 implements ICache {
    */
   private boolean needRecalculate = true;
 
-  /**
-   * struktura pro ukladani souboru, ktere jsou vetsi nez cache
-   */
-  private final List<FileOnClient> fOverCapacity;
 
 
   /**
