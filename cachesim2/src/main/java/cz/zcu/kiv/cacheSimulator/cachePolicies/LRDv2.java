@@ -20,10 +20,7 @@ import java.util.List;
 public class LRDv2 implements ICache {
 
   /**
-   * struktura pro uchovani souboru
-   * druhy argument - Reference counter
-   * treti argument - AT
-   * ctvrty argument - RD
+   * List of cached files
    */
   private final List<LRDMetaData> files;
 
