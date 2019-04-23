@@ -3,6 +3,8 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.LRDMetaData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +20,8 @@ import java.util.List;
  * @author Pavel Bžoch
  */
 public class LRDv2 implements ICache {
+
+  private static final Logger LOG = LoggerFactory.getLogger(LRDv2.class);
 
   /**
    * List of cached files
@@ -47,6 +51,11 @@ public class LRDv2 implements ICache {
   private long capacity;
 
   /**
+   * How many bytes is consubed by cached files
+   */
+  private long usedCapacity;
+
+  /**
    * global counter
    */
   private long GC;
@@ -65,8 +74,8 @@ public class LRDv2 implements ICache {
 
   @Override
   public boolean contains(final String fileName) {
-    for (final LRDMetaData files : this.files) {
-      if (files.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
+    for (final LRDMetaData file : this.files) {
+      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
         return true;
       }
     }
@@ -89,15 +98,12 @@ public class LRDv2 implements ICache {
 
   @Override
   public long freeCapacity() {
-    long sumCap = 0;
-    for (final LRDMetaData file : this.files) {
-      sumCap += file.getFileOnClient().getFileSize();
-    }
-    return this.capacity - sumCap;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
   public void removeFile() {
+    LOG.debug("removeFile()");
     if (this.needRecalculate) {
       for (final LRDMetaData file : this.files) {
         file.recalculateReferenceDensity(this.GC);
@@ -105,11 +111,13 @@ public class LRDv2 implements ICache {
       this.files.sort(Comparator.comparing(LRDMetaData::getReferenceDensity));
     }
     this.needRecalculate = false;
-    this.files.remove(0);
+    final LRDMetaData removedFile = this.files.remove(0);
+    this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
   }
 
   @Override
   public void insertFile(final FileOnClient fileOnClient) {
+    LOG.debug("insertFile(fileOnClient={}", fileOnClient);
     //napred zkontrolujeme, jestli se soubor vejde do cache
     //pokud se nevejde, vztvorime pro nej okenko
     if (fileOnClient.getFileSize() > this.capacity) {
@@ -134,6 +142,7 @@ public class LRDv2 implements ICache {
       removeFile();
     }
     this.files.add(new LRDMetaData(fileOnClient, this.GC++));
+    this.usedCapacity += fileOnClient.getFileSize();
     this.needRecalculate = true;
     recalculateReferences();
   }

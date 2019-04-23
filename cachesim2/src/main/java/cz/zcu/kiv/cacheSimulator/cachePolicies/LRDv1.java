@@ -35,6 +35,11 @@ public class LRDv1 implements ICache {
   private long capacity;
 
   /**
+   * How many bytes is consubed by cached files
+   */
+  private long usedCapacity;
+
+  /**
    * global counter
    */
   private long GC;
@@ -43,7 +48,6 @@ public class LRDv1 implements ICache {
    * promenna pro nastaveni, zda se ma znovu pocitat RD
    */
   private boolean needRecalculate = true;
-
 
 
   /**
@@ -80,11 +84,7 @@ public class LRDv1 implements ICache {
 
   @Override
   public long freeCapacity() {
-    long sumCap = 0;
-    for (final LRDMetaData file : this.files) {
-      sumCap += file.getFileOnClient().getFileSize();
-    }
-    return this.capacity - sumCap;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
@@ -96,7 +96,8 @@ public class LRDv1 implements ICache {
       this.files.sort(Comparator.comparing(LRDMetaData::getReferenceDensity));
     }
     this.needRecalculate = false;
-    this.files.remove(0);
+    final LRDMetaData removedFile = this.files.remove(0);
+    this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
   }
 
   @Override
@@ -125,6 +126,7 @@ public class LRDv1 implements ICache {
       removeFile();
     }
     this.files.add(new LRDMetaData(fileOnClient, this.GC++));
+    this.usedCapacity += fileOnClient.getFileSize();
     this.needRecalculate = true;
   }
 
