@@ -42,24 +42,6 @@ public class LRDv2 implements ICache {
    */
   private static int INTERVAL = 20;
 
-  /**
-   * trida pro porovnani prvku
-   *
-   * @author Pavel Bzoch
-   */
-  private class QuartetCompare implements Comparator<LRDMetaData> {
-
-    @Override
-    public int compare(final LRDMetaData arg0,
-                       final LRDMetaData arg1) {
-      if (arg0.getReferenceDensity() > arg1.getReferenceDensity()) {
-        return 1;
-      } else if (arg0.getReferenceDensity() < arg1.getReferenceDensity()) {
-        return -1;
-      }
-      return 0;
-    }
-  }
 
   /**
    * kapacita cache
@@ -122,7 +104,7 @@ public class LRDv2 implements ICache {
       for (final LRDMetaData file : this.files) {
         file.recalculateReferenceDensity(this.GC);
       }
-      this.files.sort(new QuartetCompare());
+      this.files.sort(Comparator.comparing(LRDMetaData::getReferenceDensity));
     }
     this.needRecalculate = false;
     this.files.remove(0);
