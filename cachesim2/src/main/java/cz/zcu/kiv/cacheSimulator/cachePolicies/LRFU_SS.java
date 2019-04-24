@@ -71,6 +71,9 @@ public class LRFU_SS implements ICache {
 
   @Override
   public FileOnClient get(final String fileName) {
+    if (++this.accessCount % 20 == 0) {
+      setGlobalReadCountServer(this.server.getGlobalReadRequests(this));
+    }
     for (final MetaData metaData : this.cachedFiles) {
       if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
         metaData.updateAccesTime();
