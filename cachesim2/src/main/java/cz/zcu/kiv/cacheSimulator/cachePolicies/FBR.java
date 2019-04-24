@@ -2,9 +2,13 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
-import cz.zcu.kiv.cacheSimulator.shared.Pair;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 
 /**
@@ -19,18 +23,21 @@ public class FBR implements ICache {
   /**
    * struktura pro uchovani souboru
    */
-  private final ArrayList<Pair<FileOnClient, Integer>> fQueue;
+  private final List<MetaData> fQueue = new ArrayList<>();
+
+  private final Set<String> files = new HashSet<>();
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity = new ArrayList<>();
 
 
   /**
    * velikost cache v B
    */
-  private long capacity = 0;
+  private long capacity;
+  private long usedCapacity;
 
   /**
    * konstanta pro urceni stare sekce
@@ -47,52 +54,46 @@ public class FBR implements ICache {
    * konstruktor - inicializace cache
    */
   public FBR() {
-    this.fQueue = new ArrayList<>();
     this.capacity = GlobalVariables.getCacheCapacity();
-    this.fOverCapacity = new ArrayList<>();
   }
 
   @Override
   public FileOnClient get(final String fileName) {
-    Pair<FileOnClient, Integer> foundFile = null;
-    int pairIndex = 0;
+    if (!this.files.contains(fileName)) {
+      return null;
+    }
     for (int i = 0; i < this.fQueue.size(); i++) {
-      if (this.fQueue.get(i).getFirst().getFileName().equalsIgnoreCase(fileName)) {
-        foundFile = this.fQueue.get(i);
-        pairIndex = i;
+      if (this.fQueue.get(i).getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
+        final MetaData foundFile = this.fQueue.get(i);
+        //rozdeleni cache podle indexu
+        reorder(i, foundFile);
+        this.fQueue.remove(foundFile);
+        this.fQueue.add(foundFile);
+        return foundFile.getFileOnClient();
       }
     }
-    if (foundFile == null) {
-      return null;
-    } else {
-      //rozdeleni cache podle indexu
-      long sumCap = 0;
-      int newIndex = 0;
-      for (int i = 0; i < this.fQueue.size(); i++) {
-        sumCap += this.fQueue.get(i).getFirst().getFileSize();
-        if (sumCap > (NEW_SECTION) * this.capacity) {
-          newIndex = i;
-          break;
-        }
-      }
+    return null;
+  }
 
-      if (newIndex < pairIndex) {
-        foundFile.setSecond(foundFile.getSecond() + 1);
+  private void reorder(final int i, final MetaData foundFile) {
+    long sumCap = 0;
+    int newIndex = 0;
+    for (int j = 0; j < this.fQueue.size(); j++) {
+      sumCap += this.fQueue.get(j).getFileOnClient().getFileSize();
+      if (sumCap > (NEW_SECTION) * this.capacity) {
+        newIndex = j;
+        break;
       }
+    }
 
-      this.fQueue.remove(foundFile);
-      this.fQueue.add(foundFile);
-      return foundFile.getFirst();
+    if (newIndex < i) {
+      foundFile.incrementReadHits();
     }
   }
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Pair<FileOnClient, Integer> pair : this.fQueue) {
-      obsazeno += pair.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
@@ -105,7 +106,7 @@ public class FBR implements ICache {
     }
 
     for (int i = 0; i < this.fQueue.size(); i++) {
-      sumCap += this.fQueue.get(i).getFirst().getFileSize();
+      sumCap += this.fQueue.get(i).getFileOnClient().getFileSize();
       if (sumCap > (1 - OLD_SECTION) * this.capacity) {
         oldIndex = i;
         break;
@@ -113,34 +114,33 @@ public class FBR implements ICache {
     }
     //odebereme podle LRU
     if (oldIndex == -1) {
-      this.fQueue.remove(this.fQueue.size() - 1);
+      final MetaData removedFile = this.fQueue.remove(this.fQueue.size() - 1);
+      this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
+      this.files.remove(removedFile.getFileOnClient().getFileName());
       return;
     }
     //odebereme podle LFU z OLD section
-    Pair<FileOnClient, Integer> file = this.fQueue.get(oldIndex);
-    for (int i = oldIndex; i < this.fQueue.size(); i++) {
-      if (this.fQueue.get(i).getSecond() < file.getSecond()) {
-        file = this.fQueue.get(i);
-      }
-    }
-    this.fQueue.remove(file);
-
+    final Optional<MetaData> min = this.fQueue.stream().skip(oldIndex).min(Comparator.comparing(MetaData::getReadHits));
+    final MetaData metaData = min.get();
+    this.fQueue.remove(metaData);
+    this.usedCapacity -= metaData.getFileOnClient().getFileSize();
+    this.files.remove(metaData.getFileOnClient().getFileName());
   }
 
 
   @Override
-  public void insertFile(final FileOnClient f) {
+  public void insertFile(final FileOnClient fileOnClient) {
     //napred zkontrolujeme, jestli se soubor vejde do cache
     //pokud se nevejde, vztvorime pro nej okenko
-    if (f.getFileSize() > this.capacity) {
+    if (fileOnClient.getFileSize() > this.capacity) {
       if (!this.fOverCapacity.isEmpty()) {
-        this.fOverCapacity.add(f);
+        this.fOverCapacity.add(fileOnClient);
         return;
       }
       while (freeCapacity() < (long) ((double) this.capacity * GlobalVariables.getCacheCapacityForDownloadWindow())) {
         removeFile();
       }
-      this.fOverCapacity.add(f);
+      this.fOverCapacity.add(fileOnClient);
       this.capacity = (long) ((double) this.capacity * (1 - GlobalVariables.getCacheCapacityForDownloadWindow()));
       return;
     }
@@ -150,10 +150,12 @@ public class FBR implements ICache {
     }
 
     //pokud se soubor vejde, fungujeme spravne
-    while (freeCapacity() < f.getFileSize()) {
+    while (freeCapacity() < fileOnClient.getFileSize()) {
       removeFile();
     }
-    this.fQueue.add(new Pair<>(f, 1));
+    this.fQueue.add(new MetaData(fileOnClient));
+    this.files.add(fileOnClient.getFileName());
+    this.usedCapacity += fileOnClient.getFileSize();
   }
 
   @Override
@@ -222,5 +224,27 @@ public class FBR implements ICache {
     result = prime * result + (int) (this.capacity ^ (this.capacity >>> 32));
     result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
     return result;
+  }
+
+  private static class MetaData {
+
+    private final FileOnClient fileOnClient;
+    private int readHits = 1;
+
+    MetaData(final FileOnClient fileOnClient) {
+      this.fileOnClient = fileOnClient;
+    }
+
+    FileOnClient getFileOnClient() {
+      return this.fileOnClient;
+    }
+
+    int getReadHits() {
+      return this.readHits;
+    }
+
+    void incrementReadHits() {
+      ++this.readHits;
+    }
   }
 }
