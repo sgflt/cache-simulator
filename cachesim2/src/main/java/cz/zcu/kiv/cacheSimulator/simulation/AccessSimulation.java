@@ -89,6 +89,7 @@ public class AccessSimulation {
       }
       this.fileQueue.reset();
       this.server.softReset();
+      measurement.getCache().reset();
     }
 
     Triplet<String, Long, Long> file;
