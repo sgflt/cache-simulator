@@ -1,10 +1,10 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
+
+import java.util.ArrayList;
 
 
 /**
@@ -48,16 +48,6 @@ public class Clock implements ICache {
 		this.capacity = GlobalVariables.getCacheCapacity();
 		this.Flist = new ArrayList<>();
 		this.fOverCapacity = new ArrayList<>();
-	}
-	
-	@Override
-	public boolean contains(final String fileName) {
-		for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override

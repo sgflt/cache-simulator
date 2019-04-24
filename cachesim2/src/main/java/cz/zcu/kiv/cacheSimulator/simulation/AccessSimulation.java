@@ -84,10 +84,10 @@ public class AccessSimulation {
       for (final var measurement : user.getMeasurements()) {
 					// soubor je jiz v cache, aktualizujeme pouze statistiky
         final ICache cache = measurement.getCache();
-				if (cache.contains(file.getFirst())) {
-          final Metrics metrics = measurement.getMetrics();
-          metrics.incrementCacheHits();
-					final FileOnClient fileOnClient = cache.get(file.getFirst());
+				final FileOnClient fileOnClient = cache.get(file.getFirst());
+				if (fileOnClient != null) {
+					final Metrics metrics = measurement.getMetrics();
+					metrics.incrementCacheHits();
 					metrics.incrementSavedBandthwidth(fileOnClient.getFileSize());
 
 						// statistiky na server u vsech souboru - i u tech, co
@@ -130,7 +130,8 @@ public class AccessSimulation {
       for (final var measurement : user.getMeasurements()) {
 					// soubor je jiz v cache, aktualizujeme pouze statistiky
         final ICache cache = measurement.getCache();
-				if (cache.contains(file.getFirst())) {
+				final FileOnClient fileOnClient = cache.get(file.getFirst());
+				if (fileOnClient != null) {
           final Metrics metrics = measurement.getMetrics();
           metrics.incrementCacheHits();
           metrics.incrementSavedBandthwidth(

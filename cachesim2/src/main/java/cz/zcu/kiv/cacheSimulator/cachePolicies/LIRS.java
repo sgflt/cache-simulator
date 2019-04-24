@@ -1,13 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Stack;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Stack;
 
 /**
  * class for LIRS algorithm
@@ -85,21 +84,6 @@ public class LIRS implements ICache {
 		this.LIR = new ArrayList<>();
 		this.HIR = new ArrayList<>();
 		this.fOverCapacity = new ArrayList<>();
-	}
-
-	@Override
-	public boolean contains(final String fileName) {
-		for (final Triplet<FileOnClient, Long, Long> file : this.LIR) {
-			if (file.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-		}
-		for (final Triplet<FileOnClient, Long, Long> file : this.HIR) {
-			if (file.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-		}
-		return false;
 	}
 
 	@Override

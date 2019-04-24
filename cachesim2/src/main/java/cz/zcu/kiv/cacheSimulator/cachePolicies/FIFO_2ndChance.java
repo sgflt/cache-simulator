@@ -1,12 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
 
 
 /**
@@ -43,16 +43,6 @@ public class FIFO_2ndChance implements ICache{
 		this.fQueue = new LinkedList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
 		this.fOverCapacity = new ArrayList<>();
-	}
-	
-	@Override
-	public boolean contains(final String fileName) {
-		for (final Pair<FileOnClient, Boolean> f : this.fQueue) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override

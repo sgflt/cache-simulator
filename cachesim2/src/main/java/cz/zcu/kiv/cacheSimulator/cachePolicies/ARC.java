@@ -1,9 +1,9 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+
+import java.util.ArrayList;
 
 
 /**
@@ -48,21 +48,6 @@ public class ARC implements ICache {
 		this.T1 = new ArrayList<>();
 		this.T2 = new ArrayList<>();
 		this.fOverCapacity = new ArrayList<>();
-	}
-
-	@Override
-	public boolean contains(final String fileName) {
-		for (final FileOnClient file : this.T1) {
-			if (file.getFileName().equalsIgnoreCase(fileName)) {
-				return true;
-			}
-		}
-		for (final FileOnClient file : this.T2) {
-			if (file.getFileName().equalsIgnoreCase(fileName)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override

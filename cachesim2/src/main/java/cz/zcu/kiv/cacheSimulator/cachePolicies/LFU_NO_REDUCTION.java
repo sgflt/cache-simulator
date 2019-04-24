@@ -1,12 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
+
+import java.util.ArrayList;
+import java.util.Comparator;
 
 
 /**
@@ -67,16 +66,6 @@ public class LFU_NO_REDUCTION implements ICache {
 		this.list = new ArrayList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
 		this.fOverCapacity = new ArrayList<>();
-	}
-
-	@Override
-	public boolean contains(final String fileName) {
-		for (final Pair<Integer, FileOnClient> f : this.list) {
-			if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	@Override

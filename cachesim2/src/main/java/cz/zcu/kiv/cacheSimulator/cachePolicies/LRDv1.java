@@ -60,16 +60,6 @@ public class LRDv1 implements ICache {
   }
 
   @Override
-  public boolean contains(final String fileName) {
-    for (final LRDMetaData file : this.files) {
-      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public FileOnClient get(final String fileName) {
     for (final LRDMetaData file : this.files) {
       if (file.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {

@@ -80,20 +80,6 @@ public class LFU_SS implements ICache {
   }
 
   @Override
-  public boolean contains(final String fileName) {
-    this.accessCount++;
-    if (this.accessCount % 20 == 0) {
-      setGlobalReadCountServer(this.server.getGlobalReadRequests(this));
-    }
-    for (final Pair<Double, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public FileOnClient get(final String fileName) {
     final Pair<Double, FileOnClient> pair;
     for (final Pair<Double, FileOnClient> f : this.list) {

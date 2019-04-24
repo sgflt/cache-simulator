@@ -1,10 +1,10 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 
 /**
@@ -53,16 +53,6 @@ public class RND implements ICache {
     this.capacity = GlobalVariables.getCacheCapacity();
     this.rnd = new Random(seedValue);
     this.fOverCapacity = new ArrayList<>();
-  }
-
-  @Override
-  public boolean contains(final String fileName) {
-    for (final FileOnClient f : this.list) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override

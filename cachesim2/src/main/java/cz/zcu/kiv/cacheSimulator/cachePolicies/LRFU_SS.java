@@ -70,20 +70,6 @@ public class LRFU_SS implements ICache {
   }
 
   @Override
-  public boolean contains(final String fileName) {
-    this.accessCount++;
-    if (this.accessCount % 20 == 0) {
-      setGlobalReadCountServer(this.server.getGlobalReadRequests(this));
-    }
-    for (final var metaData : this.cachedFiles) {
-      if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public FileOnClient get(final String fileName) {
     for (final MetaData metaData : this.cachedFiles) {
       if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {

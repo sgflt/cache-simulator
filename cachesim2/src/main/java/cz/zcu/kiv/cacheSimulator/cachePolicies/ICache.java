@@ -13,14 +13,6 @@ import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 public interface ICache {
 
 	/**
-	 * This method determines whether a file is contained within cache.
-	 *
-	 * @param fileName to check it's presence
-	 * @return true if file is already cached
-	 */
-	boolean contains(String fileName);
-
-	/**
 	 * This method performs lookup into cache and possibly returns a contained file.
 	 *
 	 * @param fileName to retrieve a file

@@ -1,11 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
+import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
-
-import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
-import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 
 /**
@@ -41,16 +41,6 @@ public class LRU implements ICache {
     this.fQueue = new LinkedList<>();
     this.capacity = GlobalVariables.getCacheCapacity();
     this.fOverCapacity = new ArrayList<>();
-  }
-
-  @Override
-  public boolean contains(final String fileName) {
-    for (final FileOnClient f : this.fQueue) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override

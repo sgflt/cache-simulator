@@ -1,9 +1,9 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+
+import java.util.ArrayList;
 
 
 /**
@@ -39,16 +39,6 @@ public class MRU implements ICache {
     this.fQueue = new ArrayList<>();
     this.capacity = GlobalVariables.getCacheCapacity();
     this.fOverCapacity = new ArrayList<>();
-  }
-
-  @Override
-  public boolean contains(final String fileName) {
-    for (final FileOnClient f : this.fQueue) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override

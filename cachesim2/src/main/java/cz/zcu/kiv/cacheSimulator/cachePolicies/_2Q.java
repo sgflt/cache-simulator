@@ -57,21 +57,6 @@ public class _2Q implements ICache {
   }
 
   @Override
-  public boolean contains(final String fileName) {
-    for (final FileOnClient f : this.fQueueFIFO) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    for (final FileOnClient f : this.fQueueLRU) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public FileOnClient get(final String fileName) {
     for (final var it = this.fQueueFIFO.iterator(); it.hasNext(); ) {
       final FileOnClient cachedFile = it.next();

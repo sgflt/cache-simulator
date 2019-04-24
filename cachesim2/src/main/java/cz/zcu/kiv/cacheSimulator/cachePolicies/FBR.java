@@ -1,10 +1,10 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
-import java.util.ArrayList;
-
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
+
+import java.util.ArrayList;
 
 
 /**
@@ -50,16 +50,6 @@ public class FBR implements ICache {
     this.fQueue = new ArrayList<>();
     this.capacity = GlobalVariables.getCacheCapacity();
     this.fOverCapacity = new ArrayList<>();
-  }
-
-  @Override
-  public boolean contains(final String fileName) {
-    for (final Pair<FileOnClient, Integer> pair : this.fQueue) {
-      if (pair.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   @Override

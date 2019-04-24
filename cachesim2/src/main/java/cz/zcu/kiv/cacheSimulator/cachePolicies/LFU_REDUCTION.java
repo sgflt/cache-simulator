@@ -80,16 +80,6 @@ public class LFU_REDUCTION implements ICache {
   }
 
   @Override
-  public boolean contains(final String fileName) {
-    for (final Pair<Integer, FileOnClient> f : this.list) {
-      if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @Override
   public FileOnClient get(final String fileName) {
     for (final Pair<Integer, FileOnClient> f : this.list) {
       if (f.getSecond().getFileName().equalsIgnoreCase(fileName)) {
