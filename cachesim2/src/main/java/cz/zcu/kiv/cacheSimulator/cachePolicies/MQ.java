@@ -2,10 +2,13 @@ package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
-import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
 
@@ -43,77 +46,84 @@ public class MQ implements ICache {
    * velikost cache
    */
   private long capacity;
+  private long usedCapacity;
+
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
-  private final ArrayList<FileOnClient> fOverCapacity;
+  private final List<FileOnClient> fOverCapacity;
 
 
   /**
    * LRU fronty pro uchovani souboru, prvni Integer je pro pocitani referenci,
    * druhy je pro vypocty casu
    */
-  private final Queue<Triplet<FileOnClient, Integer, Long>>[] fQueues;
+  private final Queue<MetaData>[] fQueues;
 
   /**
    * LRU fronty pro uchovani souboru, prvni Integer je pro pocitani referenci,
    * druhy je pro vypocty casu
    */
-  private final Queue<Triplet<FileOnClient, Integer, Long>> fQueueOut;
+  private final Queue<MetaData> fQueueOut;
+
+  private final Map<String, Queue<MetaData>> files = new HashMap<>();
 
 
   @SuppressWarnings("unchecked")
   public MQ() {
     this.capacity = GlobalVariables.getCacheCapacity();
     this.fQueueOut = new LinkedList<>();
-    this.fQueues = (Queue<Triplet<FileOnClient, Integer, Long>>[]) new Queue[QUEUE_COUNT];
+    this.fQueues = new Queue[QUEUE_COUNT];
     for (int i = 0; i < QUEUE_COUNT; i++) {
       this.fQueues[i] = new LinkedList<>();
     }
-    this.timeCounter = 0;
     this.fOverCapacity = new ArrayList<>();
   }
 
   @Override
   public FileOnClient get(final String fileName) {
-    Triplet<FileOnClient, Integer, Long> file = null;
-    for (final var fQueue : this.fQueues) {
-      if (file != null) {
-        break;
-      }
-      for (final Triplet<FileOnClient, Integer, Long> f : fQueue) {
-        if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-          file = f;
-          fQueue.remove(file);
-          break;
-        }
-      }
-    }
-    if (file == null) {
+    final Queue<MetaData> fileQueue = this.files.get(fileName);
+    if (fileQueue == null) {
       return null;
-    } else {
-      file.setSecond(file.getSecond() + 1);
-      file.setThird(++this.timeCounter + LIFE_TIME);
-      int index = (int) (Math.log10(file.getSecond()) / Math.log10(2));
-      if (index >= QUEUE_COUNT) {
-        index = QUEUE_COUNT - 1;
-      }
-      this.fQueues[index].add(file);
-      Adjust();
-      return file.getFirst();
     }
+    for (final var it = fileQueue.iterator(); it.hasNext(); ) {
+      final MetaData metaData = it.next();
+      if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
+        return getInternal(it, metaData);
+      }
+    }
+
+    return null;
+  }
+
+  private FileOnClient getInternal(final Iterator<MetaData> iterator, final MetaData metaData) {
+    iterator.remove();
+    metaData.increaseReadhits();
+    metaData.setAccessTime(++this.timeCounter + LIFE_TIME);
+    int index = (int) (Math.log10(metaData.getReadHits()) / Math.log10(2));
+    if (index >= QUEUE_COUNT) {
+      index = QUEUE_COUNT - 1;
+    }
+    final Queue<MetaData> destinationQueue = this.fQueues[index];
+    destinationQueue.add(metaData);
+    this.files.put(metaData.getFileOnClient().getFileName(), destinationQueue);
+    adjust();
+    return metaData.getFileOnClient();
   }
 
   /**
    * metoda pro zarovnani LRU cache podle casu
    */
-  private void Adjust() {
+  private void adjust() {
     for (int i = 1; i < this.fQueues.length; i++) {
-      for (final Triplet<FileOnClient, Integer, Long> f : this.fQueues[i]) {
-        if (f.getThird() < this.timeCounter) {
-          this.fQueues[i].remove(f);
-          this.fQueues[i - 1].add(f);
+      for (final var it = this.fQueues[i].iterator(); it.hasNext(); ) {
+        final MetaData metaData = it.next();
+        if (metaData.getAccessTime() < this.timeCounter) {
+          it.remove();
+          final Queue<MetaData> destinationQueue = this.fQueues[i - 1];
+          destinationQueue.add(metaData);
+          this.files.put(metaData.getFileOnClient().getFileName(), destinationQueue);
           i--;
           break;
         }
@@ -123,25 +133,22 @@ public class MQ implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final var fQueue : this.fQueues) {
-      for (final Triplet<FileOnClient, Integer, Long> f : fQueue) {
-        obsazeno += f.getFirst().getFileSize();
-      }
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
   public void removeFile() {
     for (final var fQueue : this.fQueues) {
       if (!fQueue.isEmpty()) {
-        final Triplet<FileOnClient, Integer, Long> out = fQueue.remove();
+        final var out = fQueue.remove();
+        this.files.remove(out.getFileOnClient().getFileName());
+
         // v qout jsou uchovany metadata souboru
         if (this.fQueueOut.size() > QOUT_CAPACITY) {
           this.fQueueOut.remove();
         }
         this.fQueueOut.add(out);
+        this.usedCapacity -= out.getFileOnClient().getFileSize();
         return;
       }
     }
@@ -175,9 +182,9 @@ public class MQ implements ICache {
     }
 
     // soubor je v qout - musi se nove stahnout, ale zustavaji mu parametry
-    Triplet<FileOnClient, Integer, Long> newFile = null;
-    for (final Triplet<FileOnClient, Integer, Long> fout : this.fQueueOut) {
-      if (fout.getFirst().getFileName().equalsIgnoreCase(f.getFileName())) {
+    MetaData newFile = null;
+    for (final var fout : this.fQueueOut) {
+      if (fout.getFileOnClient().getFileName().equalsIgnoreCase(f.getFileName())) {
         newFile = fout;
         this.fQueueOut.remove(fout);
         break;
@@ -185,18 +192,19 @@ public class MQ implements ICache {
     }
     // soubor je uplne novy, zakladame parametry
     if (newFile == null) {
-      newFile = new Triplet<>(f, 1, ++this.timeCounter
-        + LIFE_TIME);
+      newFile = new MetaData(f, ++this.timeCounter + LIFE_TIME);
     }
 
     // umistime soubor do spravne LRU fronty
-    final int refCount = newFile.getSecond();
+    final int refCount = newFile.getReadHits();
     int index = (int) (Math.log10(refCount) / Math.log10(2));
     if (index >= QUEUE_COUNT) {
       index = QUEUE_COUNT - 1;
     }
     this.fQueues[index].add(newFile);
-    Adjust();
+    this.usedCapacity += newFile.getFileOnClient().getFileSize();
+    this.files.put(newFile.getFileOnClient().getFileName(), this.fQueues[index]);
+    adjust();
   }
 
   @Override
@@ -278,6 +286,38 @@ public class MQ implements ICache {
     result = prime * result + (int) (this.capacity ^ (this.capacity >>> 32));
     result = prime * result + ((toString() == null) ? 0 : toString().hashCode());
     return result;
+  }
+
+  private static class MetaData {
+
+    private final FileOnClient fileOnClient;
+    private int readHits = 1;
+    private long accessTime;
+
+    MetaData(final FileOnClient fileOnClient, final long accessTime) {
+      this.fileOnClient = fileOnClient;
+      this.accessTime = accessTime;
+    }
+
+    FileOnClient getFileOnClient() {
+      return this.fileOnClient;
+    }
+
+    int getReadHits() {
+      return this.readHits;
+    }
+
+    void increaseReadhits() {
+      ++this.readHits;
+    }
+
+    long getAccessTime() {
+      return this.accessTime;
+    }
+
+    void setAccessTime(final long accessTime) {
+      this.accessTime = accessTime;
+    }
   }
 
 }
