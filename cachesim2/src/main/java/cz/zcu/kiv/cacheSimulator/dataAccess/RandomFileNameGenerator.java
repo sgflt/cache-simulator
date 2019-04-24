@@ -19,7 +19,7 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	/**
 	 * atribut pro generovani jmen souboru
 	 */
-	private final Random rnd;
+	private Random rnd;
 
 	/**
 	 * promenna pro urceni poctu generovanych pozadavku
@@ -84,6 +84,12 @@ public class RandomFileNameGenerator extends Observable implements IFileQueue{
 	public Quartet<String, Long, Long, Long> getNextFileNameWithFSize() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void reset() {
+		this.rnd = new Random(seedValue);
+		this.generatedAccesses = 0;
 	}
 
 	/**

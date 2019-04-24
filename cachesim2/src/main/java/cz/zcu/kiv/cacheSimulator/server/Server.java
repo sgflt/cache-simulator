@@ -183,6 +183,7 @@ public class Server {
    */
   public void hardReset() {
     this.fileTable.clear();
+    softReset();
   }
 
   /**
@@ -191,6 +192,9 @@ public class Server {
   public void softReset() {
     this.readRequests.clear();
     this.writeRequests.clear();
+    for (final FileOnServer file : this.fileTable.values()) {
+      file.resetCounters();
+    }
   }
 
 

@@ -1,12 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import java.util.Observable;
-import java.util.Random;
-
 import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.Observable;
+import java.util.Random;
 
 
 /**
@@ -27,7 +27,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	/**
 	 * promenna pro urceni poctu generovanych pozadavku / variable for specifying limit of generated requests  
 	 */
-	private long limit;
+	private final long limit;
 	
 	/**
 	 * pocet vygenerovanych pozadavku / number of generated accesses
@@ -60,7 +60,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	 * setting of mean value for random generator 
 	 * @param meanValue stredni hodnota
 	 */
-	public static void setMeanValue(int meanValue) {
+	public static void setMeanValue(final int meanValue) {
 		GaussianFileNameGenerator.meanValue = meanValue;
 	}
 
@@ -69,7 +69,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	 * setting of dispersion value for random generator
 	 * @param dispersion rozptyl
 	 */
-	public static void setDispersion(int dispersion) {
+	public static void setDispersion(final int dispersion) {
 		GaussianFileNameGenerator.dispersion = dispersion;
 	}
 
@@ -78,7 +78,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	 * setting of min value for random generator
 	 * @param minValue min hodnota
 	 */
-	public static void setMinValue(int minValue) {
+	public static void setMinValue(final int minValue) {
 		GaussianFileNameGenerator.minValue = minValue;
 	}
 
@@ -87,7 +87,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	 * setting of max value for random generator
 	 * @param maxValue max hodnota
 	 */
-	public static void setMaxValue(int maxValue) {
+	public static void setMaxValue(final int maxValue) {
 		GaussianFileNameGenerator.maxValue = maxValue;
 	}
 
@@ -96,7 +96,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	 * setting of seed value for random generator
 	 * @param seedValue seed
 	 */
-	public static void setSeedValue(int seedValue) {
+	public static void setSeedValue(final int seedValue) {
 		GaussianFileNameGenerator.seedValue = seedValue;
 	}
 
@@ -105,7 +105,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	 * constructor - set limit for number of generated requests
 	 * @param limit pocet generovanych cisel
 	 */
-	public GaussianFileNameGenerator(long limit){
+	public GaussianFileNameGenerator(final long limit) {
 		super();
 		this.addObserver(MainGUI.getInstance());
 		this.rnd = new Random(seedValue);
@@ -120,24 +120,28 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 		
 		//pocet pristupu - pri prekroceni limitu se ukoncuje generovani
 		// tento pristup je volen pro jednodussi cteni z logu
-		generatedAccesses++;
-		if (generatedAccesses > limit)
+		this.generatedAccesses++;
+		if (this.generatedAccesses > this.limit) {
 			return null;
-		
-		if (generatedAccesses % modulo == 0){
+		}
+
+		if (this.generatedAccesses % this.modulo == 0) {
 			setChanged();
-			notifyObservers(new Integer((int)(generatedAccesses * 100 / limit)));
+			notifyObservers(new Integer((int) (this.generatedAccesses * 100 / this.limit)));
 		}
 		
 		//generovani jmena souboru a casu pristupu k nemu
 		int rndNum = minValue - 1;
-		rndNum = (int) ((meanValue + rnd.nextGaussian() * dispersion));
-		while (rndNum < minValue || rndNum > maxValue)
-			rndNum = (int) ((meanValue + rnd.nextGaussian() * dispersion));
-		if (rndNum > maxValue)
+		rndNum = (int) ((meanValue + this.rnd.nextGaussian() * dispersion));
+		while (rndNum < minValue || rndNum > maxValue) {
+			rndNum = (int) ((meanValue + this.rnd.nextGaussian() * dispersion));
+		}
+		if (rndNum > maxValue) {
 			rndNum = maxValue;
-		if (rndNum < minValue)
+		}
+		if (rndNum < minValue) {
 			rndNum = minValue;
+		}
 		
 		//jako cas pristupu vracime nulu - neresime mozne zpozdeni na siti
 		//zpozdeni se resi "jen" u pristupu z logu
@@ -147,6 +151,12 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 	@Override
 	public Quartet<String, Long, Long, Long> getNextFileNameWithFSize() {
 		return null;
+	}
+
+	@Override
+	public void reset() {
+		this.generatedAccesses = 0;
+		this.rnd = new Random(seedValue);
 	}
 
 }

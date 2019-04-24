@@ -1,11 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import java.util.Observable;
-
 import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.Observable;
 
 
 public class ZipfFileNameGenerator extends Observable implements IFileQueue {
@@ -13,12 +13,12 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 	/**
 	 * promenna pro urceni poctu generovanych pozadavku
 	 */
-	private long limit;
+	private final long limit;
 	
 	/**
 	 * pocet vygenerovanych pozadavku
 	 */
-	private long generatedAccesses = 0;
+	private long generatedAccesses;
 	
 	/**
 	 * interval pro nahodny generator
@@ -39,8 +39,8 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 	 * promenna pro nahodny zipf nahodny generator
 	 */
 	private ZIPFRandom random;
-	
-	public ZipfFileNameGenerator(long limit) {
+
+	public ZipfFileNameGenerator(final long limit) {
 		super();
 		this.addObserver(MainGUI.getInstance());
 		this.random = new ZIPFRandom(maxValue, ZipfFileNameGenerator.alpha);
@@ -55,21 +55,22 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 		
 		//pocet pristupu - pri prekroceni limitu se ukoncuje generovani
 		// tento pristup je volen pro jednodussi cteni z logu
-		generatedAccesses++;
-		if (generatedAccesses > limit)
+		this.generatedAccesses++;
+		if (this.generatedAccesses > this.limit) {
 			return null;
-		
-		if (generatedAccesses % modulo == 0){
+		}
+
+		if (this.generatedAccesses % this.modulo == 0) {
 			setChanged();
-			notifyObservers(new Integer((int)(generatedAccesses * 100 / limit)));
+			notifyObservers((int) (this.generatedAccesses * 100 / this.limit));
 		}
 		
 		//generovani jmena souboru a casu pristupu k nemu
-		int rndNum = Math.abs(random.zipfNext()) % (maxValue - minValue) + minValue;
+		final int rndNum = Math.abs(this.random.zipfNext()) % (maxValue - minValue) + minValue;
 		
 		//jako cas pristupu vracime nulu - neresime mozne zpozdeni na siti
 		//zpozdeni se resi "jen" u pristupu z logu
-		return new Triplet<String, Long, Long>(Integer.toString(rndNum), 0L, 0L);
+		return new Triplet<>(Integer.toString(rndNum), 0L, 0L);
 	}
 
 	@Override
@@ -78,11 +79,12 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 		return null;
 	}
 
+
 	/**
 	 * staticke nastaveni gaussovskeho generatoru - minimalni generovana hodnota
 	 * @param minValue min hodnota
 	 */
-	public static void setMinValue(int minValue) {
+	public static void setMinValue(final int minValue) {
 		ZipfFileNameGenerator.minValue = minValue;
 	}
 
@@ -90,7 +92,7 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 	 * staticke nastaveni gaussovskeho generatoru - maximalni generovana hodnota
 	 * @param maxValue max hodnota
 	 */
-	public static void setMaxValue(int maxValue) {
+	public static void setMaxValue(final int maxValue) {
 		ZipfFileNameGenerator.maxValue = maxValue;
 	}
 
@@ -98,7 +100,13 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 	 * staticke nastaveni gaussovskeho generatoru - seed value pro nahodny generator
 	 * @param seedValue seed
 	 */
-	public static void setAlpha(double aplha) {
+	public static void setAlpha(final double aplha) {
 		ZipfFileNameGenerator.alpha = aplha;
+	}
+
+	@Override
+	public void reset() {
+		this.generatedAccesses = 0;
+		this.random = new ZIPFRandom(maxValue, ZipfFileNameGenerator.alpha);
 	}
 }

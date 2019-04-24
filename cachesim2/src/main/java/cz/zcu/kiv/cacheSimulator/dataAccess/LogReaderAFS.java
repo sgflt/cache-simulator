@@ -1,5 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
+import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
+import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
+import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
+import cz.zcu.kiv.cacheSimulator.shared.Pair;
+import cz.zcu.kiv.cacheSimulator.shared.Quartet;
+import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,13 +15,6 @@ import java.io.IOException;
 import java.sql.Date;
 import java.util.Hashtable;
 import java.util.Observable;
-
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
-import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
-import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
-import cz.zcu.kiv.cacheSimulator.shared.Pair;
-import cz.zcu.kiv.cacheSimulator.shared.Quartet;
-import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
 
 /**
@@ -126,9 +126,9 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 			if (this.fileReadPos / this.modulo > this.procent){
 				this.procent++;
 				setChanged();
-				notifyObservers(new Integer(this.procent));
+				notifyObservers(this.procent);
 			}
-			return new Triplet<String, Long, Long>(f.getFname(), f.getAccessTime(), f.getUserID());
+			return new Triplet<>(f.getFname(), f.getAccessTime(), f.getUserID());
 		}
 		else {
 			return null;
@@ -142,13 +142,18 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 			if (this.fileReadPos / this.modulo > this.procent){
 				this.procent++;
 				setChanged();
-				notifyObservers(new Integer(this.procent));
+				notifyObservers(this.procent);
 			}
-			return new Quartet<String, Long, Long, Long>(f.getFname(), f.getfSize(), f.getAccessTime(), f.getUserID());
+			return new Quartet<>(f.getFname(), f.getfSize(), f.getAccessTime(), f.getUserID());
 		}
 		else {
 			return null;
 		}
+	}
+
+	@Override
+	public void reset() {
+
 	}
 
 	/**

@@ -1,12 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import java.util.Observable;
-import java.util.Random;
-
 import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+
+import java.util.Observable;
+import java.util.Random;
 
 
 public class RandomFileNameGeneratorWithPrefences extends Observable implements IFileQueue{
@@ -19,7 +19,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	/**
 	 * promenna pro urceni poctu generovanych pozadavku
 	 */
-	private long limit;
+	private final long limit;
 	
 	/**
 	 * pocet vygenerovanych pozadavku
@@ -55,9 +55,9 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	 * promenna pro uchovani, jak casto se ma generovat udalost pro GUI
 	 */
 	private int modulo = 1;
-	
-	
-	public RandomFileNameGeneratorWithPrefences(long limit) {
+
+
+	public RandomFileNameGeneratorWithPrefences(final long limit) {
 		super();
 		this.addObserver(MainGUI.getInstance());
 		this.rnd = new Random(seedValue);
@@ -72,26 +72,28 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 		
 		//pocet pristupu - pri prekroceni limitu se ukoncuje generovani
 		// tento pristup je volen pro jednodussi cteni z logu
-		generatedAccesses++;
-		if (generatedAccesses > limit)
+		this.generatedAccesses++;
+		if (this.generatedAccesses > this.limit) {
 			return null;
-		
-		if (generatedAccesses % modulo == 0){
+		}
+
+		if (this.generatedAccesses % this.modulo == 0) {
 			setChanged();
-			notifyObservers(new Integer((int)(generatedAccesses * 100 / limit)));
+			notifyObservers(new Integer((int) (this.generatedAccesses * 100 / this.limit)));
 		}
 		
 		int rndNum = nonPreferenceFile;
 		//generovani jmena souboru a casu pristupu k nemu
 		//nejprve normalni generator
-		if (generatedAccesses % preferenceStep != 0){
-			while(rndNum % nonPreferenceFile == 0)
-				rndNum = Math.abs(rnd.nextInt()) % (maxValue - minValue) + minValue;
+		if (this.generatedAccesses % preferenceStep != 0) {
+			while (rndNum % nonPreferenceFile == 0) {
+				rndNum = Math.abs(this.rnd.nextInt()) % (maxValue - minValue) + minValue;
+			}
 		}
 		//preferovany soubor
 		else
 		{
-			rndNum = (Math.abs(rnd.nextInt()) % ((maxValue - minValue) / preferenceFile) + 1) * preferenceFile;
+			rndNum = (Math.abs(this.rnd.nextInt()) % ((maxValue - minValue) / preferenceFile) + 1) * preferenceFile;
 		}
 		
 		//jako cas pristupu vracime nulu - neresime mozne zpozdeni na siti
@@ -104,12 +106,18 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
+	@Override
+	public void reset() {
+		this.generatedAccesses = 0;
+		this.rnd = new Random(seedValue);
+	}
+
 	/**
 	 * staticke nastaveni gaussovskeho generatoru - minimalni generovana hodnota
 	 * @param minValue min hodnota
 	 */
-	public static void setMinValue(int minValue) {
+	public static void setMinValue(final int minValue) {
 		RandomFileNameGeneratorWithPrefences.minValue = minValue;
 	}
 
@@ -117,7 +125,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	 * staticke nastaveni gaussovskeho generatoru - maximalni generovana hodnota
 	 * @param maxValue max hodnota
 	 */
-	public static void setMaxValue(int maxValue) {
+	public static void setMaxValue(final int maxValue) {
 		RandomFileNameGeneratorWithPrefences.maxValue = maxValue;
 	}
 
@@ -125,7 +133,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	 * staticke nastaveni gaussovskeho generatoru - seed value pro nahodny generator
 	 * @param seedValue seed
 	 */
-	public static void setSeedValue(int seedValue) {
+	public static void setSeedValue(final int seedValue) {
 		RandomFileNameGeneratorWithPrefences.seedValue = seedValue;
 	}
 
@@ -133,7 +141,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	 * metoda pro nastaveni preferovanych nasobku
 	 * @param preferenceFile nasobky
 	 */
-	public static void setPreferenceFile(int preferenceFile) {
+	public static void setPreferenceFile(final int preferenceFile) {
 		RandomFileNameGeneratorWithPrefences.preferenceFile = preferenceFile;
 	}
 
@@ -141,7 +149,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	 * metoda pro nastaveni kroku, ve kterych se bude generovat preferovane jmeno
 	 * @param preferenceStep krok
 	 */
-	public static void setPreferenceStep(int preferenceStep) {
+	public static void setPreferenceStep(final int preferenceStep) {
 		RandomFileNameGeneratorWithPrefences.preferenceStep = preferenceStep;
 	}
 
@@ -149,7 +157,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 	 * metoda pro nastaveni nasobku, ktere nebudou generovany
 	 * @param nonPreferenceFile nasobky
 	 */
-	public static void setNonPreferenceFile(int nonPreferenceFile) {
+	public static void setNonPreferenceFile(final int nonPreferenceFile) {
 		RandomFileNameGeneratorWithPrefences.nonPreferenceFile = nonPreferenceFile;
 	}
 	
