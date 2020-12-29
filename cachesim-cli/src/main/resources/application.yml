@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: '@project.artifactId@'
+
+simulation:
+  file-source:
+    random-file-source:
+      count-of-files: 100
+
+cache:
+  policy:
+    fifo:
+      capacity: 10
+
+logging:
+  level:
+    eu.qwsome: trace
