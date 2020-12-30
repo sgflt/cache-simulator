@@ -43,11 +43,9 @@ public class FIFO extends SimulationCacheStub {
       return;
     }
 
-    if (value.getFileSize() + this.used > this.capacity) {
-      while (value.getFileSize() + this.used > this.capacity) {
-        final var removed = this.queue.remove();
-        this.used -= removed.getFileSize();
-      }
+    while (value.getFileSize() + this.used > this.capacity) {
+      final var removed = this.queue.remove();
+      this.used -= removed.getFileSize();
     }
 
     this.used += value.getFileSize();
