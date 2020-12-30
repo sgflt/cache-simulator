@@ -35,6 +35,11 @@ cache:
         max: 100000000
         step: 1000
       fifo-ratio: 0.5
+    arc:
+      capacity:
+        min: 1024
+        max: 100000000
+        step: 1000
 
 logging:
   level:
