@@ -19,6 +19,11 @@ cache:
         min: 1024
         max: 100000000
         step: 1000
+    mru:
+      capacity:
+        min: 1024
+        max: 100000000
+        step: 1000
 
 logging:
   level:
