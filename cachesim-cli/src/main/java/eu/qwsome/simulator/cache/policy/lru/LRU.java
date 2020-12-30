@@ -10,7 +10,7 @@ import java.util.Queue;
 /**
  * @author Lukáš Kvídera
  */
-public class LRU extends SimulationCacheStub {
+class LRU extends SimulationCacheStub {
 
   private final Queue<FileTraffic> queue = new LinkedList<>();
 
@@ -20,7 +20,7 @@ public class LRU extends SimulationCacheStub {
   private final long capacity;
   private long used;
 
-  public LRU(final long capacity) {
+  LRU(final long capacity) {
     this.capacity = capacity;
   }
 

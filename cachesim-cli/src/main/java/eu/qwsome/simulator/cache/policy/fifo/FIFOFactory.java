@@ -12,7 +12,7 @@ import java.util.List;
  * @author Lukáš Kvídera
  */
 @Component
-public class FIFOFactory implements CacheFactory {
+class FIFOFactory implements CacheFactory {
 
   @Value("${cache.policy.fifo.capacity.min}")
   private long minCapacity;

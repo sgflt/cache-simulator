@@ -10,7 +10,7 @@ import java.util.Queue;
 /**
  * @author Lukáš Kvídera
  */
-public class FIFO extends SimulationCacheStub {
+class FIFO extends SimulationCacheStub {
 
   private final Queue<FileTraffic> queue = new LinkedList<>();
 

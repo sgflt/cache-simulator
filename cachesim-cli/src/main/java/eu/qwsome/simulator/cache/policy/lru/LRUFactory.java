@@ -12,7 +12,7 @@ import java.util.List;
  * @author Lukáš Kvídera
  */
 @Component
-public class LRUFactory implements CacheFactory {
+class LRUFactory implements CacheFactory {
 
   @Value("${cache.policy.lru.capacity.min}")
   private long minCapacity;
