@@ -17,6 +17,11 @@ import java.util.Set;
  */
 public abstract class SimulationCacheStub implements Cache<String, FileTraffic> {
 
+  /**
+   * @return count of bytes
+   */
+  public abstract long getCapacity();
+
   @Override
   public Map<String, FileTraffic> getAll(final Set<? extends String> keys) {
     return null;
@@ -60,6 +65,11 @@ public abstract class SimulationCacheStub implements Cache<String, FileTraffic> 
 
   @Override
   public boolean replace(final String key, final FileTraffic oldValue, final FileTraffic newValue) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public boolean remove(final String key) {
     throw new UnsupportedOperationException();
   }
 

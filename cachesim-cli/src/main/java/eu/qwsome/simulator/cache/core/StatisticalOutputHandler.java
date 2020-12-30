@@ -26,6 +26,17 @@ class StatisticalOutputHandler {
   public void onSimulationCompleted(final SimulationCompleted event) {
     LOG.info("Building statictics...");
 
-    this.caches.forEach(cache -> LOG.info("{}", cache));
+    this.caches.forEach(cache -> {
+      LOG.info("{}", cache);
+      final var decorator = (StatisticsCalculatingCacheDecorator) cache;
+
+      LOG.info(
+        "cachename={}, cachesize={}, hitratio={}, savedtraffic={}",
+        decorator.getName(),
+        decorator.getCapacity(),
+        decorator.getHitRatio(),
+        decorator.getSavedTraffic()
+      );
+    });
   }
 }

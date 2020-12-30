@@ -1,11 +1,12 @@
 package eu.qwsome.simulator.cache.policy.fifo;
 
 import eu.qwsome.simulator.cache.core.CacheFactory;
-import eu.qwsome.simulator.cache.core.FileTraffic;
+import eu.qwsome.simulator.cache.core.SimulationCacheStub;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.cache.Cache;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Lukáš Kvídera
@@ -13,12 +14,24 @@ import javax.cache.Cache;
 @Component
 public class FIFOFactory implements CacheFactory {
 
-  @Value("${cache.policy.fifo.capacity}")
-  private long capacity;
+  @Value("${cache.policy.fifo.capacity.min}")
+  private long minCapacity;
+
+  @Value("${cache.policy.fifo.capacity.max}")
+  private long maxCapacity;
+
+  @Value("${cache.policy.fifo.capacity.step}")
+  private long step;
 
 
   @Override
-  public Cache<String, FileTraffic> createCache() {
-    return new FIFO(this.capacity);
+  public List<SimulationCacheStub> createCaches() {
+    final List<SimulationCacheStub> caches = new ArrayList<>();
+
+    for (long capacity = this.minCapacity; capacity <= this.maxCapacity; capacity += this.step) {
+      caches.add(new FIFO(capacity));
+    }
+
+    return caches;
   }
 }

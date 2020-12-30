@@ -16,7 +16,8 @@ class CacheFactoryRegistry {
 
   CacheFactoryRegistry(final List<CacheFactory> cacheFactories) {
     this.caches = cacheFactories.stream()
-      .map(CacheFactory::createCache)
+      .map(CacheFactory::createCaches)
+      .flatMap(List::stream)
       .map(StatisticsCalculatingCacheDecorator::new)
       .collect(Collectors.toUnmodifiableList());
   }

@@ -1,5 +1,7 @@
 package eu.qwsome.simulator.cache.core;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
 import java.util.Objects;
 
 /**
@@ -18,7 +20,7 @@ public class FileTraffic {
     return this.fileName;
   }
 
-  long getFileSize() {
+  public long getFileSize() {
     return this.fileSize;
   }
 
@@ -37,5 +39,13 @@ public class FileTraffic {
     }
     final FileTraffic that = (FileTraffic) o;
     return this.fileSize == that.fileSize && Objects.equals(this.fileName, that.fileName);
+  }
+
+  @Override
+  public String toString() {
+    return new ToStringBuilder(this)
+      .append("fileName", this.fileName)
+      .append("fileSize", this.fileSize)
+      .toString();
   }
 }
