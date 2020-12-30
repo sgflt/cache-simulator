@@ -26,7 +26,7 @@ public class FileTraffic {
 
   @Override
   public int hashCode() {
-    return Objects.hash(this.fileName, this.fileSize);
+    return Objects.hash(this.fileName);
   }
 
   @Override
@@ -38,7 +38,7 @@ public class FileTraffic {
       return false;
     }
     final FileTraffic that = (FileTraffic) o;
-    return this.fileSize == that.fileSize && Objects.equals(this.fileName, that.fileName);
+    return Objects.equals(this.fileName, that.fileName);
   }
 
   @Override
