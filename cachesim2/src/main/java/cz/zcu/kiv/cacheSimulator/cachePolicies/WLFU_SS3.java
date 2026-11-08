@@ -1,0 +1,37 @@
+package cz.zcu.kiv.cacheSimulator.cachePolicies;
+
+/**
+ * @author Lukáš Kvídera, A11B0421P
+ * @version 0.0
+ *
+ * Algoritmus stejně jako WLFU_SS a WLFUSS2 se snaží ponechat velké soubory v cache.
+ *
+ * Tentokrát se k hitům přičítá pouze váha.
+ */
+public class WLFU_SS3 extends LFU_SS {
+
+  @Override
+  public void removeFile() {
+    double cacheMaxSize = 0.0;
+    for (final MetaData entry : entries()) {
+      cacheMaxSize = Math.max(cacheMaxSize, entry.getFileOnClient().getFileSize());
+    }
+    for (final MetaData entry : entries()) {
+      final double h = entry.getReadHits();
+      final double r = entry.getFileOnClient().getFileSize() / cacheMaxSize;
+      entry.setReadHits(h + r);
+    }
+    markUnsorted();
+    super.removeFile();
+  }
+
+  @Override
+  public String toString() {
+    return "WLFU-SS3";
+  }
+
+  @Override
+  public String cacheInfo() {
+    return "WLFU_SS3;WLFU-SS3";
+  }
+}

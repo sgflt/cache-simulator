@@ -42,6 +42,11 @@ public class LFU_SS implements ICache {
   private long usedCapacity;
 
   /**
+   * nastavena velikost cache (bez okenka pro velke soubory)
+   */
+  private long initialCapacity;
+
+  /**
    * promenne pro urceni, jestli je treba tridit
    */
   private boolean needSort = true;
@@ -66,6 +71,7 @@ public class LFU_SS implements ICache {
    */
   public LFU_SS() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.initialCapacity = this.capacity;
   }
 
   @Override
@@ -135,11 +141,43 @@ public class LFU_SS implements ICache {
     }
     final double readHits = ((double) fileOnClient.getCountOfReadRequests() - (double) fileOnClient.getCountOfWriteRequests())
       / (double) this.globalReadCount * localReadCount + 1.0;
+    addEntry(fileOnClient, readHits);
+  }
+
+  /**
+   * adds a file to the cache with the given starting number of hits
+   */
+  protected void addEntry(final FileOnClient fileOnClient, final double readHits) {
     final MetaData entry = new MetaData(fileOnClient, readHits);
     this.list.add(entry);
     this.byName.put(FileKey.of(fileOnClient.getFileName()), entry);
     this.usedCapacity += fileOnClient.getFileSize();
     this.needSort = true;
+  }
+
+  /**
+   * the cached files with their hits; subclasses may change the hits
+   */
+  protected List<MetaData> entries() {
+    return this.list;
+  }
+
+  /**
+   * forces sorting before the next eviction
+   */
+  protected void markUnsorted() {
+    this.needSort = true;
+  }
+
+  protected long getGlobalReadCount() {
+    return this.globalReadCount;
+  }
+
+  /**
+   * the configured cache size, without the window for files bigger than the cache
+   */
+  protected long getCacheCapacity() {
+    return this.initialCapacity;
   }
 
   /**
@@ -164,6 +202,7 @@ public class LFU_SS implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.initialCapacity = capacity;
   }
 
   @Override
@@ -209,7 +248,7 @@ public class LFU_SS implements ICache {
   }
 
 
-  private static class MetaData {
+  protected static class MetaData {
 
     private final FileOnClient fileOnClient;
     private double readHits;
@@ -219,16 +258,20 @@ public class LFU_SS implements ICache {
       this.readHits = readHits;
     }
 
-    FileOnClient getFileOnClient() {
+    public FileOnClient getFileOnClient() {
       return this.fileOnClient;
     }
 
-    double getReadHits() {
+    public double getReadHits() {
       return this.readHits;
     }
 
     void increaseReadHits() {
       ++this.readHits;
+    }
+
+    public void setReadHits(final double readHits) {
+      this.readHits = readHits;
     }
 
     void reduceReadHits() {
