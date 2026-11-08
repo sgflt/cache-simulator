@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -46,7 +47,7 @@ public class CacheLoader {
         jarEntry = jarInputStream.getNextJarEntry();
         if (jarEntry != null) {
           String fileName = jarEntry.getName();
-          if (fileName.contains(POLICY_PACKAGE) && !fileName.contains("$") && !fileName.equalsIgnoreCase(POLICY_PACKAGE)) {
+          if (fileName.startsWith(POLICY_PACKAGE) && fileName.endsWith(".class") && !fileName.contains("$")) {
             fileName = fileName.substring(0, fileName.lastIndexOf(".class"));
             files.add(fileName);
           }
@@ -70,7 +71,7 @@ public class CacheLoader {
     for (final String cacheName : cacheClassNames) {
       if (!cacheName.contains("ICache")) {
         try {
-          final URL url = new URL("jar:file:/" + path + "!/");
+          final URL url = URI.create("jar:" + path.toUri() + "!/").toURL();
           try (final URLClassLoader ucl = new URLClassLoader(new URL[]{url})) {
             final ICache newCache = (ICache) (Class.forName(
               cacheName.replace("/", "."), true, ucl)).getDeclaredConstructor().newInstance();

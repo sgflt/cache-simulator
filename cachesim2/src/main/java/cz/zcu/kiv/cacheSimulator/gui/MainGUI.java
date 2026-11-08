@@ -1628,6 +1628,11 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
           simulation.simulateRandomFileSizes();
         }
 
+        if (Thread.currentThread().isInterrupted()) {
+          // cancelled - the cancel handler already reset the GUI
+          return;
+        }
+
         MainGUI.this.simulationProgressBar.setVisible(false);
         MainGUI.this.cacheResults = simulation.getResults();
         if (MainGUI.this.cacheResults != null && !MainGUI.this.cacheResults.isEmpty()) {
@@ -1748,11 +1753,10 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     // TODO add your handling code here:
   }// GEN-LAST:event_totalNetTextFieldActionPerformed
 
-  @SuppressWarnings("deprecation")
   private void simCancelButtonActionPerformed(final java.awt.event.ActionEvent evt) {// GEN-FIRST:event_simCancelButtonActionPerformed
     if (this.simulationThread != null) {
+      // the simulation loop checks the interrupt flag and stops on its own
       this.simulationThread.interrupt();
-      this.simulationThread.stop();
       this.simulationThread = null;
     }
     enableComponentsAfterSimulaton(false);
@@ -2049,7 +2053,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     JPanel cacheSettings;
     try {
       cacheSettings = (JPanel) Class.forName(
-        "cacheSimulator.gui." + name + "Panel").newInstance();
+        "cz.zcu.kiv.cacheSimulator.gui." + name + "Panel").getDeclaredConstructor().newInstance();
     } catch (final Exception ex) {
       cacheSettings = this.noSettingsPanel;
     }
@@ -2068,7 +2072,7 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
     JPanel cacheSettings;
     try {
       cacheSettings = (JPanel) Class.forName(
-        "cz.zcu.kiv.cacheSimulator.gui." + name + "Panel").newInstance();
+        "cz.zcu.kiv.cacheSimulator.gui." + name + "Panel").getDeclaredConstructor().newInstance();
     } catch (final Exception ex) {
       cacheSettings = this.noSettingsPanel;
     }

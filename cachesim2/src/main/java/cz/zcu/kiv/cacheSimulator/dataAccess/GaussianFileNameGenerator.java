@@ -127,7 +127,7 @@ public class GaussianFileNameGenerator extends Observable implements IFileQueue 
 
 		if (this.generatedAccesses % this.modulo == 0) {
 			setChanged();
-			notifyObservers(new Integer((int) (this.generatedAccesses * 100 / this.limit)));
+			notifyObservers((int) (this.generatedAccesses * 100 / this.limit));
 		}
 		
 		//generovani jmena souboru a casu pristupu k nemu
