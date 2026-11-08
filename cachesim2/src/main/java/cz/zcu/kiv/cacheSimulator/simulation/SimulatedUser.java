@@ -1,7 +1,6 @@
 package cz.zcu.kiv.cacheSimulator.simulation;
 
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
@@ -47,27 +46,30 @@ public class SimulatedUser {
    */
   private final AtomicLong totalNetworkBandwidth = new AtomicLong();
 
+  private final SimulationConfig config;
+
 
   /**
    * konstruktor - inicializace user ID
    *
    * @param iD user ID
    */
-  public SimulatedUser(final long iD) {
+  public SimulatedUser(final long iD, final SimulationConfig config) {
     this.ID = iD;
-    loadCaches(MainGUI.getInstance().getCacheSizes());
+    this.config = config;
+    loadCaches();
   }
 
   /**
    * metoda, ktera podle nasatveni v global variables nacte cachovaci
    * algoritmy
    */
-  private void loadCaches(final Integer[] cacheSizes) {
+  private void loadCaches() {
     this.measurements.clear();
 
     ICache cache;
-    for (final String cacheName : MainGUI.getInstance().getCachesNames()) {
-      for (final Integer cacheSize : cacheSizes) {
+    for (final String cacheName : this.config.cacheNames()) {
+      for (final Integer cacheSize : this.config.cacheSizes()) {
         try {
           cache = (ICache) Class.forName(
             "cz.zcu.kiv.cacheSimulator.cachePolicies." + cacheName)
@@ -87,6 +89,10 @@ public class SimulatedUser {
    *
    * @return id uzivatele
    */
+  public SimulationConfig getConfig() {
+    return this.config;
+  }
+
   public long getID() {
     return this.ID;
   }

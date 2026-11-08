@@ -1,15 +1,13 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
-import java.util.Observable;
 import java.util.Random;
 
 
-public class RandomFileNameGeneratorWithPrefences extends Observable implements IFileQueue{
+public class RandomFileNameGeneratorWithPrefences extends AbstractFileQueue {
 
 	/**
 	 * atribut pro generovani jmen souboru
@@ -59,11 +57,10 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 
 	public RandomFileNameGeneratorWithPrefences(final long limit) {
 		super();
-		this.addObserver(MainGUI.getInstance());
 		this.rnd = new Random(seedValue);
 		this.limit = limit;
 		this.generatedAccesses = 0;
-		this.modulo = (int)limit / 100;
+		this.modulo = Math.max(1, (int) limit / 100);
 	}
 
 	@Override
@@ -78,8 +75,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 		}
 
 		if (this.generatedAccesses % this.modulo == 0) {
-			setChanged();
-			notifyObservers((int) (this.generatedAccesses * 100 / this.limit));
+			fireProgress((int) (this.generatedAccesses * 100 / this.limit));
 		}
 		
 		int rndNum = nonPreferenceFile;

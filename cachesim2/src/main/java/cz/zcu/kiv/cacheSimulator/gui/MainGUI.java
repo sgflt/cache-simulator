@@ -14,6 +14,7 @@ import cz.zcu.kiv.cacheSimulator.shared.ConfigReaderWriter;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.simulation.AccessSimulation;
+import cz.zcu.kiv.cacheSimulator.simulation.SimulationConfig;
 import cz.zcu.kiv.cacheSimulator.simulation.UserStatistics;
 
 import javax.swing.*;
@@ -30,14 +31,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Observable;
-import java.util.Observer;
 
 /**
  * @author Pavel Bzoch trida pro zobrazeni hlavniho gui aplikace
  */
 @SuppressWarnings("serial")
-public class MainGUI extends javax.swing.JFrame implements Observer {
+public class MainGUI extends javax.swing.JFrame {
 
   public static final String ALERT = "Alert";
   public static final String CHOOSE_ONE = "-- Choose one --";
@@ -46,10 +45,14 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
    */
   private static MainGUI gui = null;
 
-  @Override
-  public void update(final Observable arg0, final Object arg1) {
-    this.simulationProgressBar.setValue((Integer) arg1);
-    this.simulationProgressBar.setString(String.format("Simulation in progress... %s %%", String.valueOf(arg1)));
+  /**
+   * shows simulation progress; called from the simulation thread
+   */
+  private void showProgress(final int percent) {
+    SwingUtilities.invokeLater(() -> {
+      this.simulationProgressBar.setValue(percent);
+      this.simulationProgressBar.setString(String.format("Simulation in progress... %d %%", percent));
+    });
   }
 
   /**
@@ -1597,12 +1600,18 @@ public class MainGUI extends javax.swing.JFrame implements Observer {
         fileQueue = new LogReaderAFS();
       }
 
-      // objekt simulatoru
-      final AccessSimulation simulation = new AccessSimulation(fileQueue);
+      if (fileQueue == null) {
+        return;
+      }
+      fileQueue.setProgressListener(this::showProgress);
 
       // velikosti cache
-      final Integer[] sizes = ((CapacityAbstractModel) this.cacheCapacityList
-        .getModel()).getArray();
+      final Integer[] sizes = getCacheSizes();
+
+      // objekt simulatoru
+      final SimulationConfig config = new SimulationConfig(
+        Arrays.asList(getCachesNames()), Arrays.asList(sizes));
+      final AccessSimulation simulation = new AccessSimulation(fileQueue, config);
 
       // nastaveni progress baru
       this.simulationProgressBar.setMinimum(0);

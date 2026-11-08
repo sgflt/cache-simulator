@@ -5,7 +5,6 @@
 package cz.zcu.kiv.cacheSimulator.simulation;
 
 import cz.zcu.kiv.cacheSimulator.cachePolicies.ICache;
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,8 +51,7 @@ public class UserStatistics {
     this.fileAccessed = user.getFileAccessed();
     this.totalNetworkBandwidth = user.getTotalNetworkBandwidth();
     this.cachesResults = user.getCachesResults();
-    this.cacheSizes = new Integer[MainGUI.getInstance().getCacheSizes().length];
-    System.arraycopy(MainGUI.getInstance().getCacheSizes(), 0, this.cacheSizes, 0, this.cacheSizes.length);
+    this.cacheSizes = user.getConfig().cacheSizes().toArray(Integer[]::new);
   }
 
   /**

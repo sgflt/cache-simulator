@@ -1,14 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
-import java.util.Observable;
 
 
-public class ZipfFileNameGenerator extends Observable implements IFileQueue {
+public class ZipfFileNameGenerator extends AbstractFileQueue {
 
 	/**
 	 * promenna pro urceni poctu generovanych pozadavku
@@ -42,11 +40,10 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 
 	public ZipfFileNameGenerator(final long limit) {
 		super();
-		this.addObserver(MainGUI.getInstance());
 		this.random = new ZIPFRandom(maxValue, ZipfFileNameGenerator.alpha);
 		this.limit = limit;
 		this.generatedAccesses = 0;
-		this.modulo = (int)limit / 100;
+		this.modulo = Math.max(1, (int) limit / 100);
 	}
 	
 	@Override
@@ -61,8 +58,7 @@ public class ZipfFileNameGenerator extends Observable implements IFileQueue {
 		}
 
 		if (this.generatedAccesses % this.modulo == 0) {
-			setChanged();
-			notifyObservers((int) (this.generatedAccesses * 100 / this.limit));
+			fireProgress((int) (this.generatedAccesses * 100 / this.limit));
 		}
 		
 		//generovani jmena souboru a casu pristupu k nemu
