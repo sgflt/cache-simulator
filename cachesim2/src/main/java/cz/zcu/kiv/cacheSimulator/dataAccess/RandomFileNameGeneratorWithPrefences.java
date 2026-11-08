@@ -79,7 +79,7 @@ public class RandomFileNameGeneratorWithPrefences extends Observable implements 
 
 		if (this.generatedAccesses % this.modulo == 0) {
 			setChanged();
-			notifyObservers(new Integer((int) (this.generatedAccesses * 100 / this.limit)));
+			notifyObservers((int) (this.generatedAccesses * 100 / this.limit));
 		}
 		
 		int rndNum = nonPreferenceFile;

@@ -71,7 +71,7 @@ public class SimulatedUser {
         try {
           cache = (ICache) Class.forName(
             "cz.zcu.kiv.cacheSimulator.cachePolicies." + cacheName)
-            .newInstance();
+            .getDeclaredConstructor().newInstance();
           cache.setCapacity(cacheSize * 1024L * 1024L);
           this.measurements.add(new Measurement(cache));
         } catch (final Exception ex) {

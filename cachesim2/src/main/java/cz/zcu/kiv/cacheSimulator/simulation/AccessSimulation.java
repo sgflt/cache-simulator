@@ -74,6 +74,9 @@ public class AccessSimulation {
     for (final var measurement : user.getMeasurements()) {
       Triplet<String, Long, Long> file;
       while ((file = this.fileQueue.getNextFileName()) != null) {
+        if (isCancelled()) {
+          return;
+        }
         // pokud na serveru soubor neexistuje, vytvorime jej s nahodnou
         // velikosti souboru
         if (!this.server.existFileOnServer(file.getFirst())) {
@@ -100,6 +103,13 @@ public class AccessSimulation {
     }
 
     LOG.info("Simulation done in {} ms", Duration.between(start, Instant.now()).toMillis());
+  }
+
+  /**
+   * simulation is cancelled by interrupting the thread it runs in
+   */
+  private static boolean isCancelled() {
+    return Thread.currentThread().isInterrupted();
   }
 
   private void measureHitRatio(final Triplet<String, Long, Long> file, final Measurement measurement) {
@@ -133,6 +143,9 @@ public class AccessSimulation {
       .getNextFileNameWithFSize();
     SimulatedUser user;
     while (file != null) {
+      if (isCancelled()) {
+        return;
+      }
       user = getUser(file.getFourth());
       // pokud na serveru soubor neexistuje, vytvorime jej s nactenou
       // velikosti souboru
