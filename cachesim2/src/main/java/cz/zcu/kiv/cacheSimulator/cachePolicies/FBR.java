@@ -37,6 +37,10 @@ public class FBR implements ICache {
    * velikost cache v B
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
   private long usedCapacity;
 
   /**
@@ -55,6 +59,7 @@ public class FBR implements ICache {
    */
   public FBR() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
   }
 
   @Override
@@ -171,10 +176,12 @@ public class FBR implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.fQueue.clear();
     this.fOverCapacity.clear();
   }
@@ -192,7 +199,7 @@ public class FBR implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 

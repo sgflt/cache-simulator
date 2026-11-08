@@ -39,6 +39,10 @@ public class LRU_K implements ICache {
    * velikost cache v kB
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
 
   /**
    * struktura pro ukladani souboru
@@ -64,6 +68,7 @@ public class LRU_K implements ICache {
   public LRU_K() {
     super();
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
     this.fList = new ArrayList<>();
     this.fOverCapacity = new ArrayList<>();
   }
@@ -164,10 +169,12 @@ public class LRU_K implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.timeCounter = 0;
     this.fList.clear();
     this.byName.clear();
@@ -188,7 +195,7 @@ public class LRU_K implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 

@@ -39,12 +39,17 @@ public class LRU implements ICache {
    * velikost cache v B
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
 
   /**
    * konstruktor - inicializace cache
    */
   public LRU() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
     this.fOverCapacity = new ArrayList<>();
   }
 
@@ -114,10 +119,12 @@ public class LRU implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.files.clear();
     this.usedCapacity = 0;
     this.fOverCapacity.clear();
@@ -136,7 +143,7 @@ public class LRU implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 

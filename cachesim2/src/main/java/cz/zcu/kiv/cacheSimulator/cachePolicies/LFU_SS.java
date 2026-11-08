@@ -207,6 +207,7 @@ public class LFU_SS implements ICache {
 
   @Override
   public void reset() {
+    this.capacity = this.initialCapacity;
     this.needSort = true;
     this.list.clear();
     this.byName.clear();
@@ -229,7 +230,7 @@ public class LFU_SS implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.initialCapacity;
     }
   }
 

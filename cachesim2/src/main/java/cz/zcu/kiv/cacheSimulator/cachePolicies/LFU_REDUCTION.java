@@ -53,6 +53,10 @@ public class LFU_REDUCTION implements ICache {
    * velikost cache v kB
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
 
   private long usedCapacity;
 
@@ -67,6 +71,7 @@ public class LFU_REDUCTION implements ICache {
    */
   public LFU_REDUCTION() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
   }
 
   @Override
@@ -148,10 +153,12 @@ public class LFU_REDUCTION implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.needSort = true;
     this.list.clear();
     this.byName.clear();
@@ -172,7 +179,7 @@ public class LFU_REDUCTION implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 

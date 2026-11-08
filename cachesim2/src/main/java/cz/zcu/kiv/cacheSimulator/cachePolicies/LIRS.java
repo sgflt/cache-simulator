@@ -56,6 +56,10 @@ public class LIRS implements ICache {
 	 * kapacita cache
 	 */
 	private long capacity;
+	/**
+	 * the cache size set by setCapacity, restored when the download window closes
+	 */
+	private long configuredCapacity;
 
 	/**
 	 * promenna pro urceni logickeho casu
@@ -95,6 +99,7 @@ public class LIRS implements ICache {
 	public LIRS() {
 		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
+		this.configuredCapacity = this.capacity;
 		this.timeCounter = 1;
 		this.zasobnikSouboru = new AccessStack<>();
 		this.LIR = new ArrayList<>();
@@ -256,10 +261,12 @@ public class LIRS implements ICache {
 	@Override
 	public void setCapacity(final long capacity) {
 		this.capacity = capacity;
+		this.configuredCapacity = capacity;
 	}
 
 	@Override
 	public void reset() {
+		this.capacity = this.configuredCapacity;
 		this.zasobnikSouboru.clear();
 		this.LIR.clear();
 		this.HIR.clear();
@@ -284,7 +291,7 @@ public class LIRS implements ICache {
 			}
 		}
 		if (this.fOverCapacity.isEmpty()){
-			this.capacity = GlobalVariables.getCacheCapacity();
+			this.capacity = this.configuredCapacity;
 		}
 	}
 
