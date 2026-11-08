@@ -58,15 +58,18 @@ class AccessSimulationTest {
   }
 
   @Test
-  void progressIsReportedUpTo100Percent() {
+  void progressGrowsOverAllPassesUpTo100Percent() {
     final List<Integer> progress = new ArrayList<>();
-    final var queue = new ZipfFileNameGenerator(1_000);
-    queue.setProgressListener(progress::add);
+    final var simulation = new AccessSimulation(new ZipfFileNameGenerator(1_000), CONFIG);
+    simulation.setProgressListener(progress::add);
 
-    new AccessSimulation(queue, CONFIG).simulateRandomFileSizes();
+    simulation.simulateRandomFileSizes();
 
     assertFalse(progress.isEmpty());
     assertEquals(100, progress.get(progress.size() - 1));
+    for (int i = 1; i < progress.size(); i++) {
+      assertTrue(progress.get(i) >= progress.get(i - 1), "progress went back: " + progress);
+    }
   }
 
   @Test
