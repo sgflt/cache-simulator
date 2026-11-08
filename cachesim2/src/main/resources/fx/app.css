@@ -1,0 +1,174 @@
+/* Cache Simulator - light theme on top of Modena */
+
+.root {
+  -fx-font-family: "Inter", "Segoe UI", "Cantarell", "DejaVu Sans", sans-serif;
+  -fx-font-size: 13px;
+  -fx-base: #f3f4f6;
+  -fx-background: #eef0f4;
+  -fx-accent: #2563eb;
+  -fx-focus-color: #2563eb;
+  -fx-faint-focus-color: #2563eb22;
+  -fx-selection-bar: #2563eb;
+  -fx-selection-bar-non-focused: #c7d6f8;
+}
+
+/* --- chrome --- */
+.menu-bar {
+  -fx-background-color: white;
+}
+.tool-bar {
+  -fx-background-color: white;
+  -fx-padding: 6 10 6 10;
+  -fx-spacing: 6;
+  -fx-border-color: transparent transparent #dde1e7 transparent;
+}
+.tool-bar .button {
+  -fx-background-radius: 6;
+  -fx-padding: 5 10 5 8;
+  -fx-graphic-text-gap: 6;
+}
+.button.accent {
+  -fx-base: #2563eb;
+  -fx-font-weight: bold;
+}
+.tab-pane > .tab-header-area {
+  -fx-padding: 8 12 0 12;
+}
+.tab-pane > .tab-header-area > .tab-header-background {
+  -fx-background-color: #eef0f4;
+}
+.tab {
+  -fx-background-radius: 6 6 0 0;
+  -fx-padding: 4 14 4 14;
+  /* same border on all tabs so the selected one does not shift */
+  -fx-border-color: transparent;
+  -fx-border-width: 0 0 2 0;
+}
+.tab:selected {
+  -fx-background-color: white;
+}
+.status-bar {
+  -fx-background-color: white;
+  -fx-border-color: #dde1e7 transparent transparent transparent;
+  -fx-padding: 6 12 6 12;
+  -fx-spacing: 12;
+  -fx-alignment: center-left;
+}
+.status-bar .label {
+  -fx-text-fill: #4b5563;
+}
+
+/* --- page layout --- */
+.page {
+  -fx-padding: 16;
+}
+.page-scroll, .page-scroll > .viewport, .policy-scroll, .policy-scroll > .viewport {
+  -fx-background-color: transparent;
+}
+.split-pane {
+  -fx-background-color: transparent;
+  -fx-padding: 0;
+}
+.card {
+  -fx-background-color: white;
+  -fx-background-radius: 10;
+  -fx-border-color: #dde1e7;
+  -fx-border-radius: 10;
+  -fx-padding: 14 16 16 16;
+  -fx-spacing: 12;
+}
+.card-title {
+  -fx-font-size: 15px;
+  -fx-font-weight: bold;
+  -fx-text-fill: #111827;
+}
+.form {
+  -fx-spacing: 10;
+}
+.form-row {
+  -fx-spacing: 8;
+  -fx-alignment: center-left;
+}
+.form-label {
+  -fx-min-width: 250;
+  -fx-pref-width: 250;
+  -fx-text-fill: #374151;
+}
+.form-grid {
+  -fx-hgap: 12;
+  -fx-vgap: 10;
+}
+.form-grid .form-label {
+  -fx-min-width: 270;
+  -fx-pref-width: 270;
+}
+.form-label-compact {
+  -fx-text-fill: #374151;
+}
+.unit, .hint {
+  -fx-text-fill: #6b7280;
+}
+.hint {
+  -fx-font-style: italic;
+}
+.spinner {
+  -fx-pref-width: 150;
+}
+.policy-settings {
+  -fx-max-width: 560;
+}
+
+/* --- policy list --- */
+.policy-list {
+  -fx-spacing: 2;
+}
+.policy-list .check-box {
+  -fx-padding: 5 8 5 8;
+  -fx-background-radius: 6;
+}
+.policy-list .check-box:hover {
+  -fx-background-color: #e8eefc;
+}
+
+/* --- results --- */
+.summary .label {
+  -fx-text-fill: #374151;
+}
+.summary .summary-value {
+  -fx-text-fill: #111827;
+  -fx-font-weight: bold;
+}
+.table-view {
+  -fx-background-radius: 6;
+  -fx-border-radius: 6;
+}
+.table-view .numeric {
+  -fx-alignment: center-right;
+}
+.list-view {
+  -fx-background-radius: 6;
+  -fx-border-radius: 6;
+}
+
+/* --- charts --- */
+.chart {
+  -fx-padding: 12;
+}
+.chart-title {
+  -fx-font-size: 16px;
+  -fx-font-weight: bold;
+}
+.chart-plot-background {
+  -fx-background-color: #fafbfc;
+}
+.chart-legend {
+  -fx-background-color: transparent;
+}
+
+/* selected tab: accent underline so it stands out from the page */
+.tab:selected {
+  -fx-border-color: transparent transparent #2563eb transparent;
+}
+.tab:selected .tab-label {
+  -fx-text-fill: #1d4ed8;
+}

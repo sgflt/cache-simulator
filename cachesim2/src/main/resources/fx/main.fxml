@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="cz.zcu.kiv.cacheSimulator.fx.MainController">
+
+  <top>
+    <VBox>
+      <MenuBar>
+        <Menu text="_File">
+          <MenuItem fx:id="saveCsvMenuItem" text="Save Results to CSV…" onAction="#saveCsv" accelerator="Shortcut+S"/>
+          <MenuItem fx:id="saveXlsMenuItem" text="Save Results to XLS…" onAction="#saveXls" accelerator="Shortcut+Shift+S"/>
+          <MenuItem fx:id="printConsoleMenuItem" text="Print Results to Console" onAction="#printToConsole"/>
+          <SeparatorMenuItem/>
+          <MenuItem text="Exit" onAction="#exit" accelerator="Shortcut+Q"/>
+        </Menu>
+        <Menu text="_Simulation">
+          <Menu fx:id="requestMenu" text="Request Input Method"/>
+          <SeparatorMenuItem/>
+          <MenuItem fx:id="simulateMenuItem" text="Simulate" onAction="#simulate" accelerator="Shortcut+R"/>
+          <MenuItem fx:id="cancelMenuItem" text="Cancel Simulation" onAction="#cancel" accelerator="Shortcut+Period"/>
+        </Menu>
+        <Menu text="_Help">
+          <MenuItem text="About" onAction="#about"/>
+        </Menu>
+      </MenuBar>
+
+      <ToolBar>
+        <Button fx:id="simulateButton" text="Simulate" onAction="#simulate" styleClass="accent">
+          <tooltip><Tooltip text="Run the simulation (Ctrl+R)"/></tooltip>
+          <graphic><ImageView fitHeight="18" preserveRatio="true" smooth="true"><Image url="@../ico/run.png"/></ImageView></graphic>
+        </Button>
+        <Button fx:id="cancelButton" text="Cancel" onAction="#cancel">
+          <tooltip><Tooltip text="Cancel the running simulation"/></tooltip>
+          <graphic><ImageView fitHeight="18" preserveRatio="true" smooth="true"><Image url="@../ico/cancel.png"/></ImageView></graphic>
+        </Button>
+        <Separator orientation="VERTICAL"/>
+        <Button fx:id="saveCsvButton" text="CSV" onAction="#saveCsv">
+          <tooltip><Tooltip text="Save results to CSV"/></tooltip>
+          <graphic><ImageView fitHeight="18" preserveRatio="true" smooth="true"><Image url="@../ico/csv.png"/></ImageView></graphic>
+        </Button>
+        <Button fx:id="saveXlsButton" text="XLS" onAction="#saveXls">
+          <tooltip><Tooltip text="Save results to XLS"/></tooltip>
+          <graphic><ImageView fitHeight="18" preserveRatio="true" smooth="true"><Image url="@../ico/xls.png"/></ImageView></graphic>
+        </Button>
+        <Button fx:id="printConsoleButton" text="Console" onAction="#printToConsole">
+          <tooltip><Tooltip text="Print results to console"/></tooltip>
+          <graphic><ImageView fitHeight="18" preserveRatio="true" smooth="true"><Image url="@../ico/console.png"/></ImageView></graphic>
+        </Button>
+        <Pane HBox.hgrow="ALWAYS"/>
+        <Button text="Exit" onAction="#exit">
+          <graphic><ImageView fitHeight="18" preserveRatio="true" smooth="true"><Image url="@../ico/exit.png"/></ImageView></graphic>
+        </Button>
+      </ToolBar>
+    </VBox>
+  </top>
+
+  <center>
+    <TabPane fx:id="tabs" tabClosingPolicy="UNAVAILABLE">
+
+      <!-- ============ Simulation settings ============ -->
+      <Tab fx:id="settingsTab" text="Simulation Settings">
+        <ScrollPane fx:id="settingsContent" fitToWidth="true" styleClass="page-scroll">
+          <HBox spacing="16" styleClass="page">
+            <VBox styleClass="card" HBox.hgrow="ALWAYS" minWidth="440">
+              <Label text="Requests" styleClass="card-title"/>
+              <VBox styleClass="form">
+                <HBox styleClass="form-row">
+                  <Label text="Requests input method:" styleClass="form-label"/>
+                  <ComboBox fx:id="sourceCombo" promptText="-- Choose one --" prefWidth="220"/>
+                </HBox>
+                <Label fx:id="noSourceHint" styleClass="hint"
+                       text="Choose where the simulated file requests come from."/>
+                <HBox fx:id="pathRow" styleClass="form-row">
+                  <Label text="AFS log file:" styleClass="form-label"/>
+                  <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS" promptText="no file chosen"/>
+                  <Button text="Browse…" onAction="#chooseAfsFile"/>
+                </HBox>
+                <HBox fx:id="requestCountRow" styleClass="form-row">
+                  <Label text="Requests count:" styleClass="form-label"/>
+                  <Spinner fx:id="requestCountSpinner"/>
+                </HBox>
+                <HBox fx:id="generateFilesRow" styleClass="form-row">
+                  <Label text="Generated files:" styleClass="form-label"/>
+                  <Spinner fx:id="generateFilesSpinner"/>
+                </HBox>
+                <HBox fx:id="meanRow" styleClass="form-row">
+                  <Label text="Mean value (Gauss):" styleClass="form-label"/>
+                  <Spinner fx:id="meanSpinner"/>
+                </HBox>
+                <HBox fx:id="dispersionRow" styleClass="form-row">
+                  <Label text="Dispersion:" styleClass="form-label"/>
+                  <Spinner fx:id="dispersionSpinner"/>
+                </HBox>
+                <HBox fx:id="prefDivisibleRow" styleClass="form-row">
+                  <Label text="Preferred file's ID divisible by:" styleClass="form-label"/>
+                  <Spinner fx:id="prefDivisibleSpinner"/>
+                </HBox>
+                <HBox fx:id="prefStepRow" styleClass="form-row">
+                  <Label text="Step for generating preferred file:" styleClass="form-label"/>
+                  <Spinner fx:id="prefStepSpinner"/>
+                </HBox>
+                <HBox fx:id="nonPrefRow" styleClass="form-row">
+                  <Label text="Non-preferred file's ID divisible by:" styleClass="form-label"/>
+                  <Spinner fx:id="nonPrefSpinner"/>
+                </HBox>
+                <HBox fx:id="zipfRow" styleClass="form-row">
+                  <Label text="Zipf generator lambda:" styleClass="form-label"/>
+                  <Spinner fx:id="zipfSpinner"/>
+                </HBox>
+                <HBox fx:id="randomSizesRow" styleClass="form-row">
+                  <CheckBox fx:id="randomSizesCheck" text="Generate random file sizes"/>
+                </HBox>
+                <HBox fx:id="minSizeRow" styleClass="form-row">
+                  <Label text="Minimum generated file size:" styleClass="form-label"/>
+                  <Spinner fx:id="minSizeSpinner"/>
+                  <Label text="KB" styleClass="unit"/>
+                </HBox>
+                <HBox fx:id="maxSizeRow" styleClass="form-row">
+                  <Label text="Maximum generated file size:" styleClass="form-label"/>
+                  <Spinner fx:id="maxSizeSpinner"/>
+                  <Label text="KB" styleClass="unit"/>
+                </HBox>
+              </VBox>
+            </VBox>
+
+            <VBox spacing="16" minWidth="380">
+              <VBox styleClass="card">
+                <Label text="Cache capacities [MB]" styleClass="card-title"/>
+                <ListView fx:id="capacityList" prefHeight="206"/>
+                <HBox styleClass="form-row">
+                  <Spinner fx:id="capacitySpinner"/>
+                  <Button text="Add" onAction="#addCapacity"/>
+                  <Button fx:id="removeCapacityButton" text="Remove" onAction="#removeCapacity"/>
+                </HBox>
+              </VBox>
+              <VBox styleClass="card">
+                <Label text="Others" styleClass="card-title"/>
+                <VBox styleClass="form">
+                  <HBox styleClass="form-row">
+                    <Label text="Minimum requests for including a user:" styleClass="form-label"/>
+                    <Spinner fx:id="statLimitSpinner"/>
+                  </HBox>
+                  <HBox styleClass="form-row">
+                    <Label text="Average network speed [Mbit/s]:" styleClass="form-label"/>
+                    <Spinner fx:id="networkSpeedSpinner"/>
+                  </HBox>
+                  <HBox styleClass="form-row">
+                    <Label text="Sliding window [% of cache capacity]:" styleClass="form-label"/>
+                    <Spinner fx:id="slidingWindowSpinner"/>
+                  </HBox>
+                </VBox>
+              </VBox>
+            </VBox>
+          </HBox>
+        </ScrollPane>
+      </Tab>
+
+      <!-- ============ Cache algorithms ============ -->
+      <Tab text="Cache Algorithms">
+        <SplitPane fx:id="policiesContent" dividerPositions="0.3">
+          <VBox styleClass="page" spacing="10" minWidth="220">
+            <HBox spacing="6">
+              <Button text="Select all" onAction="#selectAllPolicies"/>
+              <Button text="Select none" onAction="#selectNoPolicies"/>
+            </HBox>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="policy-scroll">
+              <VBox fx:id="policyBox" styleClass="policy-list"/>
+            </ScrollPane>
+          </VBox>
+          <StackPane fx:id="policySettingsPane" styleClass="page" alignment="TOP_LEFT">
+            <Label styleClass="hint" text="Point at or click an algorithm to see its settings."/>
+          </StackPane>
+        </SplitPane>
+      </Tab>
+
+      <!-- ============ Results ============ -->
+      <Tab fx:id="resultsTab" text="Results">
+        <BorderPane styleClass="page">
+          <left>
+            <VBox spacing="8" prefWidth="230" styleClass="card">
+              <BorderPane.margin><Insets right="16"/></BorderPane.margin>
+              <Label text="Simulated users" styleClass="card-title"/>
+              <ListView fx:id="userList" VBox.vgrow="ALWAYS"/>
+              <Label text="Show:" styleClass="form-label-compact"/>
+              <ComboBox fx:id="metricCombo" maxWidth="Infinity"/>
+              <Button fx:id="barChartButton" text="Bar Chart" onAction="#showBarChart" maxWidth="Infinity"/>
+              <Button fx:id="lineChartButton" text="Line Chart" onAction="#showLineChart" maxWidth="Infinity"/>
+            </VBox>
+          </left>
+          <center>
+            <VBox spacing="12" styleClass="card">
+              <HBox spacing="24" styleClass="summary">
+                <HBox spacing="6">
+                  <Label text="Total requested files:"/>
+                  <Label fx:id="totalRequestsLabel" styleClass="summary-value"/>
+                </HBox>
+                <HBox spacing="6">
+                  <Label text="Total network traffic (without cache):"/>
+                  <Label fx:id="totalTrafficLabel" styleClass="summary-value"/>
+                </HBox>
+              </HBox>
+              <TableView fx:id="resultsTable" VBox.vgrow="ALWAYS">
+                <placeholder><Label text="No results" styleClass="hint"/></placeholder>
+              </TableView>
+            </VBox>
+          </center>
+        </BorderPane>
+      </Tab>
+    </TabPane>
+  </center>
+
+  <bottom>
+    <HBox styleClass="status-bar">
+      <ProgressBar fx:id="progressBar" prefWidth="260"/>
+      <Label fx:id="statusLabel" text="Ready"/>
+    </HBox>
+  </bottom>
+</BorderPane>

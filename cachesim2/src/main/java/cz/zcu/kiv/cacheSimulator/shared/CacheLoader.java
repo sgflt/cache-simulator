@@ -7,11 +7,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -92,6 +94,24 @@ public class CacheLoader {
     return cacheInfos;
   }
 
+
+  /**
+   * Finds all cache policies next to this class - in the jar or in the classes directory.
+   *
+   * @return "ClassName;Display name" entries, sorted by class name
+   */
+  public static List<String> loadAvailableCaches() {
+    final Path location;
+    try {
+      location = Path.of(CacheLoader.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+    } catch (final URISyntaxException e) {
+      LOG.error("Cannot locate cache policies", e);
+      return new ArrayList<>();
+    }
+    final List<String> cacheInfos = Files.isDirectory(location) ? loadCaches(location) : loadCachesFromJar(location);
+    cacheInfos.sort(Comparator.naturalOrder());
+    return cacheInfos;
+  }
 
   /**
    * metoda pro nacteni cache policies z adresare

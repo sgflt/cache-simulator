@@ -50,6 +50,11 @@ public class AccessSimulation {
   private final SimulationConfig config;
 
   /**
+   * gets overall progress of the simulation
+   */
+  private SimulationProgressListener progressListener = SimulationProgressListener.NONE;
+
+  /**
    * konstruktor - inicializace promennych
    *
    * @param fileQueue seznam prisupovanych souboru
@@ -59,6 +64,13 @@ public class AccessSimulation {
     this.fileQueue = fileQueue;
     this.config = config;
     this.userTable = new Hashtable<>();
+  }
+
+  /**
+   * sets who gets notified about overall simulation progress (0-100 %)
+   */
+  public void setProgressListener(final SimulationProgressListener listener) {
+    this.progressListener = listener == null ? SimulationProgressListener.NONE : listener;
   }
 
   /**
@@ -78,7 +90,13 @@ public class AccessSimulation {
   public void simulateRandomFileSizes() {
     final Instant start = Instant.now();
     final SimulatedUser user = getUser(0);
-    for (final var measurement : user.getMeasurements()) {
+    final List<Measurement> measurements = user.getMeasurements();
+    for (int pass = 0; pass < measurements.size(); pass++) {
+      final Measurement measurement = measurements.get(pass);
+      // the requests are replayed once per measurement; report progress over all passes
+      final int finishedPasses = pass;
+      this.fileQueue.setProgressListener(percent ->
+        this.progressListener.onProgress((finishedPasses * 100 + percent) / measurements.size()));
       Triplet<String, Long, Long> file;
       while ((file = this.fileQueue.getNextFileName()) != null) {
         if (isCancelled()) {
@@ -102,6 +120,7 @@ public class AccessSimulation {
       measurement.getCache().reset();
     }
 
+    this.fileQueue.setProgressListener(SimulationProgressListener.NONE);
     Triplet<String, Long, Long> file;
     while ((file = this.fileQueue.getNextFileName()) != null) {
       // zvysime pocet pristupovanych souboru
@@ -109,6 +128,7 @@ public class AccessSimulation {
       user.increaseTotalNetworkBandwidth(this.server.getFileSize(file.getFirst()));
     }
 
+    this.progressListener.onProgress(100);
     LOG.info("Simulation done in {} ms", Duration.between(start, Instant.now()).toMillis());
   }
 
@@ -145,6 +165,7 @@ public class AccessSimulation {
    * jsou nacitany z logovaciho souboru
    */
   public void simulateFromLogFile() {
+    this.fileQueue.setProgressListener(this.progressListener);
     // pruchod strukturou + pristupovani souboru
     Quartet<String, Long, Long, Long> file = this.fileQueue
       .getNextFileNameWithFSize();
