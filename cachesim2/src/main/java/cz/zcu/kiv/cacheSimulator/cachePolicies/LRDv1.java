@@ -41,6 +41,10 @@ public class LRDv1 implements ICache {
    * kapacita cache
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
 
   /**
    * How many bytes is consubed by cached files
@@ -63,6 +67,7 @@ public class LRDv1 implements ICache {
    */
   public LRDv1() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
     this.files = new ArrayList<>();
     this.fOverCapacity = new ArrayList<>();
   }
@@ -143,10 +148,12 @@ public class LRDv1 implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.files.clear();
     this.byName.clear();
     this.GC = 0;
@@ -167,7 +174,7 @@ public class LRDv1 implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 

@@ -45,10 +45,15 @@ public class ARC implements ICache {
 	 * kapacita cache
 	 */
 	private long capacity;
+	/**
+	 * the cache size set by setCapacity, restored when the download window closes
+	 */
+	private long configuredCapacity;
 
 	public ARC() {
 		super();
 		this.capacity = GlobalVariables.getCacheCapacity();
+		this.configuredCapacity = this.capacity;
 		this.fOverCapacity = new ArrayList<>();
 	}
 
@@ -181,10 +186,13 @@ public class ARC implements ICache {
 	@Override
 	public void setCapacity(final long capacity) {
 		this.capacity = capacity;
+		this.configuredCapacity = capacity;
 	}
 
 	@Override
 	public void reset() {
+		this.capacity = this.configuredCapacity;
+		this.fOverCapacity.clear();
 		this.p = 0;
 		this.B1.clear();
 		this.B2.clear();
@@ -205,7 +213,7 @@ public class ARC implements ICache {
 			}
 		}
 		if (this.fOverCapacity.isEmpty()){
-			this.capacity = GlobalVariables.getCacheCapacity();
+			this.capacity = this.configuredCapacity;
 		}
 	}
 

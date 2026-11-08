@@ -46,6 +46,10 @@ public class MQ implements ICache {
    * velikost cache
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
   private long usedCapacity;
 
 
@@ -73,6 +77,7 @@ public class MQ implements ICache {
   @SuppressWarnings("unchecked")
   public MQ() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
     this.fQueueOut = new LinkedList<>();
     this.fQueues = new Queue[QUEUE_COUNT];
     for (int i = 0; i < QUEUE_COUNT; i++) {
@@ -220,11 +225,13 @@ public class MQ implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.timeCounter = 0;
     this.fQueueOut.clear();
     for (int i = 0; i < QUEUE_COUNT; i++) {
@@ -246,7 +253,7 @@ public class MQ implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 

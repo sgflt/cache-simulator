@@ -43,6 +43,10 @@ public class _2Q implements ICache {
    * How many bytes we can use for caching
    */
   private long capacity;
+  /**
+   * the cache size set by setCapacity, restored when the download window closes
+   */
+  private long configuredCapacity;
 
   /**
    * How many bytes is used by cached files
@@ -56,6 +60,7 @@ public class _2Q implements ICache {
 
   public _2Q() {
     this.capacity = GlobalVariables.getCacheCapacity();
+    this.configuredCapacity = this.capacity;
     this.fOverCapacity = new ArrayList<>();
   }
 
@@ -150,7 +155,7 @@ public class _2Q implements ICache {
       }
     }
     if (this.fOverCapacity.isEmpty()) {
-      this.capacity = GlobalVariables.getCacheCapacity();
+      this.capacity = this.configuredCapacity;
     }
   }
 
@@ -167,10 +172,12 @@ public class _2Q implements ICache {
   @Override
   public void setCapacity(final long capacity) {
     this.capacity = capacity;
+    this.configuredCapacity = capacity;
   }
 
   @Override
   public void reset() {
+    this.capacity = this.configuredCapacity;
     this.fQueueFIFO.clear();
     this.fQueueLRU.clear();
     this.fifoUsedCapacity = 0;
