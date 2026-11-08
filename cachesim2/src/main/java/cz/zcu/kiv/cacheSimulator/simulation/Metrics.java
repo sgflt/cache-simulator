@@ -5,13 +5,13 @@ package cz.zcu.kiv.cacheSimulator.simulation;
  */
 public class Metrics {
   private int cacheHits;
-  private int savedBandthwidth;
+  private long savedBandthwidth;
 
   public int getCacheHits() {
     return this.cacheHits;
   }
 
-  public int getSavedBandthwidth() {
+  public long getSavedBandthwidth() {
     return this.savedBandthwidth;
   }
 
