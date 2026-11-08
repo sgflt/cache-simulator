@@ -1,11 +1,14 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -23,6 +26,11 @@ public class LFU_NO_REDUCTION implements ICache {
 	 * struktura pro uchovani souboru
 	 */
 	private final List<MetaData> list = new ArrayList<>();
+
+	/**
+	 * the same entries by name key, for lookups
+	 */
+	private final Map<String, MetaData> byName = new HashMap<>();
 	
 	/**
 	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -50,14 +58,13 @@ public class LFU_NO_REDUCTION implements ICache {
 
 	@Override
 	public FileOnClient get(final String fileName) {
-		for (final var metaData : this.list) {
-			if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
-				metaData.increaseReadHits();
-				this.needSort = true;
-				return metaData.getFileOnClient();
-			}
+		final var metaData = this.byName.get(FileKey.of(fileName));
+		if (metaData == null) {
+			return null;
 		}
-		return null;
+		metaData.increaseReadHits();
+		this.needSort = true;
+		return metaData.getFileOnClient();
 	}
 
 	@Override
@@ -73,6 +80,7 @@ public class LFU_NO_REDUCTION implements ICache {
 		this.needSort = false;
 		if (!this.list.isEmpty()) {
 			final MetaData removedFile = this.list.remove(0);
+			this.byName.remove(FileKey.of(removedFile.getFileOnClient().getFileName()));
 			this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
 		}
 	}
@@ -102,7 +110,9 @@ public class LFU_NO_REDUCTION implements ICache {
 		while (freeCapacity() < fileOnClient.getFileSize()) {
 			removeFile();
 		}
-		this.list.add(new MetaData(fileOnClient));
+		final MetaData entry = new MetaData(fileOnClient);
+		this.list.add(entry);
+		this.byName.put(FileKey.of(fileOnClient.getFileName()), entry);
 		this.usedCapacity += fileOnClient.getFileSize();
 		this.needSort = true;
 	}
@@ -126,6 +136,8 @@ public class LFU_NO_REDUCTION implements ICache {
 	public void reset() {
 		this.needSort = true;
 		this.list.clear();
+		this.byName.clear();
+		this.usedCapacity = 0;
 		this.fOverCapacity.clear();
 	}
 	

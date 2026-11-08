@@ -1,11 +1,14 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 
 
@@ -24,6 +27,16 @@ public class FIFO_2ndChance implements ICache{
 	 * struktura pro uchovani souboru
 	 */
 	private final Queue<Pair<FileOnClient, Boolean>> fQueue;
+
+	/**
+	 * the cached entries by name key, for lookups
+	 */
+	private final Map<String, Pair<FileOnClient, Boolean>> byName = new HashMap<>();
+
+	/**
+	 * sum of sizes of the cached files
+	 */
+	private long usedCapacity;
 	
 	/**
 	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -47,22 +60,17 @@ public class FIFO_2ndChance implements ICache{
 
 	@Override
 	public FileOnClient get(final String fileName) {
-		for (final Pair<FileOnClient, Boolean> f : this.fQueue) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-				f.setSecond(true);
-				return f.getFirst();
-			}
+		final Pair<FileOnClient, Boolean> f = this.byName.get(FileKey.of(fileName));
+		if (f == null) {
+			return null;
 		}
-		return null;
+		f.setSecond(true);
+		return f.getFirst();
 	}
 
 	@Override
 	public long freeCapacity() {
-		long obsazeno = 0;
-		for (final Pair<FileOnClient, Boolean> f : this.fQueue) {
-			obsazeno += f.getFirst().getFileSize();
-		}
-		return this.capacity - obsazeno;
+		return this.capacity - this.usedCapacity;
 	}
 
 	@Override
@@ -73,6 +81,8 @@ public class FIFO_2ndChance implements ICache{
 			this.fQueue.add(file);
 			file = this.fQueue.remove();
 		}
+		this.byName.remove(FileKey.of(file.getFirst().getFileName()));
+		this.usedCapacity -= file.getFirst().getFileSize();
 	}
 
 	@Override
@@ -100,7 +110,10 @@ public class FIFO_2ndChance implements ICache{
 		while (freeCapacity() < f.getFileSize()) {
 			removeFile();
 		}
-		this.fQueue.add(new Pair<>(f, false));
+		final Pair<FileOnClient, Boolean> entry = new Pair<>(f, false);
+		this.fQueue.add(entry);
+		this.byName.put(FileKey.of(f.getFileName()), entry);
+		this.usedCapacity += f.getFileSize();
 	}
 	
 	@Override
@@ -121,6 +134,8 @@ public class FIFO_2ndChance implements ICache{
 	@Override
 	public void reset() {
 		this.fQueue.clear();
+		this.byName.clear();
+		this.usedCapacity = 0;
 		this.fOverCapacity.clear();
 	}
 	

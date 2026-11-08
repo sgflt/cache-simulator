@@ -1,9 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -27,6 +30,16 @@ public class RND implements ICache {
    * struktura pro ukladani souboru
    */
   private final ArrayList<FileOnClient> list;
+
+  /**
+   * the same files by name key, for lookups
+   */
+  private final Map<String, FileOnClient> byName = new HashMap<>();
+
+  /**
+   * sum of sizes of the cached files
+   */
+  private long usedCapacity;
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -57,27 +70,19 @@ public class RND implements ICache {
 
   @Override
   public FileOnClient get(final String fileName) {
-    for (final FileOnClient f : this.list) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return f;
-      }
-    }
-    return null;
+    return this.byName.get(FileKey.of(fileName));
   }
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.list) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
   public void removeFile() {
-    this.list.remove(this.rnd.nextInt(this.list.size()));
-
+    final FileOnClient removed = this.list.remove(this.rnd.nextInt(this.list.size()));
+    this.byName.remove(FileKey.of(removed.getFileName()));
+    this.usedCapacity -= removed.getFileSize();
   }
 
   @Override
@@ -106,6 +111,8 @@ public class RND implements ICache {
       removeFile();
     }
     this.list.add(f);
+    this.byName.put(FileKey.of(f.getFileName()), f);
+    this.usedCapacity += f.getFileSize();
   }
 
   @Override
@@ -126,6 +133,8 @@ public class RND implements ICache {
   @Override
   public void reset() {
     this.list.clear();
+    this.byName.clear();
+    this.usedCapacity = 0;
     this.rnd = new Random(seedValue);
     this.fOverCapacity.clear();
   }

@@ -1,10 +1,13 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -24,6 +27,16 @@ public class Clock implements ICache {
 	 * struktura pro uchovani souboru
 	 */
 	private final ArrayList<Pair<FileOnClient, Boolean>> Flist;
+
+	/**
+	 * the cached entries by name key, for lookups
+	 */
+	private final Map<String, Pair<FileOnClient, Boolean>> byName = new HashMap<>();
+
+	/**
+	 * sum of sizes of the cached files
+	 */
+	private long usedCapacity;
 	
 	/**
 	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -52,22 +65,17 @@ public class Clock implements ICache {
 
 	@Override
 	public FileOnClient get(final String fileName) {
-		for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-			if (f.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-				f.setSecond(true);
-				return f.getFirst();
-			}
+		final Pair<FileOnClient, Boolean> f = this.byName.get(FileKey.of(fileName));
+		if (f == null) {
+			return null;
 		}
-		return null;
+		f.setSecond(true);
+		return f.getFirst();
 	}
 
 	@Override
 	public long freeCapacity() {
-		long obsazeno = 0;
-		for (final Pair<FileOnClient, Boolean> f : this.Flist) {
-			obsazeno += f.getFirst().getFileSize();
-		}
-		return this.capacity - obsazeno;
+		return this.capacity - this.usedCapacity;
 	}
 
 	@Override
@@ -79,7 +87,9 @@ public class Clock implements ICache {
 			this.index = (this.index + 1) % this.Flist.size();
 			file = this.Flist.get(this.index);
 		}
-		this.Flist.remove(file);
+		this.Flist.remove(this.index);
+		this.byName.remove(FileKey.of(file.getFirst().getFileName()));
+		this.usedCapacity -= file.getFirst().getFileSize();
 	}
 
 	@Override
@@ -108,7 +118,10 @@ public class Clock implements ICache {
 			removeFile();
 		}
 
-		this.Flist.add(this.index, new Pair<>(f, true));
+		final Pair<FileOnClient, Boolean> entry = new Pair<>(f, true);
+		this.Flist.add(this.index, entry);
+		this.byName.put(FileKey.of(f.getFileName()), entry);
+		this.usedCapacity += f.getFileSize();
 		this.index = (this.index + 1);
 	}
 	
@@ -130,6 +143,8 @@ public class Clock implements ICache {
 	@Override
 	public void reset() {
 		this.Flist.clear();
+		this.byName.clear();
+		this.usedCapacity = 0;
 		this.index = 0;
 		this.fOverCapacity.clear();
 	}

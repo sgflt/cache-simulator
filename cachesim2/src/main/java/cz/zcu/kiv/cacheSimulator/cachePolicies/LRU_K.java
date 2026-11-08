@@ -1,10 +1,13 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -43,6 +46,16 @@ public class LRU_K implements ICache {
   private final ArrayList<Triplet<FileOnClient, Long[], Long>> fList;
 
   /**
+   * the cached entries by name key, for lookups
+   */
+  private final Map<String, Triplet<FileOnClient, Long[], Long>> byName = new HashMap<>();
+
+  /**
+   * sum of sizes of the cached files
+   */
+  private long usedCapacity;
+
+  /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
   private final ArrayList<FileOnClient> fOverCapacity;
@@ -57,13 +70,7 @@ public class LRU_K implements ICache {
 
   @Override
   public FileOnClient get(final String fileName) {
-    Triplet<FileOnClient, Long[], Long> fileInCache = null;
-    for (final Triplet<FileOnClient, Long[], Long> files : this.fList) {
-      if (files.getFirst().getFileName().equalsIgnoreCase(fileName)) {
-        fileInCache = files;
-        break;
-      }
-    }
+    final Triplet<FileOnClient, Long[], Long> fileInCache = this.byName.get(FileKey.of(fileName));
 
     if (fileInCache == null) {
       return null;
@@ -84,11 +91,7 @@ public class LRU_K implements ICache {
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final Triplet<FileOnClient, Long[], Long> files : this.fList) {
-      obsazeno += files.getFirst().getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
@@ -105,6 +108,8 @@ public class LRU_K implements ICache {
 
     if (victim != null) {
       this.fList.remove(victim);
+      this.byName.remove(FileKey.of(victim.getFirst().getFileName()));
+      this.usedCapacity -= victim.getFirst().getFileSize();
     }
   }
 
@@ -139,7 +144,10 @@ public class LRU_K implements ICache {
       lastTimes[i] = 0L;
     }
     lastTimes[0] = actTime;
-    this.fList.add(new Triplet<>(f, lastTimes, actTime));
+    final Triplet<FileOnClient, Long[], Long> entry = new Triplet<>(f, lastTimes, actTime);
+    this.fList.add(entry);
+    this.byName.put(FileKey.of(f.getFileName()), entry);
+    this.usedCapacity += f.getFileSize();
 
   }
 
@@ -162,6 +170,8 @@ public class LRU_K implements ICache {
   public void reset() {
     this.timeCounter = 0;
     this.fList.clear();
+    this.byName.clear();
+    this.usedCapacity = 0;
     this.fOverCapacity.clear();
   }
 

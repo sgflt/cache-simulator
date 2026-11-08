@@ -1,12 +1,15 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.LRDMetaData;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -23,6 +26,11 @@ public class LRDv1 implements ICache {
    * List of cached files
    */
   private final List<LRDMetaData> files;
+
+  /**
+   * the same entries by name key, for lookups
+   */
+  private final Map<String, LRDMetaData> byName = new HashMap<>();
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -61,15 +69,14 @@ public class LRDv1 implements ICache {
 
   @Override
   public FileOnClient get(final String fileName) {
-    for (final LRDMetaData file : this.files) {
-      if (file.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
-        file.incrementHit();
-        this.needRecalculate = true;
-        this.GC++;
-        return file.getFileOnClient();
-      }
+    final LRDMetaData file = this.byName.get(FileKey.of(fileName));
+    if (file == null) {
+      return null;
     }
-    return null;
+    file.incrementHit();
+    this.needRecalculate = true;
+    this.GC++;
+    return file.getFileOnClient();
   }
 
   @Override
@@ -87,6 +94,7 @@ public class LRDv1 implements ICache {
     }
     this.needRecalculate = false;
     final LRDMetaData removedFile = this.files.remove(0);
+    this.byName.remove(FileKey.of(removedFile.getFileOnClient().getFileName()));
     this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
   }
 
@@ -115,7 +123,9 @@ public class LRDv1 implements ICache {
     while (freeCapacity() < fileOnClient.getFileSize()) {
       removeFile();
     }
-    this.files.add(new LRDMetaData(fileOnClient, this.GC++));
+    final LRDMetaData entry = new LRDMetaData(fileOnClient, this.GC++);
+    this.files.add(entry);
+    this.byName.put(FileKey.of(entry.getFileOnClient().getFileName()), entry);
     this.usedCapacity += fileOnClient.getFileSize();
     this.needRecalculate = true;
   }
@@ -138,6 +148,7 @@ public class LRDv1 implements ICache {
   @Override
   public void reset() {
     this.files.clear();
+    this.byName.clear();
     this.GC = 0;
     this.needRecalculate = true;
     this.fOverCapacity.clear();

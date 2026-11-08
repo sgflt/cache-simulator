@@ -1,11 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.LinkedHashMap;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -19,9 +20,14 @@ import java.util.Queue;
 public class LRU implements ICache {
 
   /**
-   * struktura pro uchovani souboru
+   * cached files by name key, least recently used first
    */
-  private final Queue<FileOnClient> fQueue;
+  private final LinkedHashMap<String, FileOnClient> files = new LinkedHashMap<>();
+
+  /**
+   * sum of sizes of the cached files
+   */
+  private long usedCapacity;
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -38,41 +44,32 @@ public class LRU implements ICache {
    * konstruktor - inicializace cache
    */
   public LRU() {
-    this.fQueue = new LinkedList<>();
     this.capacity = GlobalVariables.getCacheCapacity();
     this.fOverCapacity = new ArrayList<>();
   }
 
   @Override
   public FileOnClient get(final String fileName) {
-    FileOnClient fileForGetting = null;
-    for (final FileOnClient f : this.fQueue) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        fileForGetting = f;
-        break;
-      }
+    final String key = FileKey.of(fileName);
+    final FileOnClient file = this.files.get(key);
+    if (file != null) {
+      this.files.putLast(key, file);
     }
-    if (fileForGetting == null) {
-      return null;
-    } else {
-      this.fQueue.remove(fileForGetting);
-      this.fQueue.add(fileForGetting);
-      return fileForGetting;
-    }
+    return file;
   }
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.fQueue) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
   public void removeFile() {
-    this.fQueue.remove();
+    final var oldest = this.files.pollFirstEntry();
+    if (oldest == null) {
+      throw new NoSuchElementException();
+    }
+    this.usedCapacity -= oldest.getValue().getFileSize();
   }
 
   @Override
@@ -100,7 +97,8 @@ public class LRU implements ICache {
     while (freeCapacity() < f.getFileSize()) {
       removeFile();
     }
-    this.fQueue.add(f);
+    this.files.put(FileKey.of(f.getFileName()), f);
+    this.usedCapacity += f.getFileSize();
   }
 
   @Override
@@ -120,7 +118,8 @@ public class LRU implements ICache {
 
   @Override
   public void reset() {
-    this.fQueue.clear();
+    this.files.clear();
+    this.usedCapacity = 0;
     this.fOverCapacity.clear();
   }
 

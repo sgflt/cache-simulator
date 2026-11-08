@@ -1,11 +1,14 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -39,6 +42,11 @@ public class LRFU implements ICache {
   private final List<MetaData> fList = new ArrayList<>();
 
   /**
+   * the same entries by name key, for lookups
+   */
+  private final Map<String, MetaData> byName = new HashMap<>();
+
+  /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
    */
   private final List<FileOnClient> fOverCapacity = new ArrayList<>();
@@ -64,16 +72,15 @@ public class LRFU implements ICache {
 
   @Override
   public FileOnClient get(final String fileName) {
-    for (final var metaData : this.fList) {
-      if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
-        final long actTime = ++this.timeCounter;
-        metaData.setPriority(calculateF(0) + metaData.getPriority() * calculateF(actTime - metaData.getLastAccessTime()));
-        metaData.setLastAccessTime(actTime);
-        this.needSort = true;
-        return metaData.getFileOnClient();
-      }
+    final MetaData metaData = this.byName.get(FileKey.of(fileName));
+    if (metaData == null) {
+      return null;
     }
-    return null;
+    final long actTime = ++this.timeCounter;
+    metaData.setPriority(calculateF(0) + metaData.getPriority() * calculateF(actTime - metaData.getLastAccessTime()));
+    metaData.setLastAccessTime(actTime);
+    this.needSort = true;
+    return metaData.getFileOnClient();
   }
 
   @Override
@@ -89,6 +96,7 @@ public class LRFU implements ICache {
     this.needSort = false;
     if (!this.fList.isEmpty()) {
       final MetaData removedFile = this.fList.remove(0);
+      this.byName.remove(FileKey.of(removedFile.getFileOnClient().getFileName()));
       this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
     }
   }
@@ -119,7 +127,9 @@ public class LRFU implements ICache {
     while (freeCapacity() < fileOnClient.getFileSize()) {
       removeFile();
     }
-    this.fList.add(new MetaData(fileOnClient, ++this.timeCounter, calculateF(0)));
+    final MetaData entry = new MetaData(fileOnClient, ++this.timeCounter, calculateF(0));
+    this.fList.add(entry);
+    this.byName.put(FileKey.of(entry.getFileOnClient().getFileName()), entry);
     this.usedCapacity += fileOnClient.getFileSize();
   }
 
@@ -152,6 +162,7 @@ public class LRFU implements ICache {
   public void reset() {
     this.timeCounter = 1;
     this.fList.clear();
+    this.byName.clear();
     this.needSort = true;
     this.fOverCapacity.clear();
   }
