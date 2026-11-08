@@ -1,12 +1,15 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
 import cz.zcu.kiv.cacheSimulator.server.Server;
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -20,6 +23,11 @@ public class LRFU_SS implements ICache {
    * struktura pro uchovani souboru
    */
   private final List<MetaData> cachedFiles = new ArrayList<>();
+
+  /**
+   * the same entries by name key, for lookups
+   */
+  private final Map<String, MetaData> byName = new HashMap<>();
 
   /**
    * velikost cache v B
@@ -74,16 +82,15 @@ public class LRFU_SS implements ICache {
     if (++this.accessCount % 20 == 0) {
       setGlobalReadCountServer(this.server.getGlobalReadRequests(this));
     }
-    for (final MetaData metaData : this.cachedFiles) {
-      if (metaData.getFileOnClient().getFileName().equalsIgnoreCase(fileName)) {
-        metaData.updateAccesTime();
-        metaData.increaseHits();
-        this.needSort = true;
-        this.needRecalculate = true;
-        return metaData.getFileOnClient();
-      }
+    final MetaData metaData = this.byName.get(FileKey.of(fileName));
+    if (metaData == null) {
+      return null;
     }
-    return null;
+    metaData.updateAccesTime();
+    metaData.increaseHits();
+    this.needSort = true;
+    this.needRecalculate = true;
+    return metaData.getFileOnClient();
   }
 
   @Override
@@ -103,6 +110,7 @@ public class LRFU_SS implements ICache {
     this.needRecalculate = false;
     if (!this.cachedFiles.isEmpty()) {
       final MetaData removedFile = this.cachedFiles.remove(0);
+      this.byName.remove(FileKey.of(removedFile.getFileOnClient().getFileName()));
       this.usedCapacity -= removedFile.getFileOnClient().getFileSize();
     }
   }
@@ -173,7 +181,9 @@ public class LRFU_SS implements ICache {
       readHits = ((double) fileOnClient.getCountOfReadRequests() - (double) fileOnClient.getCountOfWriteRequests()) / (double) this.globalReadCount
         * localReadCount + 1;
     }
-    this.cachedFiles.add(new MetaData(fileOnClient, readHits));
+    final MetaData entry = new MetaData(fileOnClient, readHits);
+    this.cachedFiles.add(entry);
+    this.byName.put(FileKey.of(entry.getFileOnClient().getFileName()), entry);
     this.needSort = true;
     this.needRecalculate = true;
     this.usedCapacity += fileOnClient.getFileSize();
@@ -206,6 +216,7 @@ public class LRFU_SS implements ICache {
   @Override
   public void reset() {
     this.cachedFiles.clear();
+    this.byName.clear();
     this.needRecalculate = true;
     this.needSort = true;
     this.accessCount = 0;

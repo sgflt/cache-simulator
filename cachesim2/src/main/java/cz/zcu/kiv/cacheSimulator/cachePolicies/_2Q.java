@@ -1,11 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.LinkedHashMap;
 
 
 /**
@@ -22,12 +22,17 @@ public class _2Q implements ICache {
   /**
    * A queue for files that are accessed for the first time.
    */
-  private final Queue<FileOnClient> fQueueFIFO;
+  private final LinkedHashMap<String, FileOnClient> fQueueFIFO = new LinkedHashMap<>();
+
+  /**
+   * sum of sizes of the files in the FIFO queue
+   */
+  private long fifoUsedCapacity;
 
   /**
    * LRU queue for files that are accessed repeatedly.
    */
-  private final Queue<FileOnClient> fQueueLRU;
+  private final LinkedHashMap<String, FileOnClient> fQueueLRU = new LinkedHashMap<>();
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -51,31 +56,24 @@ public class _2Q implements ICache {
 
   public _2Q() {
     this.capacity = GlobalVariables.getCacheCapacity();
-    this.fQueueFIFO = new LinkedList<>();
-    this.fQueueLRU = new LinkedList<>();
     this.fOverCapacity = new ArrayList<>();
   }
 
   @Override
   public FileOnClient get(final String fileName) {
-    for (final var it = this.fQueueFIFO.iterator(); it.hasNext(); ) {
-      final FileOnClient cachedFile = it.next();
-      if (cachedFile.getFileName().equalsIgnoreCase(fileName)) {
-        it.remove();
-        this.fQueueLRU.add(cachedFile);
-        return cachedFile;
-      }
+    final String key = FileKey.of(fileName);
+    final FileOnClient fromFifo = this.fQueueFIFO.remove(key);
+    if (fromFifo != null) {
+      this.fifoUsedCapacity -= fromFifo.getFileSize();
+      this.fQueueLRU.putLast(key, fromFifo);
+      return fromFifo;
     }
 
-    for (final var it = this.fQueueLRU.iterator(); it.hasNext(); ) {
-      final FileOnClient cachedFile = it.next();
-      if (cachedFile.getFileName().equalsIgnoreCase(fileName)) {
-        it.remove();
-        this.fQueueLRU.add(cachedFile);
-        return cachedFile;
-      }
+    final FileOnClient fromLru = this.fQueueLRU.get(key);
+    if (fromLru != null) {
+      this.fQueueLRU.putLast(key, fromLru);
     }
-    return null;
+    return fromLru;
   }
 
   @Override
@@ -86,9 +84,11 @@ public class _2Q implements ICache {
   @Override
   public void removeFile() {
     if (!this.fQueueFIFO.isEmpty()) {
-      recalculateUsedCapacity(this.fQueueFIFO.remove());
+      final FileOnClient removedFile = this.fQueueFIFO.pollFirstEntry().getValue();
+      this.fifoUsedCapacity -= removedFile.getFileSize();
+      recalculateUsedCapacity(removedFile);
     } else if (!this.fQueueLRU.isEmpty()) {
-      recalculateUsedCapacity(this.fQueueLRU.remove());
+      recalculateUsedCapacity(this.fQueueLRU.pollFirstEntry().getValue());
     }
   }
 
@@ -124,13 +124,13 @@ public class _2Q implements ICache {
       removeFile();
     }
 
-    long fifoSize = this.fQueueFIFO.stream().mapToLong(FileOnClient::getFileSize).sum();
-    while (fifoSize > (int) (FIFO_CAPACITY * (double) this.capacity)) {
-      final FileOnClient removedFile = this.fQueueFIFO.remove();
-      fifoSize -= removedFile.getFileSize();
+    while (this.fifoUsedCapacity > (int) (FIFO_CAPACITY * (double) this.capacity)) {
+      final FileOnClient removedFile = this.fQueueFIFO.pollFirstEntry().getValue();
+      this.fifoUsedCapacity -= removedFile.getFileSize();
       recalculateUsedCapacity(removedFile);
     }
-    this.fQueueFIFO.add(f);
+    this.fQueueFIFO.put(FileKey.of(f.getFileName()), f);
+    this.fifoUsedCapacity += f.getFileSize();
     this.usedCapacity += f.getFileSize();
   }
 
@@ -173,6 +173,8 @@ public class _2Q implements ICache {
   public void reset() {
     this.fQueueFIFO.clear();
     this.fQueueLRU.clear();
+    this.fifoUsedCapacity = 0;
+    this.usedCapacity = 0;
     this.fOverCapacity.clear();
   }
 

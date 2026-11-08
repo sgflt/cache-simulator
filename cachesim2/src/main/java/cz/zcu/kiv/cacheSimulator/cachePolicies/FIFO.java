@@ -1,11 +1,12 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.LinkedHashMap;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -22,7 +23,12 @@ public class FIFO implements ICache {
 	/**
 	 * struktura pro uchovani souboru
 	 */
-	private final Queue<FileOnClient> fQueue;
+	private final LinkedHashMap<String, FileOnClient> files = new LinkedHashMap<>();
+
+	/**
+	 * sum of sizes of the cached files
+	 */
+	private long usedCapacity;
 	
 	/**
 	 * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -39,33 +45,27 @@ public class FIFO implements ICache {
 	 * konstruktor - inicializace cache
 	 */
 	public FIFO() {
-		this.fQueue = new LinkedList<>();
 		this.capacity = GlobalVariables.getCacheCapacity();
 		this.fOverCapacity = new ArrayList<>();
 	}
 
 	@Override
 	public FileOnClient get(final String fileName) {
-		for (final FileOnClient f : this.fQueue) {
-			if (f.getFileName().equalsIgnoreCase(fileName)) {
-        return f;
-      }
-		}
-		return null;
+		return this.files.get(FileKey.of(fileName));
 	}
 
 	@Override
 	public long freeCapacity() {
-		long obsazeno = 0;
-		for (final FileOnClient f : this.fQueue) {
-			obsazeno += f.getFileSize();
-		}
-		return this.capacity - obsazeno;
+		return this.capacity - this.usedCapacity;
 	}
 
 	@Override
 	public void removeFile() {
-    this.fQueue.remove();
+		final var oldest = this.files.pollFirstEntry();
+		if (oldest == null) {
+			throw new NoSuchElementException();
+		}
+		this.usedCapacity -= oldest.getValue().getFileSize();
 	}
 
 	@Override
@@ -93,7 +93,8 @@ public class FIFO implements ICache {
 		while (freeCapacity() < f.getFileSize()) {
 			removeFile();
 		}
-    this.fQueue.add(f);
+		this.files.put(FileKey.of(f.getFileName()), f);
+		this.usedCapacity += f.getFileSize();
 	}
 	
 	@Override
@@ -113,7 +114,8 @@ public class FIFO implements ICache {
 
 	@Override
 	public void reset() {
-		this.fQueue.clear();
+		this.files.clear();
+		this.usedCapacity = 0;
 		this.fOverCapacity.clear();
 	}
 	

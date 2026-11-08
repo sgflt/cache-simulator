@@ -1,9 +1,11 @@
 package cz.zcu.kiv.cacheSimulator.cachePolicies;
 
+import cz.zcu.kiv.cacheSimulator.shared.FileKey;
 import cz.zcu.kiv.cacheSimulator.shared.FileOnClient;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 
 /**
@@ -19,7 +21,12 @@ public class MRU implements ICache {
   /**
    * struktura pro uchovani souboru
    */
-  private final ArrayList<FileOnClient> fQueue;
+  private final LinkedHashMap<String, FileOnClient> files = new LinkedHashMap<>();
+
+  /**
+   * sum of sizes of the cached files
+   */
+  private long usedCapacity;
 
   /**
    * struktura pro ukladani souboru, ktere jsou vetsi nez cache
@@ -36,41 +43,32 @@ public class MRU implements ICache {
    * konstruktor - inicializace cache
    */
   public MRU() {
-    this.fQueue = new ArrayList<>();
     this.capacity = GlobalVariables.getCacheCapacity();
     this.fOverCapacity = new ArrayList<>();
   }
 
   @Override
   public FileOnClient get(final String fileName) {
-    FileOnClient fileForGetting = null;
-    for (final FileOnClient f : this.fQueue) {
-      if (f.getFileName().equalsIgnoreCase(fileName)) {
-        fileForGetting = f;
-        break;
-      }
+    final String key = FileKey.of(fileName);
+    final FileOnClient file = this.files.get(key);
+    if (file != null) {
+      this.files.putLast(key, file);
     }
-    if (fileForGetting == null) {
-      return null;
-    } else {
-      this.fQueue.remove(fileForGetting);
-      this.fQueue.add(fileForGetting);
-      return fileForGetting;
-    }
+    return file;
   }
 
   @Override
   public long freeCapacity() {
-    long obsazeno = 0;
-    for (final FileOnClient f : this.fQueue) {
-      obsazeno += f.getFileSize();
-    }
-    return this.capacity - obsazeno;
+    return this.capacity - this.usedCapacity;
   }
 
   @Override
   public void removeFile() {
-    this.fQueue.remove(this.fQueue.size() - 1);
+    final var newest = this.files.pollLastEntry();
+    if (newest == null) {
+      throw new IndexOutOfBoundsException("Index -1 out of bounds for length 0");
+    }
+    this.usedCapacity -= newest.getValue().getFileSize();
   }
 
   @Override
@@ -98,7 +96,8 @@ public class MRU implements ICache {
     while (freeCapacity() < f.getFileSize()) {
       removeFile();
     }
-    this.fQueue.add(f);
+    this.files.put(FileKey.of(f.getFileName()), f);
+    this.usedCapacity += f.getFileSize();
   }
 
   @Override
@@ -118,7 +117,8 @@ public class MRU implements ICache {
 
   @Override
   public void reset() {
-    this.fQueue.clear();
+    this.files.clear();
+    this.usedCapacity = 0;
     this.fOverCapacity.clear();
   }
 
