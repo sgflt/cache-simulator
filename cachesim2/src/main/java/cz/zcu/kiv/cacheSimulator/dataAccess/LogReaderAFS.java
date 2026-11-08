@@ -148,7 +148,10 @@ public class LogReaderAFS extends AbstractFileQueue {
 
 	@Override
 	public void reset() {
-
+		// the random-file-size simulation replays the log once per cache
+		resetQueue();
+		this.fileReadPos = 0;
+		this.procent = 0;
 	}
 
 	/**

@@ -119,12 +119,12 @@
                 <HBox fx:id="minSizeRow" styleClass="form-row">
                   <Label text="Minimum generated file size:" styleClass="form-label"/>
                   <Spinner fx:id="minSizeSpinner"/>
-                  <Label text="KB" styleClass="unit"/>
+                  <Label text="bytes" styleClass="unit"/>
                 </HBox>
                 <HBox fx:id="maxSizeRow" styleClass="form-row">
                   <Label text="Maximum generated file size:" styleClass="form-label"/>
                   <Spinner fx:id="maxSizeSpinner"/>
-                  <Label text="KB" styleClass="unit"/>
+                  <Label text="bytes" styleClass="unit"/>
                 </HBox>
               </VBox>
             </VBox>
