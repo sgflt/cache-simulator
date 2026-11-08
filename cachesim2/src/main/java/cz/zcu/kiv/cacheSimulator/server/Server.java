@@ -183,6 +183,7 @@ public class Server {
    */
   public void hardReset() {
     this.fileTable.clear();
+    this.lastFile = null;
     softReset();
   }
 
