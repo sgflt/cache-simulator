@@ -2,6 +2,7 @@ package cz.zcu.kiv.cacheSimulator.dataAccess;
 
 import cz.zcu.kiv.cacheSimulator.shared.Quartet;
 import cz.zcu.kiv.cacheSimulator.shared.Triplet;
+import cz.zcu.kiv.cacheSimulator.simulation.SimulationProgressListener;
 
 /**
  * rozhrani pro generovani nazvu souboru
@@ -32,4 +33,9 @@ public interface IFileQueue {
   Quartet<String, Long, Long, Long> getNextFileNameWithFSize();
 
   void reset();
+
+  /**
+   * sets who gets notified about progress of reading the requests
+   */
+  void setProgressListener(SimulationProgressListener listener);
 }

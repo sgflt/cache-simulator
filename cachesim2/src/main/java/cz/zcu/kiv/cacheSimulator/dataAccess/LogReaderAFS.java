@@ -1,6 +1,5 @@
 package cz.zcu.kiv.cacheSimulator.dataAccess;
 
-import cz.zcu.kiv.cacheSimulator.gui.MainGUI;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalMethods;
 import cz.zcu.kiv.cacheSimulator.shared.GlobalVariables;
 import cz.zcu.kiv.cacheSimulator.shared.Pair;
@@ -14,7 +13,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.Hashtable;
-import java.util.Observable;
 
 
 /**
@@ -23,7 +21,7 @@ import java.util.Observable;
  * @author Pavel Bzoch
  * 
  */
-public class LogReaderAFS extends Observable implements IFileQueue {
+public class LogReaderAFS extends AbstractFileQueue {
 
 	/**
 	 * promenna slouzi pro ulozeni reference na objekt pro cteni ze souboru
@@ -90,14 +88,13 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 			this.bf = new BufferedReader(new FileReader(
 					GlobalVariables.getLogAFSFIleName()));
 			this.fileSize = new File(GlobalVariables.getLogAFSFIleName()).length();
-			this.modulo = this.fileSize / 100;
+			this.modulo = Math.max(1, this.fileSize / 100);
 		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
 			this.bf = null;
 		}
 		this.fileReadPos = 0;
 		this.procent = 0;
-		this.addObserver(MainGUI.getInstance());
 	}
 
 	/**
@@ -125,8 +122,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 		if (f != null){
 			if (this.fileReadPos / this.modulo > this.procent){
 				this.procent++;
-				setChanged();
-				notifyObservers(this.procent);
+				fireProgress(this.procent);
 			}
 			return new Triplet<>(f.getFname(), f.getAccessTime(), f.getUserID());
 		}
@@ -141,8 +137,7 @@ public class LogReaderAFS extends Observable implements IFileQueue {
 		if (f != null){
 			if (this.fileReadPos / this.modulo > this.procent){
 				this.procent++;
-				setChanged();
-				notifyObservers(this.procent);
+				fireProgress(this.procent);
 			}
 			return new Quartet<>(f.getFname(), f.getfSize(), f.getAccessTime(), f.getUserID());
 		}

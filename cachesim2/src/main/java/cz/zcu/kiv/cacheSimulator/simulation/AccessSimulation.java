@@ -45,12 +45,19 @@ public class AccessSimulation {
   private final Hashtable<Long, SimulatedUser> userTable;
 
   /**
+   * simulated cache policies and sizes
+   */
+  private final SimulationConfig config;
+
+  /**
    * konstruktor - inicializace promennych
    *
    * @param fileQueue seznam prisupovanych souboru
+   * @param config    simulated cache policies and sizes
    */
-  public AccessSimulation(final IFileQueue fileQueue) {
+  public AccessSimulation(final IFileQueue fileQueue, final SimulationConfig config) {
     this.fileQueue = fileQueue;
+    this.config = config;
     this.userTable = new Hashtable<>();
   }
 
@@ -61,7 +68,7 @@ public class AccessSimulation {
    * @return uzivatel s cachovacimi algoritmy
    */
   private SimulatedUser getUser(final long userID) {
-    return this.userTable.computeIfAbsent(userID, SimulatedUser::new);
+    return this.userTable.computeIfAbsent(userID, id -> new SimulatedUser(id, this.config));
   }
 
   /**
@@ -178,9 +185,9 @@ public class AccessSimulation {
           // soubor neni v cache, musi se pro nej vytvorit zaznam
           cache.insertFile(new FileOnClient(this.server.getFile(file.getFirst(), cache, OpenMode.READ), cache, file.getThird()));
         }
-        // pristupujeme dalsi soubor
-        file = this.fileQueue.getNextFileNameWithFSize();
       }
+      // pristupujeme dalsi soubor
+      file = this.fileQueue.getNextFileNameWithFSize();
     }
   }
 
