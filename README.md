@@ -9,6 +9,8 @@ traffic in tables and charts.
 - JDK 25 or newer
 - Maven 3.9 or newer
 
+The code is Kotlin (2.4); Maven downloads the Kotlin compiler, so nothing else needs installing.
+
 ## Modules
 
 | Module | Artifact | Content |
@@ -23,7 +25,8 @@ traffic in tables and charts.
 mvn clean verify
 ```
 
-This runs the tests and builds two runnable jars with all dependencies:
+This runs the tests and ktlint (`mvn ktlint:format` fixes most style problems), and builds two
+runnable jars with all dependencies:
 
 - `cachesim-gui/target/cache-gui-3.0-alpha-jar-with-dependencies.jar`
 - `cachesim-cli/target/cache-cli-3.0-alpha-jar-with-dependencies.jar`
@@ -65,11 +68,18 @@ The GUI stores its settings in `config.xml` in the working directory when it exi
 
 ## Packages
 
+All under `cz.zcu.kiv.cachesimulator`:
+
 | Package | Content |
 |---|---|
-| `cachePolicies` | cache replacement policies (`ICache` implementations) |
-| `dataAccess` | request sources: random generators and the AFS log reader |
-| `simulation` | the simulation itself and its statistics |
-| `output` | CSV / XLS / console export |
-| `fx` | JavaFX user interface (`/fx/main.fxml`, `/fx/app.css`), in `cachesim-gui` |
+| `policy` | cache replacement policies (`CachePolicy` subclasses) and their registry, `CachePolicies` |
+| `request` | request sources: random generators and the AFS log reader |
+| `server` | the simulated file server and its per-cache request counters |
+| `simulation` | the simulation itself (`runSimulation`) and its statistics |
+| `config` | `SimulationSettings` and reading/writing `config.xml` |
+| `report` | CSV / XLS / console export |
+| `gui` | JavaFX user interface (`/fx/main.fxml`, `/fx/app.css`), in `cachesim-gui` |
 | `cli` | picocli commands and the Lanterna terminal UI (`cli.tui`), in `cachesim-cli` |
+
+Adding a policy: write a `CachePolicy` subclass and add a `PolicyDescriptor` for it in `CachePolicies`.
+Known behaviour kept from the original simulator, on purpose, is listed in [FOLLOW-UPS.md](FOLLOW-UPS.md).
