@@ -9,21 +9,31 @@ traffic in tables and charts.
 - JDK 25 or newer
 - Maven 3.9 or newer
 
+## Modules
+
+| Module | Artifact | Content |
+|---|---|---|
+| `cachesim-core` | `cache-core` | simulation engine, policies, request sources, CSV/XLS export (no UI) |
+| `cachesim-gui` | `cache-gui` | JavaFX desktop application |
+| `cachesim-cli` | `cache-cli` | command line and interactive terminal UI |
+
 ## Build
 
 ```sh
 mvn clean verify
 ```
 
-This runs the tests and builds a runnable jar with all dependencies:
-`cachesim2/target/cache-core-3.0-alpha-jar-with-dependencies.jar`.
+This runs the tests and builds two runnable jars with all dependencies:
 
-## Run
+- `cachesim-gui/target/cache-gui-3.0-alpha-jar-with-dependencies.jar`
+- `cachesim-cli/target/cache-cli-3.0-alpha-jar-with-dependencies.jar`
+
+## Run the GUI
 
 ```sh
-mvn -pl cachesim2 javafx:run
-# or
-java -jar cachesim2/target/cache-core-3.0-alpha-jar-with-dependencies.jar
+java -jar cachesim-gui/target/cache-gui-3.0-alpha-jar-with-dependencies.jar
+# or, after `mvn install -DskipTests`:
+mvn -pl cachesim-gui javafx:run
 ```
 
 The GUI is JavaFX. The runnable jar contains the JavaFX native libraries for the
@@ -31,9 +41,29 @@ platform it was **built on** (Linux, Windows or macOS); build it on the platform
 to run it on. Running from the classpath prints a harmless
 `Unsupported JavaFX configuration` warning at startup.
 
-Settings are stored in `config.xml` in the working directory when the application exits.
+## Run in a terminal
 
-## Project layout
+```sh
+alias cachesim='java -jar cachesim-cli/target/cache-cli-3.0-alpha-jar-with-dependencies.jar'
+
+cachesim                      # interactive terminal UI (same as `cachesim tui`)
+cachesim list-policies        # policy names usable with --policies
+cachesim run --help           # all options
+
+# Zipf requests, a few policies and sizes, results as tables
+cachesim run -n 100000 -p lru,arc,lirs,2q,lfu-ss -c 8,64,512
+
+# replay an AFS log, all policies, save a spreadsheet
+cachesim run -l afs.log -f xls -o results.xls
+```
+
+`run` prints tables to stdout (or CSV with `-f csv`), and the progress bar to stderr only
+when attached to a terminal, so its output can be piped. Ctrl+C stops a running simulation.
+Settings not given on the command line come from `config.xml` when it exists.
+
+The GUI stores its settings in `config.xml` in the working directory when it exits.
+
+## Packages
 
 | Package | Content |
 |---|---|
@@ -41,4 +71,5 @@ Settings are stored in `config.xml` in the working directory when the applicatio
 | `dataAccess` | request sources: random generators and the AFS log reader |
 | `simulation` | the simulation itself and its statistics |
 | `output` | CSV / XLS / console export |
-| `fx` | JavaFX user interface (`/fx/main.fxml`, `/fx/app.css`) |
+| `fx` | JavaFX user interface (`/fx/main.fxml`, `/fx/app.css`), in `cachesim-gui` |
+| `cli` | picocli commands and the Lanterna terminal UI (`cli.tui`), in `cachesim-cli` |
